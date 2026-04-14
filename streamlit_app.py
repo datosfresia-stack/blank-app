@@ -1,4 +1,16 @@
 import streamlit as st
+import google.generativeai as genai
+
+# Conectamos con la llave que guardaste en Secrets
+try:
+    if "GOOGLE_API_KEY" in st.secrets:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+    else:
+        st.error("Aún no encuentro la llave en Secrets.")
+except Exception as e:
+    st.error(f"Error de conexión: {e}")
 
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
@@ -9,37 +21,31 @@ with st.sidebar:
     st.write("Presión: **117/76** | Pulso: **66**")
     st.divider()
     st.header("📁 Archivos")
-    archivo = st.file_uploader("Sube videos o fotos", type=["mp4", "mov", "jpg", "png"])
+    archivo = st.file_uploader("Sube videos o fotos aquí", type=["mp4", "mov", "jpg", "png"])
 
 # Memoria del chat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Mostrar mensajes anteriores
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-# Lógica de respuesta mejorada
-if p := st.chat_input("Hablemos, Miguel..."):
+# Chat inteligente
+if p := st.chat_input("Hola Miguel, hablemos de lo que quieras..."):
     st.session_state.messages.append({"role": "user", "content": p})
     with st.chat_message("user"):
         st.markdown(p)
 
     with st.chat_message("assistant"):
-        texto_usuario = p.lower()
+        contexto = "Eres Libre, el asistente personal de Miguel Alarcón en Fresia. Eres sabio, amable y conoces mucho sobre naturaleza y salud. Responde siempre con cariño."
         
-        # Respuestas inteligentes según lo que escribas
-        if "presión" in texto_usuario or "salud" in texto_usuario:
-            respuesta = "Tu presión está en 117/76. Te ves bien hoy, Miguel."
-        elif "matico" in texto_usuario or "meli" in texto_usuario:
-            respuesta = "El Matico es excelente para cicatrizar. ¿Quieres que te diga cómo prepararlo?"
-        elif "fresia" in texto_usuario:
-            respuesta = "Fresia es hermosa hoy. ¿Qué parte del jardín quieres mostrarme?"
-        elif archivo and "archivo" in texto_usuario:
-            respuesta = f"Ya recibí tu archivo '{archivo.name}'. ¡Se ve muy interesante!"
-        else:
-            respuesta = "Te entiendo, Miguel. Cuéntame más sobre eso o sobre lo que viste en el jardín hoy."
-
-        st.markdown(respuesta)
-        st.session_state.messages.append({"role": "assistant", "content": respuesta})
+        try:
+            # Aquí Libre usa su nuevo cerebro
+            response = model.generate_content(f"{contexto} Pregunta de Miguel: {p}")
+            r_text = response.text
+        except:
+            r_text = "Todavía estoy terminando de despertar, Miguel. Dame un momento o revisa si guardaste bien la clave."
+            
+        st.markdown(r_text)
+        st.session_state.messages.append({"role": "assistant", "content": r_text})
