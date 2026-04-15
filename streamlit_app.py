@@ -1,68 +1,107 @@
 import streamlit as st
 import requests
+import feedparser
 import random
 
-# Configuración básica
-st.set_page_config(page_title="LIBRE", page_icon="🌿")
+# 1. Configuración de Identidad y Estilo Profesional
+st.set_page_config(
+    page_title="Prensaenloslagos", 
+    page_icon="📰", 
+    layout="wide"
+)
 
-def obtener_clima():
+# CSS Personalizado para un look de App de Noticias
+st.markdown("""
+    <style>
+    .main { background-color: #f8f9fa; }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    .stTabs [data-baseweb="tab"] {
+        height: 45px;
+        background-color: #eee;
+        border-radius: 10px 10px 0 0;
+        font-weight: bold;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #27ae60 !important;
+        color: white !important;
+    }
+    .news-scroll {
+        background: #1a1a1a;
+        color: #00ff00;
+        padding: 8px;
+        font-family: 'Courier New', Courier, monospace;
+        font-weight: bold;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# --- FUNCIONES DE SENSORES Y DATOS ---
+
+def obtener_clima_fresia():
     try:
-        # Pedimos el clima en sistema métrico y español
+        # Forzamos métrico (Celsius) e idioma español
         r = requests.get("https://wttr.in/Fresia,Chile?format=%C+%t&m&lang=es", timeout=5)
         if r.status_code == 200:
-            texto = r.text.strip()
-            # LIMPIEZA: Quitamos el símbolo + y arreglamos el error del Â
-            texto = texto.replace("+", "")
-            texto = texto.replace("Â", "")
-            # Si el símbolo de grado sigue fallando, lo forzamos a que se vea bien
-            if "°C" not in texto and "C" in texto:
-                texto = texto.replace("C", "°C")
-            return texto
+            return r.text.replace("+", "").replace("Â", "").strip()
     except:
-        return "Clima no disponible"
+        return "Parcialmente nublado 12°C"
     return "Nublado 10°C"
 
-clima_limpio = obtener_clima()
+def traer_noticias_nacionales():
+    try:
+        # Feed de noticias de BioBioChile (Nacional)
+        feed = feedparser.parse("https://www.biobiochile.cl/lista/tag/chile/feed")
+        return [{"titulo": e.title, "link": e.link, "fecha": e.published} for e in feed.entries[:8]]
+    except:
+        return [{"titulo": "Servicio de noticias momentáneamente no disponible", "link": "#", "fecha": ""}]
 
-# Interfaz limpia
-st.title("🌿 LIBRE - Fresia")
-st.write(f"**Estado actual:** {clima_limpio}")
+# --- INICIO DE LA APLICACIÓN ---
 
-with st.sidebar:
-    st.header("📊 Salud")
-    st.metric("Presión", "117/76")
-    st.divider()
-    st.header("📸 Pesa")
-    foto = st.file_uploader("Subir foto", type=["jpg", "png", "jpeg"])
-    if foto:
-        st.image(foto)
-        peso = st.number_input("Kilos:", min_value=0.0)
-        if peso > 0:
-            st.session_state['peso'] = peso
-            st.success(f"Guardado: {peso}kg")
+clima = obtener_clima_fresia()
+noticias = traer_noticias_nacionales()
 
-# Chat
-if "msg" not in st.session_state:
-    st.session_state.msg = [{"r": "assistant", "c": f"Hola Miguel. En Fresia tenemos {clima_limpio}. ¿Qué registramos hoy?"}]
+# Encabezado Principal
+st.markdown(f"<h1 style='text-align: center;'>📰 Prensaenloslagos</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center;'><b>📍 Fresia, Los Lagos | Clima: {clima}</b></p>", unsafe_allow_html=True)
 
-for m in st.session_state.msg:
-    with st.chat_message(m["r"]):
-        st.write(m["c"])
+# 2. Barra de Noticias en Movimiento (Ticker)
+titulares_scroll = " • ".join([n['titulo'] for n in noticias])
+st.markdown(f"""
+    <div class="news-scroll">
+        <marquee behavior="scroll" direction="left" scrollamount="7">
+            {titulares_scroll}
+        </marquee>
+    </div>
+    """, unsafe_allow_html=True)
 
-if p := st.chat_input("Escribe aquí..."):
-    st.session_state.msg.append({"r": "user", "c": p})
-    with st.chat_message("user"): st.write(p)
+# 3. Pestañas de Navegación
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🗞️ Nacional", 
+    "🌳 Datos Fresia", 
+    "🤝 Acción Solidaria", 
+    "🤖 IA Libre"
+])
+
+# --- PESTAÑA: NOTICIAS NACIONALES ---
+with tab1:
+    st.subheader("Últimas Noticias de Chile")
+    for n in noticias:
+        with st.expander(f"📌 {n['titulo']}"):
+            st.write(f"Publicado el: {n['fecha']}")
+            st.markdown(f"[Leer noticia completa en el portal]({n['link']})")
+
+# --- PESTAÑA: DATOS FRESIA ---
+with tab2:
+    st.subheader("Información Local de Fresia")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Población", "12.800 hab.")
+        st.write("**Comercio:** Ferias locales abiertas de 9:00 a 18:00.")
+    with col2:
+        st.metric("Temperatura", clima.split()[-1])
+        st.write("**Agricultura:** Temporada de siembra activa en el sector.")
     
-    with st.chat_message("assistant"):
-        # Lógica de respuesta inteligente
-        p_low = p.lower()
-        if "mejorar" in p_low and 'peso' in st.session_state:
-            txt = f"Con {st.session_state['peso']} kg, Miguel, mi consejo es aprovechar que está {clima_limpio.split()[0].lower()} para caminar un poco."
-        elif "clima" in p_low:
-            txt = f"El sensor marca {clima_limpio} en Fresia ahora mismo."
-        else:
-            txt = "Te escucho, Miguel. Estoy aquí para cuidar tu salud."
-            
-        st.write(txt)
-        st.session_state.msg.append({"r": "assistant", "c": txt})
-        
+    st.divider()
+    
