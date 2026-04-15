@@ -1,16 +1,10 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Conectamos con la llave que guardaste en Secrets
-try:
-    if "GOOGLE_API_KEY" in st.secrets:
-        api_key = st.secrets["GOOGLE_API_KEY"]
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-    else:
-        st.error("Aún no encuentro la llave en Secrets.")
-except Exception as e:
-    st.error(f"Error de conexión: {e}")
+# Conexión directa y obligatoria
+# Si esto falla, la app nos dirá exactamente por qué
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
