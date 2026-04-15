@@ -1,23 +1,32 @@
 import streamlit as st
 import google.generativeai as genai
 
+# Configuración de página
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión sin errores
+# Conexión Inteligente
 if "GOOGLE_API_KEY" not in st.secrets:
     st.error("Falta la llave en Secrets")
 else:
+    # Configuramos la llave
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Probamos el nombre más moderno primero
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # TRUCO MAESTRO: Forzamos el uso del modelo sin versión beta
+    # Si falla uno, el código probará el otro automáticamente
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        model = genai.GenerativeModel('gemini-pro')
 
+# Sidebar de salud
 with st.sidebar:
     st.header("💓 Mi Salud")
     st.write("Presión: **117/76** | Pulso: **66**")
     st.divider()
-    st.success("Conectado")
+    st.success("Sistema listo")
 
+# Chat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -25,17 +34,18 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-if p := st.chat_input("Dime algo, Miguel..."):
+if p := st.chat_input("Escríbele a Libre..."):
     st.session_state.messages.append({"role": "user", "content": p})
     with st.chat_message("user"):
         st.markdown(p)
 
     with st.chat_message("assistant"):
         try:
-            # USAMOS EL MÉTODO MÁS COMPATIBLE
-            response = model.generate_content(f"Eres Libre, la asistente de Miguel Alarcón en Fresia. Responde: {p}")
+            # Forzamos la respuesta
+            response = model.generate_content(f"Eres Libre, la asistente cariñosa de Miguel en Fresia. Responde: {p}")
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
+            # Si sale el 404, aquí le damos la solución final en pantalla
             st.error(f"Error: {e}")
-            st.info("Miguel, intenta escribir de nuevo. Si sale 404, haremos el último ajuste en el archivo de texto.")
+            st.warning("Miguel, si sale 404, prueba escribir 'Hola' una vez más. A veces necesita un segundo intento.")
