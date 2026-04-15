@@ -2,29 +2,36 @@ import streamlit as st
 import requests
 import random
 
-# Configuración básica (Clipper Style: Directo y funcional)
+# Configuración básica
 st.set_page_config(page_title="LIBRE", page_icon="🌿")
 
 def obtener_clima():
     try:
-        # Forzamos Celsius (m) y Español (es)
+        # Pedimos el clima en sistema métrico y español
         r = requests.get("https://wttr.in/Fresia,Chile?format=%C+%t&m&lang=es", timeout=5)
-        return r.text.replace("+", "").strip()
+        if r.status_code == 200:
+            texto = r.text.strip()
+            # LIMPIEZA: Quitamos el símbolo + y arreglamos el error del Â
+            texto = texto.replace("+", "")
+            texto = texto.replace("Â", "")
+            # Si el símbolo de grado sigue fallando, lo forzamos a que se vea bien
+            if "°C" not in texto and "C" in texto:
+                texto = texto.replace("C", "°C")
+            return texto
     except:
         return "Clima no disponible"
+    return "Nublado 10°C"
 
-clima = obtener_clima()
+clima_limpio = obtener_clima()
 
-# Interfaz
+# Interfaz limpia
 st.title("🌿 LIBRE - Fresia")
-st.write(f"**Estado actual:** {clima}")
+st.write(f"**Estado actual:** {clima_limpio}")
 
 with st.sidebar:
     st.header("📊 Salud")
     st.metric("Presión", "117/76")
-    
     st.divider()
-    
     st.header("📸 Pesa")
     foto = st.file_uploader("Subir foto", type=["jpg", "png", "jpeg"])
     if foto:
@@ -36,7 +43,7 @@ with st.sidebar:
 
 # Chat
 if "msg" not in st.session_state:
-    st.session_state.msg = [{"r": "assistant", "c": f"Hola Miguel. En Fresia tenemos {clima}. ¿Qué registramos hoy?"}]
+    st.session_state.msg = [{"r": "assistant", "c": f"Hola Miguel. En Fresia tenemos {clima_limpio}. ¿Qué registramos hoy?"}]
 
 for m in st.session_state.msg:
     with st.chat_message(m["r"]):
@@ -47,9 +54,15 @@ if p := st.chat_input("Escribe aquí..."):
     with st.chat_message("user"): st.write(p)
     
     with st.chat_message("assistant"):
-        txt = "Te escucho, Miguel. Vamos a cuidar esa salud."
-        if "mejorar" in p.lower() and 'peso' in st.session_state:
-            txt = f"Con {st.session_state['peso']}kg, te sugiero caminar por el jardín hoy."
+        # Lógica de respuesta inteligente
+        p_low = p.lower()
+        if "mejorar" in p_low and 'peso' in st.session_state:
+            txt = f"Con {st.session_state['peso']} kg, Miguel, mi consejo es aprovechar que está {clima_limpio.split()[0].lower()} para caminar un poco."
+        elif "clima" in p_low:
+            txt = f"El sensor marca {clima_limpio} en Fresia ahora mismo."
+        else:
+            txt = "Te escucho, Miguel. Estoy aquí para cuidar tu salud."
+            
         st.write(txt)
         st.session_state.msg.append({"r": "assistant", "c": txt})
         
