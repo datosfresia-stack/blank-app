@@ -5,17 +5,14 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión reforzada
+# Conexión definitiva
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Forzamos el uso del modelo estable
-    model = genai.GenerativeModel(
-        model_name='gemini-1.5-flash',
-        # Esta línea de abajo es el secreto para que no falle el 404
-        generation_config={"typical_p": 1} 
-    )
+    # Usamos el nombre más compatible
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception as e:
     st.error(f"Error en la llave: {e}")
+
 # Barra lateral con tu información
 with st.sidebar:
     st.header("💓 Mi Salud")
