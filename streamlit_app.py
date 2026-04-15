@@ -8,10 +8,10 @@ st.title("🌿 LIBRE")
 # Conexión con la llave de Secrets
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Probamos con el nombre estándar de Gemini Pro
+    model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
     st.error(f"Error en la llave: {e}")
-
 # Barra lateral con tu información
 with st.sidebar:
     st.header("💓 Mi Salud")
