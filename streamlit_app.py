@@ -13,7 +13,7 @@ try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     
     # Configuramos el modelo con el nombre más básico posible
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash', generation_config={"max_output_tokens": 2048})
     
     # Prueba interna de seguridad
     st.success("✅ ¡Conexión establecida con el cerebro de Libre!")
