@@ -5,7 +5,7 @@ st.set_page_config(page_title="Libre", page_icon="🌿")
 st.title("🌿 LIBRE")
 
 if "GOOGLE_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY="AIzaSyA5JSdx5cO8JI8nCnQJ-0EdK32uiVqnELs"])
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY=AIzaSyA5JSdx5cO8JI8nCnQJ-0EdK32uiVqnELs"])
     model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     st.error("Falta la API KEY")
