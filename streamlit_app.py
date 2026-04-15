@@ -25,10 +25,10 @@ if p := st.chat_input("Dime algo, Miguel..."):
     
     with st.chat_message("assistant"):
         try:
-            # Instrucción para que sepa quién es
+            # Forzamos la ruta completa del modelo para saltar el error 404
+            model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
+            
             prompt_final = f"Eres Libre, la asistente cariñosa de Miguel Alarcón en Fresia. Responde: {p}"
             response = model.generate_content(prompt_final)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"Casi listo, Miguel. Intenta escribir de nuevo. (Error: {e})")
