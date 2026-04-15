@@ -2,132 +2,106 @@ import streamlit as st
 import requests
 import feedparser
 
-# 1. Configuración de la App
+# 1. CONFIGURACIÓN DE LA APP
 st.set_page_config(
     page_title="Prensaenloslagos", 
     page_icon="📰", 
     layout="wide"
 )
 
-# --- ESTILOS PROFESIONALES ---
+# --- ESTILOS VISUALES ---
 st.markdown("""
     <style>
-    .main { background-color: #f0f2f6; }
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
-    .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        background-color: #ffffff;
-        border-radius: 10px 10px 0 0;
-        font-weight: bold;
-        border: 1px solid #ddd;
+    .main { background-color: #f8f9fa; }
+    .ticker-wrapper {
+        background: #000000;
+        color: #3dfc03;
+        padding: 12px;
+        font-family: 'Courier New', monospace;
+        font-size: 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
     }
     .stTabs [aria-selected="true"] {
         background-color: #27ae60 !important;
         color: white !important;
     }
-    .ticker-wrapper {
-        background: #000000;
-        color: #3dfc03;
-        padding: 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 18px;
-        border-radius: 5px;
-        margin-bottom: 25px;
-    }
     </style>
     """, unsafe_allow_html=True)
 
 # --- FUNCIONES DE DATOS ---
-def obtener_clima_fresia():
+def obtener_clima():
     try:
-        # Consultamos el clima real de Fresia
         r = requests.get("https://wttr.in/Fresia,Chile?format=%C+%t&m&lang=es", timeout=5)
-        if r.status_code == 200:
-            return r.text.replace("+", "").replace("Â", "").strip()
+        return r.text.replace("+", "").strip() if r.status_code == 200 else "Despejado 14°C"
     except:
         return "Despejado 14°C"
-    return "Nublado 12°C"
 
-def traer_noticias_nacionales():
+def traer_noticias():
     try:
-        # Leemos el feed de BioBioChile
         feed = feedparser.parse("https://www.biobiochile.cl/lista/tag/chile/feed")
-        if feed.entries:
-            return [{"titulo": e.title, "link": e.link} for e in feed.entries[:10]]
-        return []
+        return [{"titulo": e.title, "link": e.link} for e in feed.entries[:10]] if feed.entries else []
     except:
         return []
 
-# --- CARGA INICIAL ---
-clima = obtener_clima_fresia()
-noticias = traer_noticias_nacionales()
+# --- CARGA DE DATOS ---
+clima = obtener_clima()
+noticias = traer_noticias()
 
-# --- ENCABEZADO ---
-st.markdown("<h1 style='text-align: center; color: #1e3a8a; margin-bottom: 0;'>📰 Prensaenloslagos</h1>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center; font-size: 1.2rem;'><b>📍 Fresia, Región de Los Lagos | {clima}</b></p>", unsafe_allow_html=True)
+# --- INTERFAZ PRINCIPAL ---
+st.markdown("<h1 style='text-align: center; color: #1e3a8a;'>📰 Prensaenloslagos</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='text-align: center;'><b>📍 Fresia | {clima}</b></p>", unsafe_allow_html=True)
 
-# --- MARQUESINA DE NOTICIAS (El Scroll) ---
+# MARQUESINA (SCROLL)
 if noticias:
-    texto_noticias = "  •  ".join([n['titulo'] for n in noticias])
-    st.markdown(f"""
-        <div class="ticker-wrapper">
-            <marquee scrollamount="8">{texto_noticias}</marquee>
-        </div>
-    """, unsafe_allow_html=True)
-else:
-    st.info("Conectando con el servidor de noticias... Revisa tu archivo requirements.txt")
+    titulares = "  •  ".join([n['titulo'] for n in noticias])
+    st.markdown(f'<div class="ticker-wrapper"><marquee scrollamount="8">{titulares}</marquee></div>', unsafe_allow_html=True)
 
-# --- NAVEGACIÓN POR PESTAÑAS ---
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🗞️ Noticias Chile", 
-    "🌳 Datos Fresia", 
-    "🤝 Centro Solidario", 
-    "🤖 IA Libre"
-])
+# PESTAÑAS
+tab1, tab2, tab3, tab4 = st.tabs(["🗞️ Noticias", "🌳 Datos Fresia", "🤝 Solidario", "🤖 IA Libre"])
 
 with tab1:
-    st.subheader("Titulares Nacionales")
+    st.subheader("Últimas Noticias")
     if noticias:
         for n in noticias:
-            st.markdown(f"🔹 **[{n['titulo']}]({n['link']})**")
+            st.markdown(f"🔹 [{n['titulo']}]({n['link']})")
     else:
-        st.write("No se pudieron cargar las noticias. Revisa la conexión.")
+        st.info("Cargando noticias nacionales...")
 
 with tab2:
-    st.subheader("Información de nuestra comuna")
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric("Población Fresia", "12.800 hab.")
-        st.write("**Dato Local:** El comercio atiende mayoritariamente hasta las 19:00 hrs.")
-    with col_b:
-        st.metric("Condición Actual", clima)
-        st.write("**Agricultura:** Condiciones óptimas para trabajo de campo hoy.")
+    st.subheader("Datos de Fresia")
+    st.write("Información local para la comunidad.")
+    st.metric("Población Local", "12.800 hab.")
 
 with tab3:
-    st.subheader("🤝 Centro Solidario en Acción")
-    st.success("¡Participa en las campañas de ayuda en la Región de Los Lagos!")
-    st.markdown("""
-    * **Campaña de Invierno:** Recolección de ropa de abrigo.
-    * **Ayuda Directa:** Coordinación de voluntarios para Fresia y alrededores.
-    """)
-    if st.button("Quiero ayudar"):
+    st.subheader("Centro Solidario")
+    st.success("Campaña: Ayuda para el invierno en la Región de Los Lagos.")
+    if st.button("Unirme"):
         st.balloons()
-        st.write("¡Gracias por tu espíritu solidario! Pronto daremos más detalles.")
 
 with tab4:
-    st.subheader("🤖 Consulta a la IA Libre")
-    st.write("Bienvenido. Soy Libre, asistente de Miguel Alarcón para sus 18k seguidores.")
-    
+    st.subheader("Consulta a Libre")
     if "messages" not in st.session_state:
         st.session_state.messages = []
+    
+    for m in st.session_state.messages:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
 
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
-
-    if prompt := st.chat_input("¿Qué deseas saber hoy?"):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"): st.markdown(prompt)
+    if p := st.chat_input("Escribe tu duda aquí"):
+        st.session_state.messages.append({"role": "user", "content": p})
+        with st.chat_message("user"):
+            st.markdown(p)
         
         with st.chat_message("assistant"):
-            respuesta = f"En Prensaenloslagos estamos para servirte. Hoy en Fresia tenemos {clima}. ¿Necesitas información
+            # Respuesta segura sin cortes
+            resp = f"Hola, soy Libre. Hoy en Fresia tenemos {clima}. ¿Cómo puedo apoyarte hoy?"
+            st.markdown(resp)
+            st.session_state.messages.append({"role": "assistant", "content": resp})
+
+# BARRA LATERAL
+with st.sidebar:
+    st.header("⚙️ Panel de Control")
+    st.write("Bienvenido, Miguel.")
+    st.divider()
+    st.file_uploader("Subir registro de salud", type=['jpg', 'png'])
