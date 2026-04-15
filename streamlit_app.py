@@ -1,89 +1,102 @@
 import streamlit as st
-import requests
-import feedparser
 
-# 1. CONFIGURACIÓN
-st.set_page_config(page_title="Prensaenloslagos", page_icon="📰", layout="wide")
+# 1. CONFIGURACIÓN DE LA PÁGINA (Identidad del Proyecto)
+st.set_page_config(
+    page_title="IA Libre - Portal Multiplataforma",
+    page_icon="🤖",
+    layout="wide"
+)
 
-# 2. FUNCIONES DE DATOS (EL MOTOR)
-def obtener_clima():
-    try:
-        r = requests.get("https://wttr.in/Fresia,Chile?format=%C+%t&m&lang=es", timeout=5)
-        return r.text.replace("+", "").strip() if r.status_code == 200 else "Despejado 14°C"
-    except: return "Despejado 14°C"
-
-def obtener_noticias():
-    try:
-        f = feedparser.parse("https://www.biobiochile.cl/lista/tag/chile/feed")
-        return [{"t": e.title, "l": e.link} for e in f.entries[:10]]
-    except: return []
-
-# Carga de datos
-clima = obtener_clima()
-noticias = obtener_noticias()
-
-# 3. DISEÑO DE LA "CASA"
-st.markdown("<h1 style='text-align: center; color: #1877F2;'>📰 Prensaenloslagos</h1>", unsafe_allow_html=True)
-st.markdown(f"<p style='text-align: center;'><b>📍 Fresia, Los Lagos | {clima}</b></p>", unsafe_allow_html=True)
-
-# MARQUESINA (SCROLL VERDE)
-if noticias:
-    titulares = "  •  ".join([n['t'] for n in noticias])
-    st.markdown(f"""
-        <div style="background: black; color: #3dfc03; padding: 10px; font-family: monospace;">
-            <marquee scrollamount="8">{titulares}</marquee>
-        </div>
+# Estilos personalizados para mejorar la apariencia de los títulos
+st.markdown("""
+    <style>
+    .main { background-color: #f5f7f9; }
+    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
+    </style>
     """, unsafe_allow_html=True)
 
-st.write("---")
+# 2. MENÚ LATERAL (Los Brazos del Proyecto)
+st.sidebar.title("Navegación")
+menu = st.sidebar.radio(
+    "Seleccione una sección:",
+    ["🤖 IA LIBRE (CABEZA)", "📰 PRENSAENLOSLAGOS", "📍 DATOSFRESIA", "🤝 CENTRO SOLIDARIO"]
+)
 
-# 4. PESTAÑAS
-tab1, tab2, tab3, tab4 = st.tabs(["🗞️ Noticias", "🔵 Nuestro Facebook", "🤝 Solidario", "🤖 IA Libre"])
+st.sidebar.divider()
+st.sidebar.info("Proyecto Multiplataforma - Fresia, Los Lagos")
 
-with tab1:
-    st.subheader("Titulares Nacionales")
-    for n in noticias:
-        st.markdown(f"🔹 [{n['t']}]({n['l']})")
+# 3. LÓGICA DE CADA SECCIÓN
 
-with tab2:
-    st.subheader("Comunidad en Redes Sociales")
-    st.write("¡Ya somos miles en Facebook! Sigue nuestra cobertura en vivo.")
-    # Botón grande azul tipo Facebook
-    st.markdown("""
-        <a href="https://www.facebook.com/prensaenloslagos" target="_blank">
-            <button style="background-color: #1877F2; color: white; padding: 15px; border: none; border-radius: 10px; cursor: pointer; width: 100%; font-size: 18px;">
-                Ir al Facebook de Prensaenloslagos
-            </button>
-        </a>
-    """, unsafe_allow_html=True)
-    st.info("Haz clic arriba para ver las últimas transmisiones y denuncias ciudadanas.")
-
-with tab3:
-    st.subheader("Centro Solidario")
-    st.success("Campaña: Ayuda para familias de Fresia.")
-    if st.button("Quiero ayudar"): st.balloons()
-
-with tab4:
-    st.subheader("Consulta a Libre (IA)")
-    if "chat" not in st.session_state: st.session_state.chat = []
+# --- SECCIÓN: IA LIBRE ---
+if menu == "🤖 IA LIBRE (CABEZA)":
+    st.title("🤖 IA Libre: Asistente Universal")
+    st.subheader("Motor de consultas, traducción y asesoría profesional")
     
-    for m in st.session_state.chat:
-        with st.chat_message(m["role"]): st.markdown(m["content"])
+    # Simulación de conexión a motores de búsqueda (Google, Yahoo, Hotmail/OneDrive)
+    query = st.text_input("¿En qué puedo asesorarte hoy? (Precios, Leyes, Medicina, Inversiones...)", 
+                          placeholder="Ej: ¿Cómo está el precio del dólar hoy?")
     
-    if p := st.chat_input("Dime algo"):
-        st.session_state.chat.append({"role": "user", "content": p})
-        with st.chat_message("user"): st.markdown(p)
-        
-        # Respuesta automática
-        resp = f"Hola Miguel, soy Libre. Te cuento que en Fresia hay {clima}."
-        st.session_state.chat.append({"role": "assistant", "content": resp})
-        with st.chat_message("assistant"): st.markdown(resp)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("Traducir Voz/Texto"):
+            st.write("Función de traducción activada...")
+    with col2:
+        if st.button("Asesoría Profesional"):
+            st.write("Conectando con base de datos técnica (Leyes, Química, Medicina)...")
+    with col3:
+        if st.button("Consultar Inversiones"):
+            st.write("Analizando mercados globales...")
 
-# BARRA LATERAL
-with st.sidebar:
-    st.image("https://img.icons8.com/color/96/facebook-new.png")
-    st.title("Panel de Control")
-    st.write("Miguel Alarcón")
-    st.divider()
-    st.write("Estado de salud: Estable")
-    st.metric("Presión", "117/76")
+    if query:
+        st.chat_message("assistant").write(f"Buscando información sobre '{query}' en motores Google, Yahoo y bases de datos Linux...")
+
+# --- SECCIÓN: PRENSAENLOSLAGOS ---
+elif menu == "📰 PRENSAENLOSLAGOS":
+    st.title("📰 Prensaenloslagos")
+    st.write("Noticias de Chile y la Región de Los Lagos")
+    
+    tab1, tab2 = st.tabs(["🇨🇱 Nacional", "🏞️ Regional (Los Lagos)"])
+    
+    with tab1:
+        st.header("Hitos Nacionales")
+        st.info("Votaciones Domingo: Seguimiento minuto a minuto.")
+        # Aquí se integraría el feed de WordPress o Google Sites
+        st.markdown("---")
+        st.write("📌 *Espacio para noticias de economía y política.*")
+    
+    with tab2:
+        st.header("Actualidad Regional")
+        st.write("Noticias locales de la Región de Los Lagos.")
+    
+    st.sidebar.button("Compartir en Redes Sociales 📱")
+
+# --- SECCIÓN: DATOSFRESIA ---
+elif menu == "📍 DATOSFRESIA":
+    st.title("📍 DatosFresia")
+    st.subheader("El corazón de la comuna")
+    
+    col_info, col_clima = st.columns(2)
+    with col_info:
+        st.success("🏥 Farmacias de Turno: Revisar horario de hoy.")
+        st.write("🏛️ Noticias Municipales")
+    with col_clima:
+        st.metric(label="Clima en Fresia", value="18°C", delta="Soleado")
+    
+    st.markdown("---")
+    st.write("📷 **Galería Comunal**")
+    # Espacio para cargar imágenes desde la plataforma amigable
+
+# --- SECCIÓN: CENTRO SOLIDARIO ---
+elif menu == "🤝 CENTRO SOLIDARIO":
+    st.title("🤝 El Centro Solidario en Acción")
+    st.write("Visibilizando la ayuda comunitaria y casos sociales.")
+    
+    # Espacio para multimedia
+    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ") # Link de ejemplo para video de ayuda
+    
+    st.subheader("Próximos Eventos Benéficos")
+    st.warning("🎟️ Rifa Solidaria: Sábado 20 de Mayo. ¡Participa!")
+    
+    # Conexión con OneDrive para ver archivos de casos sociales
+    st.write("📂 *Documentación y registros cargados desde OneDrive.*")
+
