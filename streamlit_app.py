@@ -35,7 +35,7 @@ if p := st.chat_input("Dime algo, Miguel..."):
     with st.chat_message("assistant"):
         try:
             # Forzamos el uso del modelo más estable para evitar el 404
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-pro')
             response = model.generate_content(f"Eres Libre, la asistente cariñosa de Miguel Alarcón en Fresia. Responde: {p}")
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
