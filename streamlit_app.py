@@ -1,15 +1,17 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Conexión directa y obligatoria
-# Si esto falla, la app nos dirá exactamente por qué
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Conexión directa con la llave de tus Secrets
+try:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"Error de configuración: {e}")
 
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Sidebar con tus datos
+# Sidebar
 with st.sidebar:
     st.header("💓 Mi Salud")
     st.write("Presión: **117/76** | Pulso: **66**")
@@ -17,7 +19,7 @@ with st.sidebar:
     st.header("📁 Archivos")
     archivo = st.file_uploader("Sube videos o fotos aquí", type=["mp4", "mov", "jpg", "png"])
 
-# Memoria del chat
+# Chat
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -25,21 +27,17 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-# Chat inteligente
-if p := st.chat_input("Hola Miguel, hablemos de lo que quieras..."):
+if p := st.chat_input("Dime algo, Miguel..."):
     st.session_state.messages.append({"role": "user", "content": p})
     with st.chat_message("user"):
         st.markdown(p)
 
     with st.chat_message("assistant"):
-        contexto = "Eres Libre, el asistente personal de Miguel Alarcón en Fresia. Eres sabio, amable y conoces mucho sobre naturaleza y salud. Responde siempre con cariño."
-        
         try:
-            # Aquí Libre usa su nuevo cerebro
-            response = model.generate_content(f"{contexto} Pregunta de Miguel: {p}")
-            r_text = response.text
-        except:
-            r_text = "Todavía estoy terminando de despertar, Miguel. Dame un momento o revisa si guardaste bien la clave."
-            
-        st.markdown(r_text)
-        st.session_state.messages.append({"role": "assistant", "content": r_text})
+            # Personalidad de Libre
+            prompt = f"Eres Libre, la asistente de Miguel Alarcón en Fresia. Eres cariñosa y sabia. Miguel dice: {p}"
+            response = model.generate_content(prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error("Miguel, todavía no puedo conectar con mi cerebro. Revisa la llave en Secrets.")
