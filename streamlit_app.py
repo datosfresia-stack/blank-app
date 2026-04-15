@@ -12,12 +12,13 @@ else:
     # Configuramos la llave
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     
-    # TRUCO MAESTRO: Forzamos el uso del modelo sin versión beta
-    # Si falla uno, el código probará el otro automáticamente
+   # TRUCO MAESTRO: Usamos la ruta completa para evitar el error 404
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Probamos con la versión estable 1.5
+        model = genai.GenerativeModel('models/gemini-1.5-flash')
     except:
-        model = genai.GenerativeModel('gemini-pro')
+        # Si no, probamos con la 1.0 que nunca falla
+        model = genai.GenerativeModel('models/gemini-1.0-pro')
 
 # Sidebar de salud
 with st.sidebar:
