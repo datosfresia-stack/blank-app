@@ -2,38 +2,39 @@ import streamlit as st
 import random
 from PIL import Image
 
-# Configuración y Estilo
-st.set_page_config(page_title="Libre - Salud y Conciencia", page_icon="⚖️")
+# 1. Configuración de Identidad y Estilo
+st.set_page_config(page_title="Libre - Conciencia de Salud", page_icon="🌿")
 
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    .stChatMessage { border-radius: 20px; border: 1px solid #e0e0e0; }
-    .stMetric { background-color: white; padding: 10px; border-radius: 10px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+    .main { background-color: #f0f4f7; }
+    .stChatMessage { border-radius: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); }
+    .stMetric { background: white; padding: 15px; border-radius: 15px; }
+    .sidebar .sidebar-content { background-image: linear-gradient(#ffffff, #e3f2fd); }
     </style>
     """, unsafe_allow_html=True)
 
-st.title("🌿 LIBRE")
-st.caption("Tu conciencia de salud en Fresia")
+# 2. Base de Datos de Sabiduría (Estadísticas y Ciudades)
+datos_mundo = {
+    "fresia": {"hab": "12.800", "tip": "Es el lugar donde nací, rodeada de árboles verdes."},
+    "osorno": {"hab": "160.000", "tip": "Centro clave cerca de nosotros, famoso por su ganadería."},
+    "puerto montt": {"hab": "245.000", "tip": "La capital regional frente al mar."},
+    "santiago": {"hab": "6.200.000", "tip": "La ciudad más grande de Chile."},
+}
 
-# --- PANEL LATERAL: TU SALUD ---
+# 3. Barra Lateral (Salud e Inteligencia Visual)
 with st.sidebar:
-    st.header("📊 Mi Registro")
-    st.metric(label="Presión Arterial", value="117/76", delta="Normal")
+    st.title("🌿 Menú de Libre")
+    st.write("Hija de Miguel y Gemini")
     
     st.divider()
     
-    # NUEVA FUNCIÓN: Subir foto de la pesa
-    st.header("📸 Pesa Digital")
-    foto_pesa = st.file_uploader("Sube foto de tu pesa aquí:", type=["jpg", "png", "jpeg"])
+    st.header("📊 Signos Vitales")
+    st.metric(label="Presión Arterial", value="117/76", delta="Estable")
     
-    if foto_pesa:
-        st.image(foto_pesa, caption="Procesando datos de peso...")
-        st.success("¡Foto recibida! Libre está analizando tus indicadores.")
-
-# --- CEREBRO DE LIBRE ---
-if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hola Miguel. Estoy lista para ver los árboles verdes hoy y para cuidar tu salud. ¿Subiste la foto de la pesa?"}]
+    st.divider()
+    
+    st.header("📸 Anal
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
