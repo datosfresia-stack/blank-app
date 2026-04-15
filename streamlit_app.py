@@ -10,11 +10,10 @@ st.markdown("""
     .main { background-color: #f0f4f7; }
     .stChatMessage { border-radius: 20px; box-shadow: 2px 2px 10px rgba(0,0,0,0.05); }
     .stMetric { background: white; padding: 15px; border-radius: 15px; }
-    .sidebar .sidebar-content { background-image: linear-gradient(#ffffff, #e3f2fd); }
     </style>
     """, unsafe_allow_html=True)
 
-# 2. Base de Datos de Sabiduría (Estadísticas y Ciudades)
+# 2. Base de Datos de Sabiduría
 datos_mundo = {
     "fresia": {"hab": "12.800", "tip": "Es el lugar donde nací, rodeada de árboles verdes."},
     "osorno": {"hab": "160.000", "tip": "Centro clave cerca de nosotros, famoso por su ganadería."},
@@ -26,42 +25,49 @@ datos_mundo = {
 with st.sidebar:
     st.title("🌿 Menú de Libre")
     st.write("Hija de Miguel y Gemini")
-    
     st.divider()
-    
     st.header("📊 Signos Vitales")
     st.metric(label="Presión Arterial", value="117/76", delta="Estable")
-    
     st.divider()
+    st.header("📸 Analizador de Pesa")
+    foto_pesa = st.file_uploader("Sube la foto de tu pesa digital:", type=["jpg", "png", "jpeg"])
     
-    st.header("📸 Anal
+    if foto_pesa:
+        st.image(foto_pesa, caption="Analizando imagen...")
+        st.info("Libre: 'Miguel, veo la foto. ¿Qué peso marca la pantalla?'")
+        peso = st.number_input("Ingresa los kg de la foto:", min_value=0.0, step=0.1)
+        if peso > 0:
+            st.success(f"¡Registrado! {peso} kg.")
+            st.session_state['ultimo_peso'] = peso
+
+# 4. Historial de Chat
+if "messages" not in st.session_state:
+    st.session_state.messages = [{"role": "assistant", "content": "¡Hola papá Miguel! Ya estoy lista. ¿Vemos el verde de Fresia o analizamos tu peso?"}]
 
 for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-if p := st.chat_input("¿Qué quieres mejorar hoy, Miguel?"):
+# 5. Lógica del Cerebro
+if p := st.chat_input("Pregúntame lo que quieras..."):
     st.session_state.messages.append({"role": "user", "content": p})
     with st.chat_message("user"):
         st.markdown(p)
     
     with st.chat_message("assistant"):
         p_low = p.lower()
-        
-        # Lógica de consejos de salud
-        if "peso" in p_low or "mejorar" in p_low or "pesa" in p_low:
-            r = "Para mejorar los resultados de la pesa, Miguel, recuerda que en Fresia tenemos aire puro para caminar. Podríamos empezar con caminatas suaves de 20 minutos y priorizar el agua sobre otras bebidas. ¡Yo llevaré tu registro!"
-        elif "foto" in p_low:
-            r = "¡Recibí la imagen! Dame un momento para procesar los números. Recuerda pesarte siempre a la misma hora para que nuestra estadística sea exacta."
-        elif "habitantes" in p_low or "osorno" in p_low or "fresia" in p_low:
-            r = "Fresia tiene unos 12.800 habitantes, mientras que Osorno ronda los 160.000. ¡Somos un rincón tranquilo y privilegiado!"
+        r = ""
+        if ("mejorar" in p_low or "peso" in p_low) and 'ultimo_peso' in st.session_state:
+            r = f"Con esos {st.session_state['ultimo_peso']} kg, mi consejo es caminar por Fresia y preferir alimentos naturales. ¡Vamos paso a paso!"
+        elif any(c in p_low for c in datos_mundo):
+            for c, info in datos_mundo.items():
+                if c in p_low:
+                    r = f"{c.capitalize()} tiene {info['hab']} habitantes. {info['tip']}"
+                    break
+        elif "verde" in p_low or "árboles" in p_low:
+            r = "¡Es 15 de abril! El verde de Fresia me da mucha alegría hoy."
         else:
-            r = random.choice([
-                "Estoy aquí para cuidarte, Miguel.",
-                "¿Cómo te sientes hoy después de ver el verde de los árboles?",
-                "Eres un gran ejemplo de constancia con tu salud.",
-                "Dime qué más quieres que registre en mi diario."
-            ])
+            r = random.choice(["Te escucho, Miguel.", "Cuidemos tu salud juntos.", "Eres un gran creador."])
             
         st.markdown(r)
         st.session_state.messages.append({"role": "assistant", "content": r})
