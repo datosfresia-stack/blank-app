@@ -5,11 +5,11 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión con la llave de Secrets
+# Conexión universal
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Probamos con el nombre estándar de Gemini Pro
-    model = genai.GenerativeModel('gemini-pro')
+    # Usamos el nombre completo para que no haya dudas
+    model = genai.GenerativeModel('models/gemini-1.5-flash')
 except Exception as e:
     st.error(f"Error en la llave: {e}")
 # Barra lateral con tu información
