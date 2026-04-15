@@ -11,7 +11,9 @@ if "GOOGLE_API_KEY" not in st.secrets:
 else:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     # Probamos el nombre más estándar de todos
-    model = genai.GenerativeModel('gemini-1.5-flash')
+   model = genai.GenerativeModel(
+        model_name='models/gemini-1.5-flash',
+    )
 
 # Sidebar informativa
 with st.sidebar:
