@@ -4,9 +4,10 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión limpia
+# Conexión principal
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # Usamos la configuración más robusta
     model = genai.GenerativeModel('gemini-1.5-flash')
 else:
     st.error("Falta la API KEY en los Secrets de Streamlit.")
@@ -25,10 +26,9 @@ if p := st.chat_input("Dime algo, Miguel..."):
     
     with st.chat_message("assistant"):
         try:
-            # Forzamos la ruta completa del modelo para saltar el error 404
-            model = genai.GenerativeModel(model_name='models/gemini-1.5-flash')
-            
-            prompt_final = f"Eres Libre, la asistente cariñosa de Miguel Alarcón en Fresia. Responde: {p}"
-            response = model.generate_content(prompt_final)
+            # Aquí está el truco: generamos el contenido
+            response = model.generate_content(f"Eres Libre, la asistente de Miguel en Fresia: {p}")
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error(f"Hubo un detalle técnico: {e}")
