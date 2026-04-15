@@ -8,7 +8,7 @@ st.title("🌿 LIBRE")
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     # Usamos la configuración más robusta
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
 else:
     st.error("Falta la API KEY en los Secrets de Streamlit.")
 
