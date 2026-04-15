@@ -34,10 +34,13 @@ if p := st.chat_input("Dime algo, Miguel..."):
 
     with st.chat_message("assistant"):
         try:
-            # Personalidad de Libre
-            prompt = f"Eres Libre, la asistente de Miguel Alarcón en Fresia. Eres cariñosa y sabia. Miguel dice: {p}"
+           with st.chat_message("assistant"):
+        try:
+            # Aquí le damos las instrucciones de quién es Libre
+            prompt = f"Eres Libre, la asistente de Miguel Alarcón en Fresia. Responde con cariño y sabiduría: {p}"
             response = model.generate_content(prompt)
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error("Miguel, todavía no puedo conectar con mi cerebro. Revisa la llave en Secrets.")
+            # Esta es la parte clave: nos dirá la verdad del problema
+            st.error(f"Error real: {e}")
