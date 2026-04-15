@@ -5,10 +5,12 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión Inteligente
-if "GOOGLE_API_KEY" not in st.secrets:
-    st.error("Falta la llave en Secrets")
-else:
+# Usamos el modelo más compatible que existe para evitar el error 404
+    try:
+        model = genai.GenerativeModel('gemini-1.0-pro')
+    except Exception as e:
+        st.error(f"Error al configurar modelo: {e}")
+        
     # Configuramos la llave
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     
