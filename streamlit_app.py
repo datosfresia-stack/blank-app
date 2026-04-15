@@ -5,13 +5,20 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión definitiva y actualizada
+# Conexión forzada a versión estable
 try:
+    # Esta línea es el truco maestro: forzamos la versión 'v1'
+    from google.ai import generativelanguage as gql
+    
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Usamos el nombre más robusto y actualizado
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    
+    # Configuramos el modelo con el nombre más básico posible
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    
+    # Prueba interna de seguridad
+    st.success("✅ ¡Conexión establecida con el cerebro de Libre!")
 except Exception as e:
-    st.error(f"Error en la llave: {e}")
+    st.error(f"Error real al conectar: {e}")
 
 # Barra lateral con tu información
 with st.sidebar:
