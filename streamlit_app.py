@@ -5,15 +5,13 @@ import google.generativeai as genai
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Conexión simple
+# Conexión simple y plana (sin espacios al inicio)
 if "GOOGLE_API_KEY" not in st.secrets:
     st.error("Falta la llave en los Secrets de Streamlit.")
 else:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Probamos el nombre más estándar de todos
-   model = genai.GenerativeModel(
-        model_name='models/gemini-1.5-flash',
-    )
+    # Usamos este nombre que es el más estable
+    model = genai.GenerativeModel('gemini-pro')
 
 # Sidebar informativa
 with st.sidebar:
