@@ -12,6 +12,7 @@ try:
     model = genai.GenerativeModel('models/gemini-1.5-flash')
 except Exception as e:
     st.error(f"Error en la llave: {e}")
+
 # Barra lateral con tu información
 with st.sidebar:
     st.header("💓 Mi Salud")
