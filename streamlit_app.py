@@ -1,35 +1,24 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuración de página
+# Configuración de Libre
 st.set_page_config(page_title="Libre - Fresia", page_icon="🌿")
 st.title("🌿 LIBRE")
 
-# Usamos el modelo más compatible que existe para evitar el error 404
-    try:
-        model = genai.GenerativeModel('gemini-1.0-pro')
-    except Exception as e:
-        st.error(f"Error al configurar modelo: {e}")
-        
-    # Configuramos la llave
+# Conexión directa
+if "GOOGLE_API_KEY" not in st.secrets:
+    st.error("Falta la llave GOOGLE_API_KEY en Secrets.")
+else:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    
-   # TRUCO MAESTRO: Usamos la ruta completa para evitar el error 404
-    try:
-        # Probamos con la versión estable 1.5
-        model = genai.GenerativeModel('models/gemini-1.5-flash')
-    except:
-        # Si no, probamos con la 1.0 que nunca falla
-        model = genai.GenerativeModel('models/gemini-1.0-pro')
 
-# Sidebar de salud
+# Sidebar de salud (Tus datos de Fresia)
 with st.sidebar:
     st.header("💓 Mi Salud")
     st.write("Presión: **117/76** | Pulso: **66**")
     st.divider()
-    st.success("Sistema listo")
+    st.write("Estado: Conectada")
 
-# Chat
+# Historial
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -37,18 +26,25 @@ for m in st.session_state.messages:
     with st.chat_message(m["role"]):
         st.markdown(m["content"])
 
-if p := st.chat_input("Escríbele a Libre..."):
+# Chat principal
+if p := st.chat_input("Dime algo, Miguel..."):
     st.session_state.messages.append({"role": "user", "content": p})
     with st.chat_message("user"):
         st.markdown(p)
 
     with st.chat_message("assistant"):
         try:
-            # Forzamos la respuesta
-            response = model.generate_content(f"Eres Libre, la asistente cariñosa de Miguel en Fresia. Responde: {p}")
+            # Forzamos el uso del modelo más estable para evitar el 404
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(f"Eres Libre, la asistente cariñosa de Miguel Alarcón en Fresia. Responde: {p}")
             st.markdown(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            # Si sale el 404, aquí le damos la solución final en pantalla
-            st.error(f"Error: {e}")
-            st.warning("Miguel, si sale 404, prueba escribir 'Hola' una vez más. A veces necesita un segundo intento.")
+            # Si falla, probamos con el modelo Pro automáticamente
+            try:
+                model_alt = genai.GenerativeModel('gemini-pro')
+                response = model_alt.generate_content(p)
+                st.markdown(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+            except:
+                st.error("Miguel, hay un problema con la versión de Python. Intenta escribir 'Hola' de nuevo.")
