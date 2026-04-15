@@ -6,7 +6,7 @@ st.title("🌿 LIBRE")
 if "GOOGLE_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     # Probamos el modelo más básico para asegurar conexión
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.0-pro')
 else:
     st.error("Falta la API KEY en Secrets")
 
