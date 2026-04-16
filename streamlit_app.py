@@ -1,18 +1,14 @@
 import streamlit as st
 import requests
-from datetime import datetime
 
 # ---------------------- CONFIGURACIÓN GENERAL ----------------------
 st.set_page_config(page_title="IA LIBRE", page_icon="🌍", layout="wide")
 
-# Estilos profesionales y colores
+# Estilos
 st.markdown("""
     <style>
     .main {background-color: #f0f2f6;}
-    .block-container {padding-top: 1rem; padding-bottom: 1rem;}
-    .css-18e3th9 {padding-top: 2rem;}
-    .stButton>button {width: 100%; border-radius: 10px; font-size: 16px; padding: 10px;}
-    .card {background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;}
+    .block-container {padding-top: 2rem;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -32,7 +28,6 @@ if menu == "🤖 IA LIBRE":
 
     st.markdown("---")
     
-    # Conexión a IA potente
     API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
     def consultar_ia(mensaje):
@@ -52,7 +47,6 @@ if menu == "🤖 IA LIBRE":
         except:
             return "🔌 Verificando conexión..."
 
-    # Interfaz de chat
     with st.form(key="form_ia"):
         pregunta = st.text_area("✍️ ¿En qué te puedo ayudar hoy?", height=120, placeholder="Escribe tu consulta aquí...")
         enviar = st.form_submit_button("🚀 ENVIAR CONSULTA")
@@ -69,41 +63,31 @@ if menu == "🤖 IA LIBRE":
 # ==============================================================
 elif menu == "📰 PRENSA EN LOS LAGOS":
     st.title("📰 PRENSA EN LOS LAGOS")
+    st.subheader("Redireccionando al portal de noticias...")
     
-    # Logo PLL
-    st.image("https://i.imgur.com/yourlogo.png", width=300, caption="Prensa en Los Lagos")
+    # 👇 ESTO ES LO IMPORTANTE: Código mágico para abrir el link
+    url_google = "https://sites.google.com/view/ia-libre/inicio"
     
-    st.subheader("🔗 Accediendo al portal de noticias...")
+    # Botón grande
+    st.link_button("🌐 IR AL SITIO WEB", url_google, type="primary", use_container_width=True)
     
-    # Enlace directo a Google Sites
-    url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
+    # Texto informativo
+    st.info("Si no se abre solo, toca el botón verde de arriba.")
     
-    st.info("📤 Toca el botón de abajo para ver todas las noticias y contenido actualizado:")
-    
-    st.link_button("🌐 IR A PRENSA EN LOS LAGOS", url_google_sites, type="primary", use_container_width=True)
-    
-    st.markdown("---")
-    st.write("📝 **Instrucción:** Tú puedes seguir subiendo fotos, artículos y noticias directamente en tu Google Sites. Aquí solo es el acceso directo.")
+    # Script para intentar abrir automáticamente
+    st.components.v1.html(f"""
+        <script>
+        window.open("{url_google}", "_blank");
+        </script>
+    """, height=0)
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
 # ==============================================================
 elif menu == "📍 DATOS FRESIA":
     st.title("📍 DATOS FRESIA")
-    
-    # Logo Datos Fresia
-    st.image("https://i.imgur.com/yourlogo2.png", width=300, caption="Datos Fresia")
-    
     st.subheader("Información útil y local")
-    
-    st.info("🔗 Aquí también podemos conectarlo a tu Google Sites o dejarlo como panel.")
-    
-    # Ejemplo de enlaces rápidos
-    col1, col2 = st.columns(2)
-    with col1:
-        st.button("💊 Farmacias de Turno", key="2")
-    with col2:
-        st.button("🌤️ Clima Local", key="3")
+    st.write("Aquí irán farmacias, clima y noticias municipales.")
 
 # ==============================================================
 #                 SECCIÓN 4: CENTRO SOLIDARIO
@@ -111,13 +95,8 @@ elif menu == "📍 DATOS FRESIA":
 elif menu == "❤️ CENTRO SOLIDARIO":
     st.title("❤️ CENTRO SOLIDARIO EN ACCIÓN")
     st.subheader("Ayudando a nuestra comunidad")
-
-    st.markdown("---")
-    st.write("📸 Espacio para mostrar fotos y videos de actividades solidarias, bingos, rifas y beneficios.")
-    
-    # Aquí podemos poner otro enlace a Google Sites si quieres
-    st.button("📂 Ver Galería Completa", key="5")
+    st.write("Galería de fotos y videos de actividades solidarias.")
 
 # ---------------------- PIE DE PÁGINA ----------------------
 st.markdown("---")
-st.caption("© 2025 PROYECTO IA LIBRE | Trabajando con Google Sites")
+st.caption("© 2025 PROYECTO IA LIBRE | Integrado con Google Sites")
