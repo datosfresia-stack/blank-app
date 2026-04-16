@@ -1,46 +1,45 @@
 import streamlit as st
 import google.generativeai as genai
+from google.generativeai.types import RequestOptions
 
-st.set_page_config(page_title="IA Libre Fresia")
+# 1. IDENTIDAD
+st.set_page_config(page_title="IA Libre", layout="centered")
 
-# 1. CONEXIÓN LIMPIA
+# 2. CONEXIÓN FORZADA (Asegúrate que tu llave 1w5A esté en Secrets)
 try:
     if "GOOGLE_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        # USAMOS EL MODELO MÁS COMPATIBLE DE TU LISTA
-        # Le quitamos el 'models/' para que no se confunda
-        model = genai.GenerativeModel('gemini-pro')
+        # Usamos el modelo más básico para asegurar compatibilidad
+        model = genai.GenerativeModel('gemini-1.5-flash')
         ia_lista = True
     else:
         ia_lista = False
-        st.error("Falta llave en Secrets")
+        st.error("Configura la llave en Secrets")
 except Exception as e:
     ia_lista = False
     st.error(f"Error: {e}")
 
+# 3. INTERFAZ
 st.title("🤖 IA Libre")
 
 if ia_lista:
     st.success("✅ Conexión con Google establecida")
     
-    pregunta = st.text_input("Haz tu consulta:", key="pregunta_final")
-    
-    if pregunta:
-        with st.spinner("Buscando respuesta..."):
+    if prompt := st.chat_input("¿En qué puedo ayudarte?"):
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        with st.chat_message("assistant"):
             try:
-                # Intento con gemini-pro (El modelo más estable)
-                response = model.generate_content(pregunta)
-                st.markdown("---")
-                st.write(response.text)
+                # LA LÍNEA MÁGICA: Obligamos a usar la API v1
+                # Esto mata el error de 'v1beta' para siempre
+                response = model.generate_content(
+                    prompt, 
+                    request_options=RequestOptions(api_version='v1')
+                )
+                st.markdown(response.text)
             except Exception as e:
-                # Si falla, probamos con la versión de texto puro
-                st.error("Ajustando frecuencia...")
-                try:
-                    model_alt = genai.GenerativeModel('gemini-1.0-pro')
-                    response = model_alt.generate_content(pregunta)
-                    st.write(response.text)
-                except:
-                    st.info(f"Nota del sistema: {e}")
-
-st.divider()
-st.caption("Fresia - Conexión Estable Protegida")
+                # Si esto falla, es que el 'requirements.txt' no está actualizado
+                st.error("Actualizando protocolos...")
+                st.info("Asegúrate de que tu requirements.txt diga: google-generativeai==0.8.3")
+                
