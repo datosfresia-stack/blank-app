@@ -1,44 +1,41 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Configuración de pantalla
-st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
+st.set_page_config(page_title="IA Libre Fresia")
 
-# 2. Conexión a la IA
-# Asegúrate de que tu clave nueva (1w5A) esté en los 'Secrets' de Streamlit
+# 1. CONEXIÓN (Asegúrate que la clave 1w5A esté en Secrets)
 try:
     if "GOOGLE_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        # Intentamos despertar al modelo
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # CAMBIO CLAVE: Usamos 'gemini-pro' en lugar de '1.5-flash'
+        model = genai.GenerativeModel('gemini-pro')
         ia_lista = True
     else:
         ia_lista = False
-        st.warning("⚠️ Configura la clave en los Secrets de Streamlit.")
+        st.error("⚠️ No hay llave en Secrets")
 except Exception as e:
     ia_lista = False
-    st.error(f"Error de inicio: {e}")
+    st.error(f"Error: {e}")
 
-# 3. Interfaz de Usuario
+# 2. INTERFAZ
 st.title("🤖 IA Libre")
-st.caption("Conectado al cerebro de Google (v1.5 Flash)")
 
 if ia_lista:
-    # Usamos una caja de texto simple
-    pregunta = st.text_input("¿Qué deseas consultar hoy?", placeholder="Escribe aquí...")
-    
+    pregunta = st.text_input("Haz tu consulta:")
     if pregunta:
-        with st.spinner("La IA está procesando tu consulta..."):
+        try:
+            # Respuesta directa
+            response = model.generate_content(pregunta)
+            st.markdown(response.text)
+        except Exception as e:
+            # Si falla, pedimos que nos diga la lista de modelos permitidos
+            st.error("Error de conexión.")
+            st.write("Modelos disponibles en tu cuenta:")
             try:
-                # Intento de respuesta estándar
-                response = model.generate_content(pregunta)
-                st.markdown("---")
-                st.markdown(response.text)
-            except Exception as e:
-                # Si la librería es vieja, nos dirá el error aquí
-                st.error("Error al obtener respuesta.")
-                st.info(f"Detalle técnico: {e}")
+                modelos = [m.name for m in genai.list_models()]
+                st.write(modelos)
+            except:
+                st.write("No se pudo listar modelos. Revisa la región de tu cuenta.")
 
-# Pie de página
 st.divider()
-st.link_button("🌐 Portal Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
+st.link_button("🌐 Volver al Portal", "https://sites.google.com/view/ia-libre/inicio")
