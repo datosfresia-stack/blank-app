@@ -1,34 +1,43 @@
 import streamlit as st
 import requests
 
-# 1. Configuración básica
-st.set_page_config(page_title="IA Fresia")
+st.set_page_config(page_title="IA Libre Fresia")
 
-# 2. Título (Esto debería aparecer SIEMPRE)
 st.title("🤖 IA Libre Fresia")
-st.write("Estado: Conectando con la red comunitaria...")
+st.success("✅ ¡Sistema en línea!")
 
-# 3. Función de conexión
+# Usaremos Gemma, que es de Google pero corre libre en Hugging Face (más rápido)
+API_URL = "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it"
+headers = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
+
 def llamar_ia(pregunta):
-    url = "https://api-inference.huggingface.co/models/mistralai/Mistral-Nemo-Instruct-2407"
-    header = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
-    payload = {"inputs": f"<s>[INST] {pregunta} [/INST]"}
+    # Formato para el modelo Gemma
+    payload = {"inputs": pregunta, "parameters": {"max_new_tokens": 500}}
     try:
-        r = requests.post(url, headers=header, json=payload, timeout=15)
+        # Le damos 60 segundos para responder (antes tenía 15)
+        r = requests.post(API_URL, headers=headers, json=payload, timeout=60)
         res = r.json()
+        
         if isinstance(res, list):
-            return res[0]['generated_text'].split('[/INST]')[-1]
-        return "El servidor está despertando, intenta en 10 segundos."
+            return res[0]['generated_text']
+        elif "estimated_time" in str(res):
+            return f"⏳ El cerebro está despertando... listo en {int(res['estimated_time'])} seg. ¡Dale a Enter de nuevo!"
+        else:
+            return "El servidor está ocupado. Intenta una vez más."
+    except requests.exceptions.Timeout:
+        return "La conexión tardó mucho. ¡Intenta preguntar de nuevo ahora que el servidor ya despertó!"
     except:
-        return "Error de conexión temporal."
+        return "Buscando señal..."
 
-# 4. Interfaz
 if "HF_TOKEN" not in st.secrets:
-    st.error("Error: No has puesto el HF_TOKEN en los Secrets.")
+    st.error("Falta configurar el Token.")
 else:
     entrada = st.text_input("Haz tu pregunta:")
     if entrada:
-        with st.spinner("Pensando..."):
+        with st.spinner("La IA de Fresia está pensando..."):
             respuesta = llamar_ia(entrada)
             st.markdown("---")
             st.write(respuesta)
+
+st.divider()
+st.caption("FRESIA - Red de Inteligencia Alternativa")
