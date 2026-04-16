@@ -4,25 +4,13 @@ import requests
 # ---------------------- CONFIGURACIÓN GENERAL ----------------------
 st.set_page_config(page_title="IA LIBRE", page_icon="🌍", layout="wide")
 
-# ---------------------- MENÚ HORIZONTAL ARRIBA ----------------------
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    btn_ia = st.button("🤖 IA LIBRE", use_container_width=True)
-with col2:
-    btn_prensa = st.button("📰 PRENSA", use_container_width=True)
-with col3:
-    btn_datos = st.button("📍 DATOS FRESIA", use_container_width=True)
-with col4:
-    btn_solidario = st.button("❤️ SOLIDARIO", use_container_width=True)
-
-st.markdown("---")
+# ---------------------- MENÚ EN PESTAÑAS HORIZONTALES ----------------------
+tab1, tab2, tab3, tab4 = st.tabs(["🤖 IA LIBRE", "📰 PRENSA", "📍 DATOS FRESIA", "❤️ SOLIDARIO"])
 
 # ==============================================================
-#                      SECCIÓN 1: IA LIBRE
+#                      PESTAÑA 1: IA LIBRE
 # ==============================================================
-# Por defecto carga esta página al inicio
-if btn_ia or not any([btn_prensa, btn_datos, btn_solidario]):
+with tab1:
     st.title("🤖 IA LIBRE")
     st.subheader("Tu asistente inteligente multiplataforma")
     st.success("✅ Sistema activo | Rápido y Preciso")
@@ -60,9 +48,9 @@ if btn_ia or not any([btn_prensa, btn_datos, btn_solidario]):
             st.info(respuesta)
 
 # ==============================================================
-#                 SECCIÓN 2: PRENSA EN LOS LAGOS
+#                      PESTAÑA 2: PRENSA
 # ==============================================================
-elif btn_prensa:
+with tab2:
     st.title("📰 PRENSA EN LOS LAGOS")
     st.subheader("Noticias Nacional y Regional")
 
@@ -72,15 +60,16 @@ elif btn_prensa:
     
     st.markdown("### 👇 TOCA AQUÍ PARA ENTRAR")
     
+    # Este botón abre en la MISMA VENTANA
     st.link_button("🌐 INGRESA A PRENSA EN LOS LAGOS", url_google, type="primary", use_container_width=True)
     
     st.markdown("---")
-    st.write("💡 Al tocar el botón entrarás directo al portal con todo el contenido.")
+    st.write("💡 Al tocar el botón entrarás directo al portal.")
 
 # ==============================================================
-#                   SECCIÓN 3: DATOS FRESIA
+#                      PESTAÑA 3: DATOS FRESIA
 # ==============================================================
-elif btn_datos:
+with tab3:
     st.title("📍 DATOS FRESIA")
     st.subheader("Información útil y local de la comuna")
     st.markdown("---")
@@ -97,9 +86,9 @@ elif btn_datos:
     st.write("Actividades y avisos de la comuna.")
 
 # ==============================================================
-#                 SECCIÓN 4: CENTRO SOLIDARIO
+#                      PESTAÑA 4: CENTRO SOLIDARIO
 # ==============================================================
-elif btn_solidario:
+with tab4:
     st.title("❤️ CENTRO SOLIDARIO EN ACCIÓN")
     st.subheader("Ayudando a nuestra comunidad")
     st.markdown("---")
