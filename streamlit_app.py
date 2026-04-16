@@ -11,8 +11,21 @@ st.markdown("""
     .block-container {padding-top: 1rem; padding-bottom: 1rem;}
     .stButton>button {border-radius: 10px; font-size: 16px; padding: 10px;}
     .card {background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;}
-    /* Estilo para ocultar elementos de Streamlit si es necesario, pero iframe suele reemplazar bien */
-    .stApp > div:first-child {padding-top: 1rem;} /* Ajusta padding superior */
+    /* Estilo para asegurar que el iframe ocupe el espacio */
+    .responsive-iframe {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        padding-top: 56.25%; /* Proporción 16:9 - ajusta si tu contenido tiene otra proporción */
+    }
+    .responsive-iframe iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0; /* Quita el borde del iframe */
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -83,9 +96,14 @@ elif menu == "📰 PRENSA EN LOS LAGOS":
     # Enlace directo a Google Sites
     url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
     
-    # Usamos iframe para incrustar la página de Google Sites directamente en la app
-    # Ajustamos la altura para que ocupe la mayor parte del espacio disponible
-    st.components.v1.iframe(url_google_sites, height=800, scrolling=True, width="100%")
+    # Usamos st.markdown con un iframe HTML para incrustar la página
+    # Ajustamos la altura (height) y el scrolling si es necesario.
+    # El 'width="100%"' asegura que ocupe todo el ancho disponible.
+    st.markdown(f'''
+        <div class="responsive-iframe">
+            <iframe src="{url_google_sites}" height="800" scrolling="yes" width="100%"></iframe>
+        </div>
+    ''', unsafe_allow_html=True)
     
     st.markdown("---")
     st.caption("Contenido gestionado directamente en tu Google Sites.")
@@ -134,18 +152,3 @@ elif menu == "❤️ CENTRO SOLIDARIO":
 
     st.markdown("---")
     st.write("Galería multimedia para mostrar actividades solidarias, bingos, rifas y beneficios.")
-    
-    # Aquí podrías agregar un botón para subir archivos si quieres que sea interactivo
-    # uploaded_file = st.file_uploader("Subir foto o video de actividad", type=["jpg", "png", "mp4"])
-    # if uploaded_file:
-    #     st.success("Archivo subido. ¡Listo para publicar!")
-    
-    st.button("📢 Ver Actividades Pasadas", key="galeria")
-    
-    # Si quieres un enlace a Google Sites para esta sección también, lo pones aquí
-    # url_centro_solidario = "TU_ENLACE_A_GOOGLE_SITES_SI_LO_TIENES"
-    # st.link_button("Ir a Galería Completa", url_centro_solidario, type="secondary", use_container_width=True)
-
-# ---------------------- PIE DE PÁGINA ----------------------
-st.markdown("---")
-st.caption("© 2025 PROYECTO IA LIBRE | Integrado con Google Sites")
