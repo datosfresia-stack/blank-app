@@ -1,44 +1,38 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. SETUP BÁSICO SIN COMPLICACIONES
-st.set_page_config(page_title="IA Libre")
+# 1. Configuración básica
+st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
 
-# CONFIGURAR IA
-API_KEY = "AIzaSyBERnyHBPNKai3y-IGtykVBaTal414UC7M"
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 2. Conexión segura con la llave de los Secrets
+try:
+    # Esto busca la llave en el cofre que configuraste en el Paso 1
+    llave = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=llave)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    ia_lista = True
+except Exception as e:
+    ia_lista = False
+    st.error("Error: Configura la clave en 'Secrets' de Streamlit.")
 
-# 2. INTERFAZ LIMPIA
+# 3. Interfaz
 st.title("🤖 IA Libre")
+st.write("Bienvenido al asistente de Fresia.")
 
-# Usar botones simples en lugar de menús complejos para evitar el error de Node
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("💬 Chat con IA"):
-        st.session_state.seccion = "chat"
-with col2:
-    if st.button("📰 Noticias"):
-        st.session_state.seccion = "noticias"
-
-# Inicializar sección
-if "seccion" not in st.session_state:
-    st.session_state.seccion = "chat"
-
-# 3. LÓGICA
-if st.session_state.seccion == "chat":
-    st.subheader("Asistente Virtual")
-    user_input = st.text_input("¿En qué te ayudo?", key="input_ia")
+if ia_lista:
+    # Una caja de texto simple para evitar errores visuales
+    pregunta = st.text_input("¿En qué te puedo ayudar hoy?")
     
-    if user_input:
-        try:
-            response = model.generate_content(user_input)
-            st.write("---")
-            st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Error: {e}")
+    if pregunta:
+        with st.spinner("Procesando..."):
+            try:
+                # La IA genera la respuesta
+                response = model.generate_content(pregunta)
+                st.subheader("Respuesta:")
+                st.write(response.text)
+            except Exception as e:
+                st.error(f"Google dice: {e}")
 
-elif st.session_state.seccion == "noticias":
-    st.subheader("Portal de Noticias")
-    st.link_button("Abrir Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
-    
+# Botón de auxilio
+st.divider()
+st.link_button("Ir a Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
