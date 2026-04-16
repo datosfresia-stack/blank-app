@@ -4,14 +4,6 @@ import requests
 # ---------------------- CONFIGURACIÓN GENERAL ----------------------
 st.set_page_config(page_title="IA LIBRE", page_icon="🌍", layout="wide")
 
-# Estilos profesionales y colores
-st.markdown("""
-    <style>
-    .main {background-color: #f0f2f6;}
-    .block-container {padding-top: 2rem; padding-bottom: 2rem;}
-    </style>
-""", unsafe_allow_html=True)
-
 # ---------------------- MENÚ DE NAVEGACIÓN ----------------------
 menu = st.sidebar.selectbox(
     "📂 MENU PRINCIPAL",
@@ -43,16 +35,16 @@ if menu == "🤖 IA LIBRE":
                 resultado = respuesta.json()[0]["generated_text"]
                 return resultado.split("[/INST]")[-1].replace("</s>", "").strip()
             else:
-                return "⏳ Procesando... por favor intenta nuevamente."
+                return "⏳ Procesando..."
         except:
-            return "🔌 Verificando conexión..."
+            return "🔌 Conectando..."
 
     with st.form(key="form_ia"):
         pregunta = st.text_area("✍️ ¿En qué te puedo ayudar hoy?", height=120, placeholder="Escribe tu consulta aquí...")
         enviar = st.form_submit_button("🚀 ENVIAR CONSULTA")
 
     if enviar and pregunta:
-        with st.spinner("🧠 IA LIBRE pensando..."):
+        with st.spinner("🧠 Pensando..."):
             respuesta = consultar_ia(pregunta)
             st.markdown("---")
             st.markdown("### 💬 Respuesta:")
@@ -62,21 +54,13 @@ if menu == "🤖 IA LIBRE":
 #                 SECCIÓN 2: PRENSA EN LOS LAGOS
 # ==============================================================
 elif menu == "📰 PRENSA EN LOS LAGOS":
-    st.title("📰 PRENSA EN LOS LAGOS")
-    st.subheader("Noticias Nacional y Regional")
-
-    st.markdown("---")
-    st.info("🔄 Abriendo portal de noticias...")
-
-    # 🪄 CÓDIGO MÁGICO: Se abre AUTOMÁTICAMENTE al entrar aquí
     url_google = "https://sites.google.com/view/ia-libre/inicio"
     
-    # Esto hace que se abra directo
-    st.components.v1.html(f"""
-        <script>
-        window.location.href = "{url_google}";
-        </script>
-    """, height=0)
+    # 🚀 ESTA LÍNEA LO HACE VOLAR
+    st.markdown(f'<meta http-equiv="refresh" content="0; URL={url_google}">', unsafe_allow_html=True)
+    
+    st.title("📰 PRENSA EN LOS LAGOS")
+    st.subheader("Redirigiendo...")
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
@@ -84,20 +68,16 @@ elif menu == "📰 PRENSA EN LOS LAGOS":
 elif menu == "📍 DATOS FRESIA":
     st.title("📍 DATOS FRESIA")
     st.subheader("Información útil y local de la comuna")
-    
     st.markdown("---")
     st.write("Aquí encontrarás datos importantes para el día a día:")
 
     col1, col2 = st.columns(2)
-
     with col1:
         st.subheader("💊 Farmacias de Turno")
         st.write("Consulta las farmacias que están abiertas hoy.")
-
     with col2:
         st.subheader("🌤️ Clima Local")
         st.write("Temperatura y pronóstico del tiempo.")
-
     st.subheader("🏛️ Noticias Municipales")
     st.write("Actividades y avisos de la comuna.")
 
@@ -107,9 +87,8 @@ elif menu == "📍 DATOS FRESIA":
 elif menu == "❤️ CENTRO SOLIDARIO":
     st.title("❤️ CENTRO SOLIDARIO EN ACCIÓN")
     st.subheader("Ayudando a nuestra comunidad")
-
     st.markdown("---")
-    st.write("Galería de fotos y videos de actividades solidarias, bingos, rifas y beneficios.")
+    st.write("Galería de fotos y videos de actividades solidarias.")
 
 # ---------------------- PIE DE PÁGINA ----------------------
 st.markdown("---")
