@@ -8,9 +8,11 @@ st.set_page_config(page_title="IA LIBRE", page_icon="🌍", layout="wide")
 st.markdown("""
     <style>
     .main {background-color: #f0f2f6;}
-    .block-container {padding-top: 2rem;}
+    .block-container {padding-top: 1rem; padding-bottom: 1rem;}
     .stButton>button {border-radius: 10px; font-size: 16px; padding: 10px;}
     .card {background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;}
+    /* Estilo para ocultar elementos de Streamlit si es necesario, pero iframe suele reemplazar bien */
+    .stApp > div:first-child {padding-top: 1rem;} /* Ajusta padding superior */
     </style>
 """, unsafe_allow_html=True)
 
@@ -77,23 +79,16 @@ elif menu == "📰 PRENSA EN LOS LAGOS":
     # st.image("URL_DE_TU_LOGO_PLL.png", width=300, caption="Prensa en Los Lagos")
     
     st.markdown("---")
-    st.info("🔗 Accede a todas las noticias actualizadas directamente en nuestro portal:")
     
     # Enlace directo a Google Sites
     url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
     
-    # Botón para ir al sitio web
-    st.link_button("🌐 IR A PRENSA EN LOS LAGOS", url_google_sites, type="primary", use_container_width=True)
+    # Usamos iframe para incrustar la página de Google Sites directamente en la app
+    # Ajustamos la altura para que ocupe la mayor parte del espacio disponible
+    st.components.v1.iframe(url_google_sites, height=800, scrolling=True, width="100%")
     
-    # Script para intentar abrir automáticamente (puede ser bloqueado por algunos navegadores)
-    st.components.v1.html(f"""
-        <script>
-        window.open("{url_google_sites}", "_blank");
-        </script>
-    """, height=0, width=0) # Ocultamos el script si no es necesario
-
     st.markdown("---")
-    st.write("💡 **Nota:** Puedes seguir subiendo contenido (fotos, artículos) directamente en tu Google Sites.")
+    st.caption("Contenido gestionado directamente en tu Google Sites.")
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
@@ -153,4 +148,4 @@ elif menu == "❤️ CENTRO SOLIDARIO":
 
 # ---------------------- PIE DE PÁGINA ----------------------
 st.markdown("---")
-st.caption("© 2025 PROYECTO IA LIBRE | Desarrollado con tecnología de vanguardia y Google Sites")
+st.caption("© 2025 PROYECTO IA LIBRE | Integrado con Google Sites")
