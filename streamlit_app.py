@@ -1,77 +1,71 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. CONFIGURACIÓN DE PÁGINA
-st.set_page_config(page_title="IA Libre", page_icon="🤖", layout="wide")
+# CONFIGURACIÓN INICIAL
+st.set_page_config(page_title="IA Libre", layout="wide")
 
-# 2. CONEXIÓN AL CEREBRO (LLAVE)
-# Probaremos con una lista de modelos por si uno falla
+# CONEXIÓN DIRECTA
 API_KEY = "AIzaSyBERnyHBPNKai3y-IGtykVBaTal414UC7M"
 genai.configure(api_key=API_KEY)
 
-# Lista de modelos para probar en orden de modernidad
-modelos_a_probar = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
+# FUNCIÓN PARA DESPERTAR EL CEREBRO
+def despertar_cerebro():
+    try:
+        # Esto lista los modelos que tu llave TIENE permiso de usar
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                return m.name
+        return None
+    except:
+        return None
 
-if "modelo_seleccionado" not in st.session_state:
-    st.session_state.modelo_seleccionado = None
+if "modelo_vivo" not in st.session_state:
+    st.session_state.modelo_vivo = despertar_cerebro()
 
-# Buscamos cuál modelo está disponible para tu cuenta
-if st.session_state.modelo_seleccionado is None:
-    for nombre_modelo in modelos_a_probar:
-        try:
-            m = genai.GenerativeModel(nombre_modelo)
-            # Prueba de fuego: un saludo corto
-            m.generate_content("Hola", generation_config={"max_output_tokens": 1})
-            st.session_state.modelo_seleccionado = nombre_modelo
-            break 
-        except:
-            continue
-
-# 3. INTERFAZ Y MENÚ
+# BARRA LATERAL
 with st.sidebar:
-    st.title("🌐 Portal IA Libre")
-    menu = st.radio("Secciones:", ["🤖 IA LIBRE", "📰 NOTICIAS", "📍 FRESIA", "🤝 SOLIDARIO"])
-    st.divider()
-    if st.session_state.modelo_seleccionado:
-        st.success(f"Cerebro: {st.session_state.modelo_seleccionado} ✅")
+    st.title("🌐 Menú")
+    menu = st.radio("Ir a:", ["🤖 IA LIBRE", "📰 NOTICIAS", "📍 FRESIA", "🤝 SOLIDARIO"])
+    if st.session_state.modelo_vivo:
+        st.success("Cerebro Online ✅")
     else:
-        st.error("Cerebro no encontrado ❌")
+        st.error("Cerebro Offline ❌")
 
-url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
-
-# 4. LÓGICA DE IA LIBRE
+# SECCIÓN IA
 if menu == "🤖 IA LIBRE":
-    st.title("🤖 IA Libre: Asistente Universal")
+    st.title("🤖 Asistente IA Libre")
     
-    if not st.session_state.modelo_seleccionado:
-        st.error("No se pudo conectar con ningún modelo de Google. Revisa tu archivo requirements.txt")
-    else:
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
+    if not st.session_state.modelo_vivo:
+        st.warning("Google aún no activa tu llave. Intenta escribir algo abajo para forzar la conexión.")
+    
+    if "chat" not in st.session_state:
+        st.session_state.chat = []
 
-        for msg in st.session_state.chat_history:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
+    for m in st.session_state.chat:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
 
-        if prompt := st.chat_input("¿En qué puedo asesorarte hoy?"):
-            st.session_state.chat_history.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+    if prompt := st.chat_input("Escribe tu consulta aquí..."):
+        st.session_state.chat.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
 
-            with st.chat_message("assistant"):
-                try:
-                    modelo_final = genai.GenerativeModel(st.session_state.modelo_seleccionado)
-                    response = modelo_final.generate_content(prompt)
-                    st.markdown(response.text)
-                    st.session_state.chat_history.append({"role": "assistant", "content": response.text})
-                except Exception as e:
-                    st.error(f"Error al generar respuesta: {e}")
+        with st.chat_message("assistant"):
+            try:
+                # Usamos el modelo que el sistema encontró disponible
+                m_name = st.session_state.modelo_vivo if st.session_state.modelo_vivo else "models/gemini-pro"
+                model = genai.GenerativeModel(m_name)
+                response = model.generate_content(prompt)
+                st.markdown(response.text)
+                st.session_state.chat.append({"role": "assistant", "content": response.text})
+            except Exception as e:
+                st.error(f"Error técnico: {e}")
 
-# Resto de secciones abreviadas para velocidad
+# SECCIONES DE ENLACE
 elif menu == "📰 NOTICIAS":
-    st.link_button("👉 VER PRENSAENLOSLAGOS", url_google_sites)
+    st.link_button("Ir a Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
 elif menu == "📍 FRESIA":
-    st.link_button("👉 VER DATOS FRESIA", url_google_sites)
+    st.link_button("Ir a DatosFresia", "https://sites.google.com/view/ia-libre/inicio")
 elif menu == "🤝 SOLIDARIO":
-    st.link_button("👉 VER CENTRO SOLIDARIO", url_google_sites)
+    st.link_button("Ir a Centro Solidario", "https://sites.google.com/view/ia-libre/inicio")
     
