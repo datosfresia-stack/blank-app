@@ -1,51 +1,62 @@
 import streamlit as st
-from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
+import requests
 
-st.set_page_config(page_title="IA Libre Fresia", layout="wide")
+# CONFIGURACIÓN DE LA PÁGINA
+st.set_page_config(page_title="Fresia AI", page_icon="🤖", layout="centered")
 
-st.title("🤖 IA Libre Fresia")
-st.success("✅ ¡Sistema en línea!")
+# ESTILOS PROFESIONALES
+st.markdown("""
+    <style>
+    .main {background-color: #0e1117; color: white;}
+    .stTextInput, .stTextArea {border-radius: 20px;}
+    .stButton>button {border-radius: 20px; width: 100%; font-size: 18px; padding: 10px;}
+    </style>
+""", unsafe_allow_html=True)
 
-# Cargamos modelo que funciona bien
-@st.cache_resource
-def cargar_ia():
-    model_name = "datificate/gpt2-small-spanish"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    return pipeline("text-generation", model=model, tokenizer=tokenizer)
+st.title("🤖 Fresia AI")
+st.subheader("Tu asistente inteligente personal")
 
-ia = cargar_ia()
+# 🚀 CONEXIÓN DIRECTA Y RÁPIDA A LA IA
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1"
 
-# ---------------- INTERFAZ ----------------
-st.info("✍️ Escribe tu pregunta")
-
-with st.form(key="form_pregunta"):
-    entrada = st.text_area("¿Qué quieres saber?", height=100, placeholder="Escribe aquí...")
-    enviar = st.form_submit_button("🚀 Enviar")
+def consultar_ia(mensaje):
+    headers = {"Accept": "application/json"}
     
-if enviar and entrada:
-    with st.spinner("🧠 Pensando..."):
-        try:
-            # Generamos respuesta
-            secuencia = ia(
-                entrada,
-                max_length=len(entrada) + 100,
-                temperature=0.7,
-                top_p=0.9,
-                do_sample=True,
-                num_return_sequences=1
-            )
-            
-            # Extraemos solo lo nuevo que escribió la IA
-            texto_completo = secuencia[0]['generated_text']
-            respuesta = texto_completo[len(entrada):].strip()
-            
-            st.markdown("---")
-            st.subheader("💬 Respuesta:")
-            st.write(respuesta)
-            
-        except Exception as e:
-            st.error(f"❌ Error: {str(e)}")
+    # Formato para que responda PERFECTO y en español
+    prompt = f"""<s>[INST] Eres Fresia AI, un asistente virtual muy inteligente, profesional y amable. 
+    Responde siempre en español de forma clara, precisa y corta. No des información falsa.
+    Pregunta: {mensaje} [/INST]"""
 
-st.divider()
-st.caption("FRESIA - Inteligencia Artificial en Español 🇪🇸")
+    respuesta = requests.post(
+        API_URL, 
+        headers=headers, 
+        json={
+            "inputs": prompt,
+            "parameters": {"max_new_tokens": 512, "temperature": 0.3, "top_p": 0.9}
+        }
+    )
+    
+    if respuesta.status_code == 200:
+        resultado = respuesta.json()[0]["generated_text"]
+        # Limpiamos para dejar solo la respuesta
+        respuesta_final = resultado.split("[/INST]")[-1].replace("</s>", "").strip()
+        return respuesta_final
+    else:
+        return "⚠️ Estoy procesando... por favor escribe de nuevo o espera un momento."
+
+# INTERFAZ DE CHAT
+st.markdown("---")
+
+with st.form(key="chat_form"):
+    pregunta = st.text_area("✍️ Escribe tu mensaje:", height=100, placeholder="¿En qué puedo ayudarte hoy?")
+    enviar = st.form_submit_button("🚀 ENVIAR")
+
+if enviar and pregunta:
+    with st.spinner("💭 Pensando..."):
+        respuesta = consultar_ia(pregunta)
+        st.markdown("---")
+        st.markdown("### 🤖 Respuesta:")
+        st.success(respuesta)
+
+st.markdown("---")
+st.caption("© 2025 Fresia AI - Potenciado por Inteligencia Artificial")
