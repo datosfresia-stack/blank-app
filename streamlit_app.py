@@ -1,38 +1,50 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. CONFIGURACIÓN DEL CEREBRO (API KEY)
-# Usamos el modelo 'gemini-1.5-flash' que es el actual y gratuito
-try:
-    genai.configure(api_key="AIzaSyBERnyHBPNKai3y-IGtykVBaTal414UC7M")
-    # Este nombre es el oficial hoy en día
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    ia_activa = True
-except Exception as e:
-    ia_activa = False
-    error_config = str(e)
-
-# 2. CONFIGURACIÓN DE LA PÁGINA
+# 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(page_title="IA Libre", page_icon="🤖", layout="wide")
 
-# 3. BARRA LATERAL (Aseguramos que 'menu' se cree siempre)
+# 2. CONEXIÓN AL CEREBRO (LLAVE)
+# Probaremos con una lista de modelos por si uno falla
+API_KEY = "AIzaSyBERnyHBPNKai3y-IGtykVBaTal414UC7M"
+genai.configure(api_key=API_KEY)
+
+# Lista de modelos para probar en orden de modernidad
+modelos_a_probar = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro']
+
+if "modelo_seleccionado" not in st.session_state:
+    st.session_state.modelo_seleccionado = None
+
+# Buscamos cuál modelo está disponible para tu cuenta
+if st.session_state.modelo_seleccionado is None:
+    for nombre_modelo in modelos_a_probar:
+        try:
+            m = genai.GenerativeModel(nombre_modelo)
+            # Prueba de fuego: un saludo corto
+            m.generate_content("Hola", generation_config={"max_output_tokens": 1})
+            st.session_state.modelo_seleccionado = nombre_modelo
+            break 
+        except:
+            continue
+
+# 3. INTERFAZ Y MENÚ
 with st.sidebar:
     st.title("🌐 Portal IA Libre")
-    menu = st.radio(
-        "Secciones:", 
-        ["🤖 IA LIBRE (CABEZA)", "📰 PRENSAENLOSLAGOS", "📍 DATOSFRESIA", "🤝 CENTRO SOLIDARIO"]
-    )
+    menu = st.radio("Secciones:", ["🤖 IA LIBRE", "📰 NOTICIAS", "📍 FRESIA", "🤝 SOLIDARIO"])
     st.divider()
-    st.caption("Fresia - Región de Los Lagos")
+    if st.session_state.modelo_seleccionado:
+        st.success(f"Cerebro: {st.session_state.modelo_seleccionado} ✅")
+    else:
+        st.error("Cerebro no encontrado ❌")
 
 url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
 
-# 4. LÓGICA DE LAS SECCIONES
-if menu == "🤖 IA LIBRE (CABEZA)":
+# 4. LÓGICA DE IA LIBRE
+if menu == "🤖 IA LIBRE":
     st.title("🤖 IA Libre: Asistente Universal")
     
-    if not ia_activa:
-        st.error(f"Error de configuración: {error_config}")
+    if not st.session_state.modelo_seleccionado:
+        st.error("No se pudo conectar con ningún modelo de Google. Revisa tu archivo requirements.txt")
     else:
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
@@ -48,26 +60,18 @@ if menu == "🤖 IA LIBRE (CABEZA)":
 
             with st.chat_message("assistant"):
                 try:
-                    # Intento de respuesta con el nuevo nombre de modelo
-                    response = model.generate_content(prompt)
-                    # Usamos .text para obtener el contenido
-                    respuesta_final = response.text
-                    st.markdown(respuesta_final)
-                    st.session_state.chat_history.append({"role": "assistant", "content": respuesta_final})
+                    modelo_final = genai.GenerativeModel(st.session_state.modelo_seleccionado)
+                    response = modelo_final.generate_content(prompt)
+                    st.markdown(response.text)
+                    st.session_state.chat_history.append({"role": "assistant", "content": response.text})
                 except Exception as e:
-                    # Si falla, te mostrará el error real para saber si es el nombre o la llave
-                    st.error(f"Aviso técnico: {e}")
+                    st.error(f"Error al generar respuesta: {e}")
 
-# ... (El resto de los elif se mantienen igual) ...
-elif menu == "📰 PRENSAENLOSLAGOS":
-    st.title("📰 Prensaenloslagos")
-    st.link_button("👉 ABRIR NOTICIAS", url_google_sites)
-
-elif menu == "📍 DATOSFRESIA":
-    st.title("📍 DatosFresia")
-    st.link_button("👉 VER DATOS DE FRESIA", url_google_sites)
-
-elif menu == "🤝 CENTRO SOLIDARIO":
-    st.title("🤝 Centro Solidario en Acción")
-    st.link_button("👉 VER AYUDA SOCIAL", url_google_sites)
+# Resto de secciones abreviadas para velocidad
+elif menu == "📰 NOTICIAS":
+    st.link_button("👉 VER PRENSAENLOSLAGOS", url_google_sites)
+elif menu == "📍 FRESIA":
+    st.link_button("👉 VER DATOS FRESIA", url_google_sites)
+elif menu == "🤝 SOLIDARIO":
+    st.link_button("👉 VER CENTRO SOLIDARIO", url_google_sites)
     
