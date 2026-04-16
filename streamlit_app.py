@@ -1,41 +1,41 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="IA Libre Fresia")
+# 1. Configuración de la página
+st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
 
-# 1. CONEXIÓN (Asegúrate que la clave 1w5A esté en Secrets)
+# 2. Conexión con el modelo exacto de tu lista
 try:
     if "GOOGLE_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        # CAMBIO CLAVE: Usamos 'gemini-pro' en lugar de '1.5-flash'
-        model = genai.GenerativeModel('gemini-pro')
+        # Usamos el modelo que tu cuenta SÍ reconoce (el #2 de tu lista)
+        model = genai.GenerativeModel('gemini-2.0-flash')
         ia_lista = True
     else:
         ia_lista = False
-        st.error("⚠️ No hay llave en Secrets")
+        st.error("⚠️ Falta la llave en Secrets.")
 except Exception as e:
     ia_lista = False
-    st.error(f"Error: {e}")
+    st.error(f"Error de inicio: {e}")
 
-# 2. INTERFAZ
+# 3. Interfaz de Usuario
 st.title("🤖 IA Libre")
+st.success("¡Conexión exitosa con Gemini 2.0!")
 
 if ia_lista:
-    pregunta = st.text_input("Haz tu consulta:")
+    pregunta = st.text_input("Haz tu consulta:", placeholder="Escribe aquí...")
+    
     if pregunta:
-        try:
-            # Respuesta directa
-            response = model.generate_content(pregunta)
-            st.markdown(response.text)
-        except Exception as e:
-            # Si falla, pedimos que nos diga la lista de modelos permitidos
-            st.error("Error de conexión.")
-            st.write("Modelos disponibles en tu cuenta:")
+        with st.spinner("La IA está respondiendo..."):
             try:
-                modelos = [m.name for m in genai.list_models()]
-                st.write(modelos)
-            except:
-                st.write("No se pudo listar modelos. Revisa la región de tu cuenta.")
+                # Generamos la respuesta
+                response = model.generate_content(pregunta)
+                st.markdown("---")
+                st.markdown(response.text)
+            except Exception as e:
+                st.error("Hubo un problema al generar la respuesta.")
+                st.info(f"Detalle técnico: {e}")
 
+# Pie de página
 st.divider()
-st.link_button("🌐 Volver al Portal", "https://sites.google.com/view/ia-libre/inicio")
+st.caption("Fresia - Conectado a Gemini 2.0 Flash")
