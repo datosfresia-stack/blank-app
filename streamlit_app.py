@@ -7,7 +7,7 @@ st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea!")
 
-# 🔧 CAMBIO IMPORTANTE: Usamos otro modelo que funciona mejor
+# ✅ URL COMPLETA Y CORRECTA
 API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 def llamar_ia(pregunta):
