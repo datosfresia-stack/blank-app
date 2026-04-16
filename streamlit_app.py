@@ -1,32 +1,29 @@
 import streamlit as st
 import requests
-import json
 
 st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea!")
 
-# ✅ URL COMPLETA Y CORRECTA
-API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+# ✅ MODELO PÚBLICO Y GRATIS (NO NECESITAS TOKEN)
+API_URL = "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct"
 
 def llamar_ia(pregunta):
-    if "HF_TOKEN" not in st.secrets:
-        return "⚠️ Error: No tienes configurado el HF_TOKEN."
-    
-    headers = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
+    # No necesitamos autorización, es público
+    headers = {}
     
     payload = {
-        "inputs": f"<s>[INST] {pregunta} [/INST]",
+        "inputs": pregunta,
         "parameters": {
-            "max_new_tokens": 1024,
+            "max_new_tokens": 500,
             "temperature": 0.7,
             "return_full_text": False
         }
     }
     
     try:
-        respuesta = requests.post(API_URL, headers=headers, json=payload, timeout=90)
+        respuesta = requests.post(API_URL, headers=headers, json=payload, timeout=120)
         
         try:
             datos = respuesta.json()
@@ -36,12 +33,12 @@ def llamar_ia(pregunta):
         if isinstance(datos, list) and len(datos) > 0:
             return datos[0]['generated_text']
         elif isinstance(datos, dict) and "estimated_time" in datos:
-            return f"⏳ Cargando... espera {int(datos['estimated_time'])} seg."
+            return f"⏳ El modelo está despertando... espera {int(datos['estimated_time'])} segundos y vuelve a preguntar."
         else:
             return f"Respuesta: {str(datos)}"
             
     except requests.exceptions.Timeout:
-        return "⌛ Tardó mucho. Intenta de nuevo."
+        return "⌛ Tardó mucho. Intenta de nuevo ahora."
     except Exception as e:
         return f"❌ Error: {str(e)}"
 
