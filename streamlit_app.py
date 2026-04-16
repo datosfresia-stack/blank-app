@@ -1,43 +1,56 @@
-import streamlit as st
-import requests
+import numpy as np
 
-st.set_page_config(page_title="IA Libre Fresia")
+class RedNeuronal:
+    def __init__(self):
+        np.random.seed(1)
+        self.pesos = 2 * np.random.random((3, 1)) - 1
 
-st.title("🤖 IA Libre Fresia")
-st.success("✅ ¡El sistema está vivo y conectado!")
+    def sigmoide(self, x):
+        return 1 / (1 + np.exp(-x))
 
-# Usaremos un modelo que suele estar siempre activo
-API_URL = "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta"
-headers = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
+    def derivada_sigmoide(self, x):
+        return x * (1 - x)
 
-def consultar_ia(texto):
-    # Formato optimizado para este modelo
-    prompt = f"<|user|>\n{texto}</s>\n<|assistant|>\n"
-    payload = {"inputs": prompt, "parameters": {"max_new_tokens": 500, "temperature": 0.7}}
+    def entrenar(self, entradas, salidas, iteraciones):
+        for _ in range(iteraciones):
+            salida = self.pensar(entradas)
+            error = salidas - salida
+            ajustes = np.dot(entradas.T, error * self.derivada_sigmoide(salida))
+            self.pesos += ajustes
+
+    def pensar(self, entradas):
+        entradas = entradas.astype(float)
+        return self.sigmoide(np.dot(entradas, self.pesos))
+
+# ------------------------------
+# PROGRAMA PRINCIPAL
+# ------------------------------
+if __name__ == "__main__":
+    # Crear la IA
+    mi_ia = RedNeuronal()
+
+    print("⚖️ Pesos iniciales (aleatorios):")
+    print(mi_ia.pesos)
+
+    # Datos para enseñar
+    # Entradas
+    entradas = np.array([
+        [0, 0, 1],
+        [1, 1, 1],
+        [1, 0, 1],
+        [0, 1, 1]
+    ])
     
-    try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=20)
-        resultado = response.json()
-        
-        if isinstance(resultado, list):
-            # Limpiamos la respuesta
-            full_text = resultado[0]['generated_text']
-            return full_text.split("<|assistant|>\n")[-1]
-        elif "estimated_time" in str(resultado):
-            return f"⏳ El cerebro está cargando. Estará listo en {int(resultado['estimated_time'])} segundos. ¡Intenta de nuevo ahora!"
-        else:
-            return "El servidor está un poco ocupado, reintenta en un momento."
-    except:
-        return "Buscando señal de la red comunitaria..."
+    # Salidas esperadas
+    salidas = np.array([[0, 1, 1, 0]]).T
 
-# Entrada de usuario
-pregunta = st.text_input("Haz tu consulta a la IA:")
+    # Entrenar
+    mi_ia.entrenar(entradas, salidas, 10000)
 
-if pregunta:
-    with st.spinner("La IA está redactando la respuesta..."):
-        respuesta = consultar_ia(pregunta)
-        st.markdown("---")
-        st.write(respuesta)
+    print("\n✅ Pesos después de aprender:")
+    print(mi_ia.pesos)
 
-st.divider()
-st.caption("FRESIA - Inteligencia Alternativa Independiente")
+    # Probar con datos nuevos
+    print("\n🤔 Probando con [1, 0, 0]:")
+    resultado = mi_ia.pensar(np.array([1, 0, 0]))
+    print(resultado)
