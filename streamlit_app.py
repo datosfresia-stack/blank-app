@@ -1,15 +1,14 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Configuración de la página
 st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
 
-# 2. Conexión con el modelo exacto de tu lista
+# CONEXIÓN
 try:
     if "GOOGLE_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        # Usamos el modelo que tu cuenta SÍ reconoce (el #2 de tu lista)
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        # CAMBIAMOS AL MODELO CON CUOTA LIBRE
+        model = genai.GenerativeModel('gemini-1.5-flash-latest')
         ia_lista = True
     else:
         ia_lista = False
@@ -18,24 +17,24 @@ except Exception as e:
     ia_lista = False
     st.error(f"Error de inicio: {e}")
 
-# 3. Interfaz de Usuario
 st.title("🤖 IA Libre")
-st.success("¡Conexión exitosa con Gemini 2.0!")
 
 if ia_lista:
+    # Mensaje de éxito real
+    st.success("✅ Sistema en línea y listo para recibir consultas.")
+    
     pregunta = st.text_input("Haz tu consulta:", placeholder="Escribe aquí...")
     
     if pregunta:
-        with st.spinner("La IA está respondiendo..."):
+        with st.spinner("Generando respuesta..."):
             try:
-                # Generamos la respuesta
                 response = model.generate_content(pregunta)
                 st.markdown("---")
                 st.markdown(response.text)
             except Exception as e:
-                st.error("Hubo un problema al generar la respuesta.")
-                st.info(f"Detalle técnico: {e}")
+                # Si este modelo también da cuota, nos avisará
+                st.error("Límite de mensajes alcanzado temporalmente.")
+                st.info(f"Detalle: {e}")
 
-# Pie de página
 st.divider()
-st.caption("Fresia - Conectado a Gemini 2.0 Flash")
+st.caption("Fresia - Versión Estable")
