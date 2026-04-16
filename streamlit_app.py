@@ -6,11 +6,15 @@ st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea y hablando español!")
 
-# Cargamos una IA que entiende y escribe ESPAÑOL muy bien
+# 🇪🇸 MODELO SEGURO Y LIGERO
 @st.cache_resource
 def cargar_ia():
-    # Usamos un modelo entrenado para hablar
-    return pipeline("text-generation", model="PlanTL-GOB-ES/gpt2-base-bpe-doccano")
+    # Usamos "DistilGPT2" pero configurado para que responda bien
+    return pipeline(
+        "text-generation",
+        model="distilgpt2",
+        max_new_tokens=100
+    )
 
 ia = cargar_ia()
 
@@ -22,21 +26,23 @@ with st.form(key="form_pregunta"):
     enviar = st.form_submit_button("🚀 Enviar")
     
 if enviar and entrada:
-    with st.spinner("🧠 Pensando en español... un momento..."):
+    with st.spinner("🧠 Pensando... un momento..."):
         try:
-            # Le damos instrucciones claras
-            prompt = f"Usuario: {entrada}\nAsistente: "
+            # Instrucciones para que responda en español
+            prompt = f"""
+            Usuario: {entrada}
+            Asistente: Eres un asistente amable y útil. Responde en español de forma clara y corta.
+            """
             
             resultado = ia(
-                prompt, 
-                max_length=100, 
-                do_sample=True, 
-                temperature=0.8, 
+                prompt,
+                do_sample=True,
+                temperature=0.7,
                 top_p=0.9
             )[0]['generated_text']
             
-            # Extraemos solo la respuesta
-            respuesta_final = resultado.split("Asistente:")[-1]
+            # Limpiamos la respuesta
+            respuesta_final = resultado.split("Asistente:")[-1].strip()
             
             st.markdown("---")
             st.subheader("💬 Respuesta:")
