@@ -7,18 +7,17 @@ st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea!")
 
-API_URL = "https://api-inference.huggingface.co/models/google/gemma-1.1-7b-it"
+# 🔧 CAMBIO IMPORTANTE: Usamos otro modelo que funciona mejor
+API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
 
 def llamar_ia(pregunta):
-    # Verificar que el token exista
     if "HF_TOKEN" not in st.secrets:
-        return "⚠️ Error: No tienes configurado el HF_TOKEN en Secrets."
+        return "⚠️ Error: No tienes configurado el HF_TOKEN."
     
     headers = {"Authorization": f"Bearer {st.secrets['HF_TOKEN']}"}
     
-    # Formato CORRECTO para que Gemma entienda bien
     payload = {
-        "inputs": f"<start_of_turn>user\n{pregunta}<end_of_turn>\n<start_of_turn>model\n",
+        "inputs": f"<s>[INST] {pregunta} [/INST]",
         "parameters": {
             "max_new_tokens": 1024,
             "temperature": 0.7,
@@ -29,16 +28,15 @@ def llamar_ia(pregunta):
     try:
         respuesta = requests.post(API_URL, headers=headers, json=payload, timeout=90)
         
-        # Intentar convertir a JSON
         try:
             datos = respuesta.json()
         except:
-            return f"❌ Error en la respuesta: {respuesta.text}"
+            return f"❌ Error: {respuesta.text}"
 
         if isinstance(datos, list) and len(datos) > 0:
             return datos[0]['generated_text']
         elif isinstance(datos, dict) and "estimated_time" in datos:
-            return f"⏳ El modelo está cargando... espera {int(datos['estimated_time'])} seg."
+            return f"⏳ Cargando... espera {int(datos['estimated_time'])} seg."
         else:
             return f"Respuesta: {str(datos)}"
             
