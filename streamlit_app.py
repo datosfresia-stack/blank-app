@@ -1,16 +1,17 @@
 import streamlit as st
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea!")
 
-# Cargamos un modelo hecho PARA CHATEAR (DialoGPT de Microsoft)
+# 🇪🇸 MODELO QUE HABLA ESPAÑOL PERFECTO
 @st.cache_resource
 def cargar_ia():
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
-    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
+    # Usamos un modelo entrenado para español e inglés
+    tokenizer = AutoTokenizer.from_pretrained("deepseek-ai/deepseek-coder-1.3b-instruct")
+    model = AutoModelForCausalLM.from_pretrained("deepseek-ai/deepseek-coder-1.3b-instruct")
     return tokenizer, model
 
 tokenizer, model = cargar_ia()
@@ -25,16 +26,20 @@ with st.form(key="form_pregunta"):
 if enviar and entrada:
     with st.spinner("🧠 La IA está pensando..."):
         try:
-            # Codificamos el mensaje
-            input_ids = tokenizer.encode(entrada + tokenizer.eos_token, return_tensors='pt')
+            # Le decimos que actúe como un asistente amable
+            prompt = f"### Instrucción:\nEres un asistente útil y amable. Responde en español.\n\n### Pregunta:\n{entrada}\n\n### Respuesta:\n"
             
-            # Generamos la respuesta
-            respuesta_ids = model.generate(input_ids, max_length=50, pad_token_id=tokenizer.eos_token_id)
-            respuesta = tokenizer.decode(respuesta_ids[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
+            input_ids = tokenizer(prompt, return_tensors='pt').input_ids
+            outputs = model.generate(input_ids, max_new_tokens=150, do_sample=True, top_p=0.95, temperature=0.7)
+            respuesta = tokenizer.decode(outputs[0], skip_special_tokens=True)
+            
+            # Limpiamos para mostrar solo la respuesta
+            respuesta_final = respuesta.split("### Respuesta:")[-1].strip()
             
             st.markdown("---")
             st.subheader("💬 Respuesta:")
-            st.write(respuesta)
+            st.write(respuesta_final)
+            
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
 
