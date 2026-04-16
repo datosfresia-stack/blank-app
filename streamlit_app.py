@@ -1,43 +1,44 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. IDENTIDAD BÁSICA
-st.set_page_config(page_title="IA Libre", layout="wide")
+# 1. SETUP BÁSICO SIN COMPLICACIONES
+st.set_page_config(page_title="IA Libre")
 
-# 2. CONEXIÓN AL CEREBRO
+# CONFIGURAR IA
 API_KEY = "AIzaSyBERnyHBPNKai3y-IGtykVBaTal414UC7M"
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-try:
-    genai.configure(api_key=API_KEY)
-    # Usamos el modelo estable
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    ia_lista = True
-except Exception as e:
-    ia_lista = False
-    st.error(f"Error de conexión: {e}")
+# 2. INTERFAZ LIMPIA
+st.title("🤖 IA Libre")
 
-# 3. INTERFAZ SENCILLA
-st.title("🤖 IA Libre - Fresia")
+# Usar botones simples en lugar de menús complejos para evitar el error de Node
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("💬 Chat con IA"):
+        st.session_state.seccion = "chat"
+with col2:
+    if st.button("📰 Noticias"):
+        st.session_state.seccion = "noticias"
 
-with st.sidebar:
-    st.header("Menú")
-    # Ponemos una opción simple primero
-    menu = st.selectbox("Selecciona:", ["Asistente IA", "Noticias"])
+# Inicializar sección
+if "seccion" not in st.session_state:
+    st.session_state.seccion = "chat"
 
-if menu == "Asistente IA":
-    if prompt := st.chat_input("Escribe algo..."):
-        with st.chat_message("user"):
-            st.markdown(prompt)
-        
-        with st.chat_message("assistant"):
-            try:
-                # LLAMADA DIRECTA
-                response = model.generate_content(prompt)
-                st.markdown(response.text)
-            except Exception as e:
-                st.error(f"Error: {e}")
+# 3. LÓGICA
+if st.session_state.seccion == "chat":
+    st.subheader("Asistente Virtual")
+    user_input = st.text_input("¿En qué te ayudo?", key="input_ia")
+    
+    if user_input:
+        try:
+            response = model.generate_content(user_input)
+            st.write("---")
+            st.markdown(response.text)
+        except Exception as e:
+            st.error(f"Error: {e}")
 
-elif menu == "Noticias":
-    st.write("Cargando portal de Prensaenloslagos...")
-    st.link_button("Ir al Sitio Oficial", "https://sites.google.com/view/ia-libre/inicio")
+elif st.session_state.seccion == "noticias":
+    st.subheader("Portal de Noticias")
+    st.link_button("Abrir Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
     
