@@ -4,16 +4,25 @@ import requests
 # ---------------------- CONFIGURACIÓN GENERAL ----------------------
 st.set_page_config(page_title="IA LIBRE", page_icon="🌍", layout="wide")
 
-# ---------------------- MENÚ DE NAVEGACIÓN ----------------------
-menu = st.sidebar.selectbox(
-    "📂 MENU PRINCIPAL",
-    ["🤖 IA LIBRE", "📰 PRENSA EN LOS LAGOS", "📍 DATOS FRESIA", "❤️ CENTRO SOLIDARIO"]
-)
+# ---------------------- MENÚ HORIZONTAL ARRIBA ----------------------
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    btn_ia = st.button("🤖 IA LIBRE", use_container_width=True)
+with col2:
+    btn_prensa = st.button("📰 PRENSA", use_container_width=True)
+with col3:
+    btn_datos = st.button("📍 DATOS FRESIA", use_container_width=True)
+with col4:
+    btn_solidario = st.button("❤️ SOLIDARIO", use_container_width=True)
+
+st.markdown("---")
 
 # ==============================================================
 #                      SECCIÓN 1: IA LIBRE
 # ==============================================================
-if menu == "🤖 IA LIBRE":
+# Por defecto carga esta página al inicio
+if btn_ia or not any([btn_prensa, btn_datos, btn_solidario]):
     st.title("🤖 IA LIBRE")
     st.subheader("Tu asistente inteligente multiplataforma")
     st.success("✅ Sistema activo | Rápido y Preciso")
@@ -53,18 +62,16 @@ if menu == "🤖 IA LIBRE":
 # ==============================================================
 #                 SECCIÓN 2: PRENSA EN LOS LAGOS
 # ==============================================================
-elif menu == "📰 PRENSA EN LOS LAGOS":
+elif btn_prensa:
     st.title("📰 PRENSA EN LOS LAGOS")
     st.subheader("Noticias Nacional y Regional")
 
     st.markdown("---")
     
-    # El botón más grande y visible posible
     url_google = "https://sites.google.com/view/ia-libre/inicio"
     
     st.markdown("### 👇 TOCA AQUÍ PARA ENTRAR")
     
-    # Botón grande
     st.link_button("🌐 INGRESA A PRENSA EN LOS LAGOS", url_google, type="primary", use_container_width=True)
     
     st.markdown("---")
@@ -73,7 +80,7 @@ elif menu == "📰 PRENSA EN LOS LAGOS":
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
 # ==============================================================
-elif menu == "📍 DATOS FRESIA":
+elif btn_datos:
     st.title("📍 DATOS FRESIA")
     st.subheader("Información útil y local de la comuna")
     st.markdown("---")
@@ -92,7 +99,7 @@ elif menu == "📍 DATOS FRESIA":
 # ==============================================================
 #                 SECCIÓN 4: CENTRO SOLIDARIO
 # ==============================================================
-elif menu == "❤️ CENTRO SOLIDARIO":
+elif btn_solidario:
     st.title("❤️ CENTRO SOLIDARIO EN ACCIÓN")
     st.subheader("Ayudando a nuestra comunidad")
     st.markdown("---")
