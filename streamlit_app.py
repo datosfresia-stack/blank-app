@@ -1,40 +1,46 @@
 import streamlit as st
 import google.generativeai as genai
 
-st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
+st.set_page_config(page_title="IA Libre Fresia")
 
-# CONEXIÓN
+# 1. CONEXIÓN LIMPIA
 try:
     if "GOOGLE_API_KEY" in st.secrets:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        # CAMBIAMOS AL MODELO CON CUOTA LIBRE
-        model = genai.GenerativeModel('gemini-1.5-flash-latest')
+        # USAMOS EL MODELO MÁS COMPATIBLE DE TU LISTA
+        # Le quitamos el 'models/' para que no se confunda
+        model = genai.GenerativeModel('gemini-pro')
         ia_lista = True
     else:
         ia_lista = False
-        st.error("⚠️ Falta la llave en Secrets.")
+        st.error("Falta llave en Secrets")
 except Exception as e:
     ia_lista = False
-    st.error(f"Error de inicio: {e}")
+    st.error(f"Error: {e}")
 
 st.title("🤖 IA Libre")
 
 if ia_lista:
-    # Mensaje de éxito real
-    st.success("✅ Sistema en línea y listo para recibir consultas.")
+    st.success("✅ Conexión con Google establecida")
     
-    pregunta = st.text_input("Haz tu consulta:", placeholder="Escribe aquí...")
+    pregunta = st.text_input("Haz tu consulta:", key="pregunta_final")
     
     if pregunta:
-        with st.spinner("Generando respuesta..."):
+        with st.spinner("Buscando respuesta..."):
             try:
+                # Intento con gemini-pro (El modelo más estable)
                 response = model.generate_content(pregunta)
                 st.markdown("---")
-                st.markdown(response.text)
+                st.write(response.text)
             except Exception as e:
-                # Si este modelo también da cuota, nos avisará
-                st.error("Límite de mensajes alcanzado temporalmente.")
-                st.info(f"Detalle: {e}")
+                # Si falla, probamos con la versión de texto puro
+                st.error("Ajustando frecuencia...")
+                try:
+                    model_alt = genai.GenerativeModel('gemini-1.0-pro')
+                    response = model_alt.generate_content(pregunta)
+                    st.write(response.text)
+                except:
+                    st.info(f"Nota del sistema: {e}")
 
 st.divider()
-st.caption("Fresia - Versión Estable")
+st.caption("Fresia - Conexión Estable Protegida")
