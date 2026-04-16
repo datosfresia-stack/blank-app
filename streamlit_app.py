@@ -54,13 +54,21 @@ if menu == "🤖 IA LIBRE":
 #                 SECCIÓN 2: PRENSA EN LOS LAGOS
 # ==============================================================
 elif menu == "📰 PRENSA EN LOS LAGOS":
+    st.title("📰 PRENSA EN LOS LAGOS")
+    st.subheader("Noticias Nacional y Regional")
+
+    st.markdown("---")
+    
+    # El botón más grande y visible posible
     url_google = "https://sites.google.com/view/ia-libre/inicio"
     
-    # 🚀 ESTA LÍNEA LO HACE VOLAR
-    st.markdown(f'<meta http-equiv="refresh" content="0; URL={url_google}">', unsafe_allow_html=True)
+    st.markdown("### 👇 TOCA AQUÍ PARA ENTRAR")
     
-    st.title("📰 PRENSA EN LOS LAGOS")
-    st.subheader("Redirigiendo...")
+    # Botón grande
+    st.link_button("🌐 INGRESA A PRENSA EN LOS LAGOS", url_google, type="primary", use_container_width=True)
+    
+    st.markdown("---")
+    st.write("💡 Al tocar el botón entrarás directo al portal con todo el contenido.")
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
