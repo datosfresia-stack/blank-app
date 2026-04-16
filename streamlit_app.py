@@ -1,38 +1,45 @@
 import streamlit as st
 import google.generativeai as genai
+from google.generativeai.types import RequestOptions
 
-# 1. Configuración básica
-st.set_page_config(page_title="IA Libre Fresia", page_icon="🤖")
+# 1. Configuración de página
+st.set_page_config(page_title="IA Libre Fresia", layout="centered")
 
-# 2. Conexión segura con la llave de los Secrets
+# 2. Conexión SEGURA y FORZADA
 try:
-    # Esto busca la llave en el cofre que configuraste en el Paso 1
-    llave = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=llave)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    ia_lista = True
+    if "GOOGLE_API_KEY" in st.secrets:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+        genai.configure(api_key=api_key)
+        
+        # Configuramos el modelo
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        ia_lista = True
+    else:
+        ia_lista = False
+        st.warning("⚠️ Falta la llave en los Secrets de Streamlit.")
 except Exception as e:
     ia_lista = False
-    st.error("Error: Configura la clave en 'Secrets' de Streamlit.")
+    st.error(f"Error de configuración: {e}")
 
 # 3. Interfaz
 st.title("🤖 IA Libre")
-st.write("Bienvenido al asistente de Fresia.")
 
 if ia_lista:
-    # Una caja de texto simple para evitar errores visuales
-    pregunta = st.text_input("¿En qué te puedo ayudar hoy?")
+    pregunta = st.text_input("Haz tu consulta aquí:")
     
     if pregunta:
-        with st.spinner("Procesando..."):
-            try:
-                # La IA genera la respuesta
-                response = model.generate_content(pregunta)
-                st.subheader("Respuesta:")
-                st.write(response.text)
-            except Exception as e:
-                st.error(f"Google dice: {e}")
+        try:
+            with st.spinner("Conectando con el cerebro de Google..."):
+                # ESTA ES LA LÍNEA CLAVE: Forzamos la versión v1
+                response = model.generate_content(
+                    pregunta,
+                    request_options=RequestOptions(api_version='v1')
+                )
+                st.markdown("---")
+                st.markdown(response.text)
+        except Exception as e:
+            # Si sale error, nos dirá exactamente qué puerta falló
+            st.error(f"Aviso del sistema: {e}")
 
-# Botón de auxilio
 st.divider()
-st.link_button("Ir a Prensaenloslagos", "https://sites.google.com/view/ia-libre/inicio")
+st.caption("Fresia, Región de Los Lagos - Conexión vía Google Gemini")
