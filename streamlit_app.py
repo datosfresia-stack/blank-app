@@ -69,53 +69,41 @@ if menu == "🤖 IA LIBRE":
 # ==============================================================
 elif menu == "📰 PRENSA EN LOS LAGOS":
     st.title("📰 PRENSA EN LOS LAGOS")
-    st.image("https://i.imgur.com/yourlogo.png", width=300) # Aquí iría tu logo PLL
-    st.subheader("Noticias Nacional y Regional")
-
+    
+    # Logo PLL
+    st.image("https://i.imgur.com/yourlogo.png", width=300, caption="Prensa en Los Lagos")
+    
+    st.subheader("🔗 Accediendo al portal de noticias...")
+    
+    # Enlace directo a Google Sites
+    url_google_sites = "https://sites.google.com/view/ia-libre/inicio"
+    
+    st.info("📤 Toca el botón de abajo para ver todas las noticias y contenido actualizado:")
+    
+    st.link_button("🌐 IR A PRENSA EN LOS LAGOS", url_google_sites, type="primary", use_container_width=True)
+    
     st.markdown("---")
-
-    # Ejemplo de noticia (Fácil de agregar más)
-    with st.container():
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("📢 Título de Noticia Importante")
-        st.caption(f"📅 {datetime.now().strftime('%d de %B, %Y')} | Región de Los Lagos")
-        st.write("Aquí va el contenido de la noticia...")
-        st.button("🔗 Compartir en Redes Sociales", key="1")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.info("💡 Tip: Para agregar noticias fácilmente, podemos conectar con Google Sites o un blog gratuito.")
+    st.write("📝 **Instrucción:** Tú puedes seguir subiendo fotos, artículos y noticias directamente en tu Google Sites. Aquí solo es el acceso directo.")
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
 # ==============================================================
 elif menu == "📍 DATOS FRESIA":
     st.title("📍 DATOS FRESIA")
-    st.image("https://i.imgur.com/yourlogo2.png", width=300) # Aquí iría tu logo Ojo Mundo
+    
+    # Logo Datos Fresia
+    st.image("https://i.imgur.com/yourlogo2.png", width=300, caption="Datos Fresia")
+    
     st.subheader("Información útil y local")
-
-    st.markdown("---")
-
+    
+    st.info("🔗 Aquí también podemos conectarlo a tu Google Sites o dejarlo como panel.")
+    
+    # Ejemplo de enlaces rápidos
     col1, col2 = st.columns(2)
-
     with col1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("💊 Farmacias de Turno")
-        st.write("Consulta aquí las farmacias abiertas hoy.")
-        st.button("Ver Listado", key="2")
-        st.markdown('</div>', unsafe_allow_html=True)
-
+        st.button("💊 Farmacias de Turno", key="2")
     with col2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.subheader("🌤️ Clima Local")
-        st.write("Temperatura y pronóstico del tiempo.")
-        st.button("Ver Clima", key="3")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("🏙️ Noticias Municipales")
-    st.write("Actividades y avisos de la comuna.")
-    st.button("📤 Compartir", key="4")
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.button("🌤️ Clima Local", key="3")
 
 # ==============================================================
 #                 SECCIÓN 4: CENTRO SOLIDARIO
@@ -125,19 +113,11 @@ elif menu == "❤️ CENTRO SOLIDARIO":
     st.subheader("Ayudando a nuestra comunidad")
 
     st.markdown("---")
-
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.subheader("📸 Galería de Actividades")
-    st.write("Aquí se mostrarán fotos y videos de bingos, rifas y beneficios.")
+    st.write("📸 Espacio para mostrar fotos y videos de actividades solidarias, bingos, rifas y beneficios.")
     
-    # Simulador de carga
-    uploaded_file = st.file_uploader("Agregar nueva imagen o video", type=["jpg", "png", "mp4"])
-    if uploaded_file:
-        st.success("✅ Archivo listo para publicar")
-    
-    st.button("📢 Publicar Actividad", key="5")
-    st.markdown('</div>', unsafe_allow_html=True)
+    # Aquí podemos poner otro enlace a Google Sites si quieres
+    st.button("📂 Ver Galería Completa", key="5")
 
 # ---------------------- PIE DE PÁGINA ----------------------
 st.markdown("---")
-st.caption("© 2025 PROYECTO IA LIBRE | Desarrollado con tecnología de vanguardia")
+st.caption("© 2025 PROYECTO IA LIBRE | Trabajando con Google Sites")
