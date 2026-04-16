@@ -9,8 +9,6 @@ st.markdown("""
     <style>
     .main {background-color: #f0f2f6;}
     .block-container {padding-top: 2rem; padding-bottom: 2rem;}
-    .stButton>button {border-radius: 15px; font-size: 18px; padding: 15px; font-weight: bold;}
-    .card {background-color: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -68,18 +66,17 @@ elif menu == "📰 PRENSA EN LOS LAGOS":
     st.subheader("Noticias Nacional y Regional")
 
     st.markdown("---")
-    
-    # Texto informativo grande y claro
-    st.info("📢 **Accede a todas las noticias, reportajes y actualidad nacional y regional.**")
-    
-    # El botón principal - GRANDE Y VISIBLE
+    st.info("🔄 Abriendo portal de noticias...")
+
+    # 🪄 CÓDIGO MÁGICO: Se abre AUTOMÁTICAMENTE al entrar aquí
     url_google = "https://sites.google.com/view/ia-libre/inicio"
     
-    # Usamos link_button que es lo más seguro y rápido
-    st.link_button("🌐 INGRESAR A PRENSA EN LOS LAGOS", url_google, type="primary", use_container_width=True)
-    
-    st.markdown("---")
-    st.write("💡 Al tocar el botón entrarás directo al portal con todo el contenido actualizado.")
+    # Esto hace que se abra directo
+    st.components.v1.html(f"""
+        <script>
+        window.location.href = "{url_google}";
+        </script>
+    """, height=0)
 
 # ==============================================================
 #                   SECCIÓN 3: DATOS FRESIA
@@ -94,24 +91,15 @@ elif menu == "📍 DATOS FRESIA":
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("💊 Farmacias de Turno")
         st.write("Consulta las farmacias que están abiertas hoy.")
-        st.button("Ver Farmacias", key="farmacias")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         st.subheader("🌤️ Clima Local")
         st.write("Temperatura y pronóstico del tiempo.")
-        st.button("Ver Clima", key="clima")
-        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
     st.subheader("🏛️ Noticias Municipales")
     st.write("Actividades y avisos de la comuna.")
-    st.button("Ver Noticias", key="noticias_mun")
-    st.markdown('</div>', unsafe_allow_html=True)
 
 # ==============================================================
 #                 SECCIÓN 4: CENTRO SOLIDARIO
@@ -122,8 +110,7 @@ elif menu == "❤️ CENTRO SOLIDARIO":
 
     st.markdown("---")
     st.write("Galería de fotos y videos de actividades solidarias, bingos, rifas y beneficios.")
-    st.button("📂 Ver Galería Completa", key="galeria")
 
 # ---------------------- PIE DE PÁGINA ----------------------
 st.markdown("---")
-st.caption("© 2025 PROYECTO IA LIBRE | Todo funcionando correctamente")
+st.caption("© 2025 PROYECTO IA LIBRE")
