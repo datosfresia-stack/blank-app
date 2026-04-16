@@ -1,34 +1,40 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 st.set_page_config(page_title="IA Libre Fresia", layout="wide")
 
 st.title("🤖 IA Libre Fresia")
 st.success("✅ ¡Sistema en línea!")
 
-# Cargamos el modelo directamente (no necesita internet extra ni tokens)
+# Cargamos un modelo hecho PARA CHATEAR (DialoGPT de Microsoft)
 @st.cache_resource
 def cargar_ia():
-    return pipeline("text-generation", model="gpt2")
+    tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
+    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-small")
+    return tokenizer, model
 
-ia = cargar_ia()
+tokenizer, model = cargar_ia()
 
 # ---------------- INTERFAZ ----------------
 st.info("Escribe tu pregunta y presiona Enviar")
 
 with st.form(key="form_pregunta"):
-    entrada = st.text_area("¿Qué quieres saber?", height=100)
+    entrada = st.text_input("¿Qué quieres saber?", value="Hola")
     enviar = st.form_submit_button("🚀 Enviar")
     
 if enviar and entrada:
-    with st.spinner("🧠 La IA está pensando... (Primera vez tarda un poco más)"):
+    with st.spinner("🧠 La IA está pensando..."):
         try:
-            # Generamos respuesta
-            resultado = ia(entrada, max_length=200, temperature=0.7)[0]['generated_text']
+            # Codificamos el mensaje
+            input_ids = tokenizer.encode(entrada + tokenizer.eos_token, return_tensors='pt')
+            
+            # Generamos la respuesta
+            respuesta_ids = model.generate(input_ids, max_length=50, pad_token_id=tokenizer.eos_token_id)
+            respuesta = tokenizer.decode(respuesta_ids[:, input_ids.shape[-1]:][0], skip_special_tokens=True)
             
             st.markdown("---")
             st.subheader("💬 Respuesta:")
-            st.write(resultado)
+            st.write(respuesta)
         except Exception as e:
             st.error(f"❌ Error: {str(e)}")
 
