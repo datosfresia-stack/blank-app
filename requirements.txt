@@ -1,2 +1,3 @@
 streamlit
 transformers
+# Cualquier otra librería que uses (ej. torch, pandas, etc.)
