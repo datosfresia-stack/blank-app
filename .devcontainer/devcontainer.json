@@ -7,7 +7,11 @@
       "openFiles": [
         "README.md",
         "streamlit_app.py"
-      ]
+      ],
+      "environment": {
+        // Carga la variable de entorno desde el archivo .env
+        "SERPAPI_API_KEY": "${env:SERPAPI_API_KEY}"
+      }
     },
     "vscode": {
       "settings": {},
@@ -18,9 +22,7 @@
     }
   },
   "updateContentCommand": "[ -f packages.txt ] && sudo apt update && sudo apt upgrade -y && sudo xargs apt install -y <packages.txt; [ -f requirements.txt ] && pip3 install --user -r requirements.txt; pip3 install --user streamlit; echo '✅ Packages installed and Requirements met'",
-  "postAttachCommand": {
-    "server": "streamlit run streamlit_app.py --server.enableCORS false --server.enableXsrfProtection false"
-  },
+    "postAttachCommand": "streamlit run streamlit_app.py --server.enableCORS false --server.enableXsrfProtection false",
   "portsAttributes": {
     "8501": {
       "label": "Application",
