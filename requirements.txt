@@ -2,4 +2,4 @@ streamlit
 transformers
 google-search-results
 python-dotenv
-# Cualquier otra librería que uses (ej. torch, pandas, etc.)
+# Cualquier otra librería que uses (ej. torch, pandas, etc.)python-dotenv
