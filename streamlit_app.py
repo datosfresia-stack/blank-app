@@ -96,7 +96,7 @@ if opcion_seleccionada == "Inicio":
     with col3:
         st.markdown("#### 📍 Datos Fresia")
         st.markdown("Información relevante sobre la comuna.")
-        st.write("*(Sección en desarrollo)*")
+        st.markdown("[Visitar Datos Fresia](https://sites.google.com/view/datosfresia/inicio) <span style='font-size:0.8em;'>(abre en nueva pestaña)</span>", unsafe_allow_html=True)
 
 elif opcion_seleccionada == "Chat IA":
     st.header("Chat de Asistencia IA")
