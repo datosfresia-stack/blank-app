@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from serpapi import GoogleSearch
 
 # --- Configuración Inicial ---
-load_dotenv() # Carga las variables de entorno desde el archivo .env
+load_dotenv()
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
 
 # --- Datos de la IA y el Creador ---
@@ -29,11 +29,129 @@ respuestas_predefinidas = {
 }
 
 # --- URL de tu canal de YouTube ---
-# ¡¡¡ REEMPLAZADO CON LA URL QUE PROPORCIONASTE !!!
 youtube_channel_url = "https://www.youtube.com/@DFresiaTV"
-# Si quieres usar una miniatura de un video, descomenta y ajusta la siguiente línea:
-# youtube_video_thumbnail_url = "https://img.youtube.com/vi/ID_DEL_VIDEO/0.jpg" # Reemplaza ID_DEL_VIDEO
 
+# --- Configuración de la página de Streamlit ---
+st.set_page_config(page_title="IA Libre", page_icon="🤖", layout="wide")
+
+# --- Barra Lateral ---
+with st.sidebar:
+    st.header("IA Libre")
+    st.markdown("---")
+    st.write(f"**Asistente:** {nombre_ia}")
+    st.write(f"**Raíces:** {raices_ia}")
+    st.write(f"**Creador:** {padre_ia}")
+
+    st.markdown("---")
+    st.subheader("Visita mi Canal")
+    st.markdown(f"[![YouTube](https://img.icons8.com/color/48/000000/youtube-play.png)]( {youtube_channel_url} )", unsafe_allow_html=True)
+    st.markdown(f"¡Encuentra contenido sobre IA y tecnología! [Suscríbete en YouTube]({youtube_channel_url}?sub_confirmation=1)", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.header("Navegación")
+    opcion_seleccionada = st.radio(
+        "Elige una sección:",
+        ("Inicio", "Chat IA", "Sobre IA Libre")
+    )
+
+# --- Contenido Principal ---
+if opcion_seleccionada == "Inicio":
+    st.header("Bienvenido a IA LIBRE")
+    st.write(f"Soy **{nombre_ia}**, tu asistente de inteligencia artificial desarrollado en **{raices_ia}**. Mi creador es **{padre_ia}**. Estoy aquí para ayudarte con información, consultas y proyectos en diversas áreas.")
+
+    st.markdown("---")
+    st.subheader("Explora nuestras secciones:")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("#### 📰 Prensa en Los Lagos")
+        st.markdown("Noticias y actualidad de la región.")
+        st.markdown("[Visitar Prensa en Los Lagos](https://sites.google.com/view/ia-libre/inicio) <span style='font-size:0.8em;'>(abre en nueva pestaña)</span>", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("#### 🤝 Centro Solidario en Acción")
+        st.markdown("Información sobre iniciativas sociales.")
+        st.write("*(Sección en desarrollo)*")
+
+    with col3:
+        st.markdown("#### 📍 Datos Fresia")
+        st.markdown("Información relevante sobre la comuna.")
+        st.markdown("[Visitar Datos Fresia](https://sites.google.com/view/datosfresia/inicio) <span style='font-size:0.8em;'>(abre en nueva pestaña)</span>", unsafe_allow_html=True)
+
+elif opcion_seleccionada == "Chat IA":
+    st.header("Chat de Asistencia IA")
+    st.write(f"¡Hola! Soy {nombre_ia}, tu asistente de inteligencia artificial. ¿En qué puedo ayudarte hoy?")
+    st.write("Puedes preguntarme sobre diversos temas, desde información general hasta apoyo en proyectos profesionales.")
+
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+
+    for message in st.session_state.chat_history:
+        if message["role"] == "user":
+            st.write(f"**Tú:** {message['content']}")
+        else:
+            st.write(f"**{nombre_ia}:** {message['content']}")
+
+    with st.form(key='chat_form'):
+        user_input = st.text_area("Escribe tu consulta aquí:", height=150, key='user_input_textarea')
+        submit_button = st.form_submit_button(label='Enviar Consulta')
+
+    if submit_button and user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        consulta_lower = user_input.lower()
+        respuesta_ia = "Lo siento, aún estoy aprendiendo y no tengo la respuesta a esa pregunta. ¿Puedo ayudarte con otra cosa?"
+        encontrado_predefinido = False
+
+        for palabra_clave, resp in respuestas_predefinidas.items():
+            if palabra_clave in consulta_lower:
+                respuesta_ia = resp
+                encontrado_predefinido = True
+                break
+
+        if not encontrado_predefinido and SERPAPI_API_KEY:
+            try:
+                # --- CONFIGURADO PARA BUSCAR EN BING ---
+                params = {
+                    "q": user_input,
+                    "api_key": SERPAPI_API_KEY,
+                    "engine": "bing",
+                    "cc": "cl",
+                    "setlang": "es"
+                }
+                # ------------------------------------------
+
+                search = GoogleSearch(params)
+                results = search.get_dict()
+
+                if "organic_results" in results and results["organic_results"]:
+                    primer_resultado = results["organic_results"][0]
+                    titulo = primer_resultado.get("title", "Resultado de Búsqueda")
+                    snippet = primer_resultado.get("snippet", "No se encontró descripción.")
+                    url = primer_resultado.get("link", "#")
+                    respuesta_ia = f"He encontrado información sobre tu consulta:\n\n**{titulo}**\n{snippet}\n\n[Más información]({url})"
+                elif "answer" in results:
+                     respuesta_ia = results["answer"]
+                elif "knowledge_graph" in results:
+                     respuesta_ia = results["knowledge_graph"].get("description", "No se encontró descripción detallada.")
+                else:
+                    respuesta_ia = "Realicé una búsqueda, pero no pude extraer una respuesta clara. ¿Podrías reformular tu pregunta?"
+
+            except Exception as e:
+                respuesta_ia = f"Ocurrió un error al intentar buscar en internet: {e}. Por favor, intenta de nuevo más tarde."
+
+        elif not SERPAPI_API_KEY and not encontrado_predefinido:
+            respuesta_ia = "La funcionalidad de búsqueda en internet está configurada, pero necesito una clave API para funcionar. Por favor, consulta la documentación para configurarla."
+
+        st.session_state.chat_history.append({"role": "assistant", "content": respuesta_ia})
+        st.rerun()
+
+elif opcion_seleccionada == "Sobre IA Libre":
+    st.header("Sobre IA Libre")
+    st.write(f"**{nombre_ia}** es un asistente virtual desarrollado por **{padre_ia}**.")
+    st.write("Esta aplicación está diseñada para ser una herramienta de ayuda, aprendizaje y acceso rápido a información, utilizando tecnologías de Inteligencia Artificial y búsqueda en tiempo real.")
+    st.write("Con raíces en **{raices_ia}**, buscamos entregar una experiencia útil y cercana para todos los usuarios.")
 # --- Configuración de la página de Streamlit ---
 st.set_page_config(page_title="IA Libre", page_icon="🤖", layout="wide")
 
