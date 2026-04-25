@@ -12,9 +12,10 @@ NOMBRE = "IA Libre"
 CREADOR = "Datos Fresia"
 RAIZ = "Chile"
 
-# --- RESPUESTAS ---
+# --- RESPUESTAS PREDEFINIDAS (MEMORIA) ---
 RESPUESTAS = {
     "hola": "¡Hola! Soy IA Libre. ¿En qué puedo ayudarte?",
+    "como te llamas": f"Me llamo {NOMBRE}.",
     "quien eres": f"Soy {NOMBRE}, creado por {CREADOR} en {RAIZ}.",
     "quien te creo": f"Me creó {CREADOR}.",
     "donde estan tus raices": f"Estoy hecho en {RAIZ}.",
@@ -82,17 +83,19 @@ elif opcion == "Chat":
     if enviar and texto:
         st.session_state.historial.append({"role":"user", "content":texto})
         
+        # PRIMERO PREGUNTAMOS A LA MEMORIA
+        texto_min = texto.lower()
         resp = "No encontré información."
         ok = False
 
-        # Buscar rapido
-        for clave, r in RESPUESTAS.items():
-            if clave in texto.lower():
-                resp = r
+        # Revisamos cada palabra clave
+        for clave, respuesta in RESPUESTAS.items():
+            if clave in texto_min:
+                resp = respuesta
                 ok = True
                 break
 
-        # BUSQUEDA EN GOOGLE (FUNCIONA SEGURO)
+        # SI NO SABE, BUSCAMOS EN GOOGLE
         if not ok and API_KEY:
             try:
                 params = {
@@ -107,7 +110,7 @@ elif opcion == "Chat":
 
                 if "answer_box" in res:
                     resp = res["answer_box"].get("answer", "Sin datos")
-                elif "organic_results" in res and res["organic_results"]:
+                elif "organic_results" in res and len(res["organic_results"]) > 0:
                     primero = res["organic_results"][0]
                     resp = f"**{primero.get('title','')}**\n\n{primero.get('snippet','')}\n\n[Fuente]({primero.get('link','#')})"
                 else:
