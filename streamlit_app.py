@@ -12,10 +12,11 @@ NOMBRE = "IA Libre"
 CREADOR = "Datos Fresia"
 RAIZ = "Chile"
 
-# --- RESPUESTAS PREDEFINIDAS (MEMORIA) ---
+# --- RESPUESTAS ---
 RESPUESTAS = {
     "hola": "¡Hola! Soy IA Libre. ¿En qué puedo ayudarte?",
     "como te llamas": f"Me llamo {NOMBRE}.",
+    "cual es tu nombre": f"Me llamo {NOMBRE}.",
     "quien eres": f"Soy {NOMBRE}, creado por {CREADOR} en {RAIZ}.",
     "quien te creo": f"Me creó {CREADOR}.",
     "donde estan tus raices": f"Estoy hecho en {RAIZ}.",
@@ -41,7 +42,13 @@ with st.sidebar:
     
     st.markdown("---")
     st.header("📌 MENU")
-    opcion = st.radio("", ("Inicio", "Chat", "Acerca"), key="menu_001")
+    
+    # ARREGLADO: Le puse texto y key único
+    opcion = st.radio(
+        "Selecciona:",
+        ("Inicio", "Chat", "Acerca"),
+        key="menu_final_123"
+    )
 
 # --- PAGINAS ---
 
@@ -83,19 +90,28 @@ elif opcion == "Chat":
     if enviar and texto:
         st.session_state.historial.append({"role":"user", "content":texto})
         
-        # PRIMERO PREGUNTAMOS A LA MEMORIA
-        texto_min = texto.lower()
+        texto_min = texto.lower().strip()
         resp = "No encontré información."
         ok = False
 
-        # Revisamos cada palabra clave
-        for clave, respuesta in RESPUESTAS.items():
-            if clave in texto_min:
-                resp = respuesta
-                ok = True
-                break
+        # RESPUESTAS RAPIDAS
+        if "hola" in texto_min:
+            resp = "¡Hola! ¿En qué puedo ayudarte?"
+            ok = True
+        elif "como te llamas" in texto_min or "cual es tu nombre" in texto_min:
+            resp = f"Me llamo {NOMBRE}."
+            ok = True
+        elif "quien eres" in texto_min:
+            resp = f"Soy {NOMBRE}, creado por {CREADOR} en {RAIZ}."
+            ok = True
+        elif "quien te creo" in texto_min:
+            resp = f"Me creó {CREADOR}."
+            ok = True
+        elif "gracias" in texto_min:
+            resp = "¡De nada!"
+            ok = True
 
-        # SI NO SABE, BUSCAMOS EN GOOGLE
+        # BUSQUEDA EN GOOGLE
         if not ok and API_KEY:
             try:
                 params = {
@@ -108,7 +124,7 @@ elif opcion == "Chat":
                 search = GoogleSearch(params)
                 res = search.get_dict()
 
-                if "answer_box" in res:
+                if "answer_box" in res and res["answer_box"]:
                     resp = res["answer_box"].get("answer", "Sin datos")
                 elif "organic_results" in res and len(res["organic_results"]) > 0:
                     primero = res["organic_results"][0]
