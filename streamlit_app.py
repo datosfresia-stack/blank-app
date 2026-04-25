@@ -31,9 +31,129 @@ respuestas_predefinidas = {
 # --- URL de tu canal de YouTube ---
 youtube_channel_url = "https://www.youtube.com/@DFresiaTV"
 
-# --- Configuración de la página de Streamlit ---
+# --- Configuración de la página ---
 st.set_page_config(page_title="IA Libre", page_icon="🤖", layout="wide")
 
+# --- BARRA LATERAL (Solo aparece UNA VEZ) ---
+with st.sidebar:
+    st.header("🤖 IA Libre")
+    st.markdown("---")
+    st.write(f"**Asistente:** {nombre_ia}")
+    st.write(f"**Raíces:** {raices_ia}")
+    st.write(f"**Creador:** {padre_ia}")
+
+    st.markdown("---")
+    st.subheader("📺 Visita mi Canal")
+    st.markdown(f"[![YouTube](https://img.icons8.com/color/48/000000/youtube-play.png)]( {youtube_channel_url} )", unsafe_allow_html=True)
+    st.markdown(f"[Suscríbete aquí]({youtube_channel_url}?sub_confirmation=1)", unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.header("📌 Navegación")
+    # El menú está aquí, solo una vez
+    opcion_seleccionada = st.radio(
+        "",
+        ("Inicio", "Chat IA", "Sobre IA Libre"),
+        key="menu_principal"
+    )
+
+# --- CONTENIDO PRINCIPAL ---
+
+# PÁGINA INICIO
+if opcion_seleccionada == "Inicio":
+    st.header("Bienvenido a IA LIBRE")
+    st.write(f"Soy **{nombre_ia}**, tu asistente de inteligencia artificial desarrollado en **{raices_ia}**. Mi creador es **{padre_ia}**. Estoy aquí para ayudarte con información, consultas y proyectos en diversas áreas.")
+
+    st.markdown("---")
+    st.subheader("Explora nuestras secciones:")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("#### 📰 Prensa en Los Lagos")
+        st.markdown("Noticias y actualidad de la región.")
+        st.markdown("[Visitar Prensa en Los Lagos](https://sites.google.com/view/ia-libre/inicio)", unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("#### 🤝 Centro Solidario en Acción")
+        st.markdown("Información sobre iniciativas sociales.")
+        st.write("*(Sección en desarrollo)*")
+
+    with col3:
+        st.markdown("#### 📍 Datos Fresia")
+        st.markdown("Información relevante sobre la comuna.")
+        st.markdown("[Visitar Datos Fresia](https://sites.google.com/view/datosfresia/inicio)", unsafe_allow_html=True)
+
+# PÁGINA CHAT
+elif opcion_seleccionada == "Chat IA":
+    st.header("💬 Chat de Asistencia IA")
+    st.write(f"¡Hola! Soy {nombre_ia}. Puedo buscar información en tiempo real usando nuestro buscador Bing.")
+
+    # Historial
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+
+    for message in st.session_state.chat_history:
+        if message["role"] == "user":
+            st.info(f"**Tú:** {message['content']}")
+        else:
+            st.success(f"**{nombre_ia}:** {message['content']}")
+
+    # Formulario
+    with st.form(key='chat_form', clear_on_submit=True):
+        user_input = st.text_area("Escribe tu consulta aquí:", height=100)
+        enviar = st.form_submit_button("Enviar 🔍")
+
+    if enviar and user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+
+        consulta_lower = user_input.lower()
+        respuesta_ia = "Lo siento, no tengo la respuesta. ¿Puedo ayudarte con otra cosa?"
+        encontrado = False
+
+        # Buscar en respuestas predefinidas
+        for clave, resp in respuestas_predefinidas.items():
+            if clave in consulta_lower:
+                respuesta_ia = resp
+                encontrado = True
+                break
+
+        # Buscar en INTERNET (BING)
+        if not encontrado and SERPAPI_API_KEY:
+            try:
+                params = {
+                    "q": user_input,
+                    "api_key": SERPAPI_API_KEY,
+                    "engine": "bing",
+                    "cc": "cl",
+                    "setlang": "es"
+                }
+                search = GoogleSearch(params)
+                resultados = search.get_dict()
+
+                if "organic_results" in resultados and resultados["organic_results"]:
+                    primero = resultados["organic_results"][0]
+                    titulo = primero.get("title", "")
+                    desc = primero.get("snippet", "")
+                    link = primero.get("link", "#")
+                    respuesta_ia = f"**{titulo}**\n\n{desc}\n\n[Leer más]({link})"
+                else:
+                    respuesta_ia = "Busqué en la red pero no encontré datos específicos. Intenta otra pregunta."
+
+            except Exception as e:
+                respuesta_ia = f"Error en la búsqueda: {str(e)}"
+
+        elif not encontrado and not SERPAPI_API_KEY:
+            respuesta_ia = "Necesito mi clave API para buscar en la red."
+
+        st.session_state.chat_history.append({"role": "assistant", "content": respuesta_ia})
+        st.rerun()
+
+# PÁGINA SOBRE NOSOTROS
+elif opcion_seleccionada == "Sobre IA Libre":
+    st.header("ℹ️ Sobre IA Libre")
+    st.write(f"**{nombre_ia}** es un asistente virtual desarrollado por **{padre_ia}**.")
+    st.write("Utiliza tecnología de última generación para buscar información y ayudar en lo que necesites.")
+    st.write(f"Orgullosamente desarrollado en **{raices_ia}**.")
 # --- Barra Lateral ---
 with st.sidebar:
     st.header("IA Libre")
