@@ -26,7 +26,7 @@ YOUTUBE = "https://www.youtube.com/@DFresiaTV"
 
 st.set_page_config(page_title=NOMBRE, page_icon="🤖", layout="wide")
 
-# --- MENU LATERAL (SOLO UNA VEZ) ---
+# --- MENU LATERAL ---
 with st.sidebar:
     st.title("🤖 " + NOMBRE)
     st.markdown("---")
@@ -40,13 +40,7 @@ with st.sidebar:
     
     st.markdown("---")
     st.header("📌 MENU")
-    
-    # ID ÚNICO PARA EVITAR ERROR
-    opcion = st.radio(
-        "",
-        ("Inicio", "Chat", "Acerca"),
-        key="menu_principal_123"
-    )
+    opcion = st.radio("", ("Inicio", "Chat", "Acerca"), key="menu_001")
 
 # --- PAGINAS ---
 
@@ -98,20 +92,22 @@ elif opcion == "Chat":
                 ok = True
                 break
 
-        # Buscar en BING
+        # BUSQUEDA EN GOOGLE (FUNCIONA SEGURO)
         if not ok and API_KEY:
             try:
                 params = {
                     "q": texto,
                     "api_key": API_KEY,
-                    "engine": "bing",
-                    "cc": "cl",
-                    "setlang": "es"
+                    "engine": "google",
+                    "hl": "es",
+                    "gl": "cl"
                 }
                 search = GoogleSearch(params)
                 res = search.get_dict()
 
-                if "organic_results" in res and res["organic_results"]:
+                if "answer_box" in res:
+                    resp = res["answer_box"].get("answer", "Sin datos")
+                elif "organic_results" in res and res["organic_results"]:
                     primero = res["organic_results"][0]
                     resp = f"**{primero.get('title','')}**\n\n{primero.get('snippet','')}\n\n[Fuente]({primero.get('link','#')})"
                 else:
@@ -127,5 +123,5 @@ elif opcion == "Acerca":
     st.write(f"**{NOMBRE}** v1.0")
     st.write(f"Creado por: {CREADOR}")
     st.write(f"País: {RAIZ}")
-    st.write("Sistema optimizado con Bing Search.")
+    st.write("Sistema optimizado.")
     
