@@ -6,12 +6,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🗝️ TOMAMOS LAS CLAVES QUE PUSISTE EN RAILWAY
+// 🗝️ TOMAMOS LAS CLAVES
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
 const configuration = new Configuration({ apiKey: OPENAI_KEY });
 const openai = new OpenAIApi(configuration);
 
-// 🚀 RUTA QUE RECIBE LOS MENSAJES
+// 🚀 RUTA DEL CHAT
 app.post('/chat', async (req, res) => {
   try {
     const { mensaje } = req.body;
