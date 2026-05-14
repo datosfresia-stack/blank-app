@@ -1,79 +1,55 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-import os
+from sqlalchemy.ext.asyncio import AsyncSession
+from database import get_db, init_db, JobDemand  # Importamos lo que ya funciona
+import uvicorn
 
-# --- CONFIGURACIÓN DE LA BASE DE DATOS ---
-# Usamos las variables de Railway que validamos anteriormente
-DB_USER = "root"
-DB_PASSWORD = "-M72.EIiUz_MqTdJ_mH0hw96tqSjaPW6"
-DB_HOST = "turntable.proxy.rlwy.net"
-DB_PORT = "36536"
-DB_NAME = "railway"
+app = FastAPI()
 
-DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# --- MODELO DE LA TABLA ---
-class JobDemand(Base):
-    __tablename__ = "demandas_empleo"
-    id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String(255))
-    profesion = Column(String(255))
-    experiencia = Column(Text)
-
-# Crear las tablas en Railway si no existen
-try:
-    Base.metadata.create_all(bind=engine)
-    print("✅ Conexión Blindada: Tablas sincronizadas en Railway.")
-except Exception as e:
-    print(f"❌ Error de enlace: {e}")
-
-# --- APP FASTAPI ---
-app = FastAPI(title="IALibre - Prensaenloslagos")
-
-# --- CONFIGURACIÓN DE CORS (CRUCIAL PARA EL CHAT) ---
-# Esto permite que el navegador acepte peticiones desde su WordPress
+# --- CONFIGURACIÓN CORS (VITAL PARA WORDPRESS) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite todos los orígenes para pruebas
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"],  # Permite POST y el pre-vuelo OPTIONS
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- ESQUEMA DE DATOS (PYDANTIC) ---
-class DemandaCreate(BaseModel):
-    nombre: str
-    profesion: str
-    experiencia: str
+# --- ESQUEMA PARA RECIBIR DATOS ---
+class DemandCreate(BaseModel):
+    full_name: str
+    skills: str
+    experience_years: int = 0
+    contact_info: str
 
-# --- ENDPOINT PARA RECIBIR DATOS DEL CHAT ---
+# Evento de inicio para crear tablas
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
+# --- RUTA QUE LLAMA EL CHAT ---
 @app.post("/nueva-demanda")
-def crear_demanda(demanda: DemandaCreate):
-    db = SessionLocal()
+async def crear_demanda(data: DemandCreate, db: AsyncSession = Depends(get_db)):
     try:
-        nueva_entrada = JobDemand(
-            nombre=demanda.nombre,
-            profesion=demanda.profesion,
-            experiencia=demanda.experiencia
+        nueva_demanda = JobDemand(
+            full_name=data.full_name,
+            skills=data.skills,
+            experience_years=data.experience_years,
+            contact_info=data.contact_info
         )
-        db.add(nueva_entrada)
-        db.commit()
-        db.refresh(nueva_entrada)
-        return {"status": "success", "message": "Registro guardado en Railway", "id": nueva_entrada.id}
+        db.add(nueva_demanda)
+        await db.commit()
+        return {"status": "success", "message": "Registro guardado en Railway"}
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        db.close()
 
 @app.get("/")
 def read_root():
     return {"message": "Servidor IALibre Activo"}
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
