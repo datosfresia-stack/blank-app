@@ -4,18 +4,18 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Text
 
 # --- CONFIGURACIÓN DE CONEXIÓN ---
-# Se prioriza la variable de entorno de Railway
+# Se extrae la URL de Railway y se fuerza el driver aiomysql
 RAW_URL = os.getenv("MYSQL_URL")
 
 if RAW_URL:
-    # Garantizamos el uso del driver asíncrono aiomysql
+    # Esta transformación es vital para evitar el error 'ModuleNotFoundError'
     if RAW_URL.startswith("mysql://"):
         DATABASE_URL = RAW_URL.replace("mysql://", "mysql+aiomysql://")
     else:
         DATABASE_URL = RAW_URL
-    print("🚀 IALibre detectó entorno CLOUD (Railway). Conectando...")
+    print("🚀 IALibre detectó entorno CLOUD (Railway).")
 else:
-    # Configuración local de respaldo
+    # Respaldo para pruebas locales
     DATABASE_URL = "mysql+aiomysql://root:password@localhost:3306/ialibre_db"
     print("🏠 IALibre detectó entorno LOCAL.")
 
@@ -40,9 +40,9 @@ class JobDemand(Base):
 # --- UTILIDADES ---
 async def init_db():
     async with engine.begin() as conn:
-        # Crea las tablas si no existen en MariaDB
+        # Esto crea la tabla en MariaDB automáticamente
         await conn.run_sync(Base.metadata.create_all)
-    print("✅ Conexión Blindada: Tablas sincronizadas.")
+    print("✅ Tablas sincronizadas en la nube.")
 
 async def get_db():
     async with AsyncSessionLocal() as session:
