@@ -25,7 +25,7 @@ else:
     DB_PORT = os.getenv("DB_PORT", "3306")
     DB_NAME = os.getenv("DB_NAME", "ialibre")
     
-    DATABASE_URL = f"mysql+aiomysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+  DATABASE_URL = f"mysql+aiomysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
     print(f"🏠 IALibre detectó entorno LOCAL (Fresia). Conectando a {DB_HOST}...")
 
 # --- CONFIGURACIÓN DEL MOTOR (ENGINE) ---
