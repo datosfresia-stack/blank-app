@@ -1,21 +1,36 @@
 import os
-import psycopg2
+import mysql.connector
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 app = FastAPI(title="IALibre Backend Unificado")
 
-# --- CONFIGURACIÓN DE BASE DE DATOS (RAILWAY) ---
+# --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
 def get_db_connection():
-    """Establece la conexión con la base de datos relacional en la nube"""
+    """Establece la conexión con la base de datos MariaDB/MySQL en la nube"""
     DATABASE_URL = os.getenv("DATABASE_URL")
     if not DATABASE_URL:
         raise RuntimeError("❌ Variable de entorno DATABASE_URL no configurada.")
-    return psycopg2.connect(DATABASE_URL)
+    
+    # Adaptación heurística para parsear la URL estándar de MariaDB
+    # Estructura esperada: mysql://user:password@host:port/database
+    url = DATABASE_URL.replace("mysql://", "").replace("mariadb://", "")
+    auth, rest = url.split("@")
+    user, password = auth.split(":")
+    host_port, database = rest.split("/")
+    host, port = host_port.split(":")
+    
+    return mysql.connector.connect(
+        host=host,
+        port=int(port),
+        user=user,
+        password=password,
+        database=database
+    )
 
 def inicializar_base_de_datos_nucleo():
-    """Crea las tablas necesarias para almacenar la memoria a largo plazo del Núcleo"""
+    """Crea las tablas necesarias para almacenar la memoria en MariaDB si no existen"""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -23,11 +38,11 @@ def inicializar_base_de_datos_nucleo():
         # 1. Tabla para las consultas médicas del Sur de Chile
         cur.execute('''
             CREATE TABLE IF NOT EXISTS consultas_medicas (
-                id SERIAL PRIMARY KEY,
-                edad INTEGER,
-                presion INTEGER,
-                frecuencia INTEGER,
-                saturacion INTEGER,
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                edad INT,
+                presion INT,
+                frecuencia INT,
+                saturacion INT,
                 hipertenso VARCHAR(10),
                 sur_chile VARCHAR(10),
                 nivel_riesgo VARCHAR(50),
@@ -35,10 +50,10 @@ def inicializar_base_de_datos_nucleo():
             );
         ''')
         
-        # 2. NUEVA TABLA: Cerebro relacional para códigos, neurociencia y metas doctorales
+        # 2. Cerebro relacional para códigos, neurociencia y metas doctorales
         cur.execute('''
             CREATE TABLE IF NOT EXISTS matriz_conocimiento (
-                id SERIAL PRIMARY KEY,
+                id INT AUTO_INCREMENT PRIMARY KEY,
                 categoria VARCHAR(100),
                 concepto VARCHAR(255),
                 detalles TEXT,
@@ -52,11 +67,11 @@ def inicializar_base_de_datos_nucleo():
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Matriz de conocimiento eterno verificada e inicializada con éxito.")
+        print("🛸 [Base de Datos]: Matriz de conocimiento eterno verificada e inicializada en MariaDB.")
     except Exception as e:
         print(f"⚠️ No se pudo inicializar el almacenamiento del Núcleo: {e}")
 
-# Ejecutamos la inicialización al arrancar el contenedor
+# Ejecutamos la inicialización al arrancar el contenedor en Railway
 inicializar_base_de_datos_nucleo()
 
 
@@ -70,15 +85,14 @@ class ConsultaMedica(BaseModel):
     sur_chile: str
 
 
-# --- ENDPOINTS LOGICA SANITARIA (SUR DE CHILE) ---
+# --- ENDPOINTS LÓGICA SANITARIA (SUR DE CHILE) ---
 @app.get("/")
 async def raiz_sistema():
-    return {"status": "online", "sistema": "IALibre Frontend/Backend unificado"}
+    return {"status": "online", "sistema": "IALibre Frontend/Backend unificado operando en MariaDB"}
 
 @app.post("/evaluar-riesgo")
 async def evaluar_riesgo(datos: ConsultaMedica):
     try:
-        # Algoritmo de evaluación adaptado con sensibilidad regional
         puntos_riesgo = 0
         
         if datos.presion > 140 or datos.presion < 90:
@@ -98,7 +112,7 @@ async def evaluar_riesgo(datos: ConsultaMedica):
         elif puntos_riesgo >= 3:
             nivel_riesgo = "Riesgo Moderado / Monitoreo Continuo"
 
-        # Guardar registro en la base de datos de consulta médica
+        # Guardar registro en MariaDB utilizando marcadores estandar de formato (%s)
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
@@ -204,7 +218,7 @@ async def ver_consola_nucleo():
 async def consultar_nucleo(payload: dict):
     """
     Endpoint del Núcleo: Clasifica, analiza y almacena notas doctorales 
-    e ingeniería en la base de datos PostgreSQL de forma permanente.
+    e ingeniería en la base de datos MariaDB de forma permanente.
     """
     try:
         idea = payload.get("idea", "").strip()
@@ -231,17 +245,16 @@ async def consultar_nucleo(payload: dict):
             categoria = "medicina"
             coordenadas = [0.8, 0.7, 0.1]
 
-        # --- PERSISTENCIA EN POSTGRESQL (Memoria Eterna) ---
+        # --- PERSISTENCIA EN MARIADB (Memoria Eterna) ---
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
             INSERT INTO matriz_conocimiento (categoria, concepto, detalles, coordenada_x, coordenada_y, coordenada_z)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id;
+            VALUES (%s, %s, %s, %s, %s, %s);
         ''', (categoria, f"Nota Doc: {idea[:30]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2]))
         
-        nuevo_id = cur.fetchone()[0]
         conn.commit()
+        nuevo_id = cur.lastrowid  # Captura el ID auto-incremental nativo en MariaDB
         cur.close()
         conn.close()
 
@@ -258,7 +271,7 @@ async def consultar_nucleo(payload: dict):
             "status": "success",
             "analisis_nucleo": f"[REGISTRO ETERNO N° {nuevo_id} - CAT: {categoria.upper()}]: {guias_autonomas[categoria]}",
             "resonancias_encontradas": [
-                {"concepto_relacionado": f"Matriz Cuántica ({categoria.upper()})", "energia_qubit": round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)}
+                {"concepto_relacionado": f"Matriz Cuántica ({categoria.upper()})", "energia_qubit": round((coordenadas[0]**2 + coordinates_y := coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)}
             ]
         }
         
