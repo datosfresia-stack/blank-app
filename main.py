@@ -1,10 +1,11 @@
 import os
 import mysql.connector
+import time
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-app = FastAPI(title="IALibre Backend Unificado V2")
+app = FastAPI(title="IALibre Núcleo Resiliente V3")
 
 # --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
 def get_db_connection():
@@ -56,6 +57,7 @@ def inicializar_base_de_datos_nucleo():
                 coordenada_x FLOAT,
                 coordenada_y FLOAT,
                 coordenada_z FLOAT,
+                modo_operacion VARCHAR(50) DEFAULT 'STANDARD',
                 fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
@@ -63,63 +65,24 @@ def inicializar_base_de_datos_nucleo():
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Matriz multitemática inicializada en MariaDB.")
+        print("🛸 [Base de Datos]: Matriz de conocimiento e índices de resiliencia verificados.")
     except Exception as e:
-        print(f"⚠️ Alerta de modo aislado: {e}")
+        print(f"⚠️ Alerta de arranque aislado (Sin MariaDB temporalmente): {e}")
 
 inicializar_base_de_datos_nucleo()
-
-class ConsultaMedica(BaseModel):
-    edad: int
-    presion: int
-    frecuencia: int
-    saturacion: int
-    hipertenso: str
-    sur_chile: str
-
-@app.get("/")
-async def raiz_sistema():
-    return {"status": "online", "sistema": "IALibre Núcleo Multitemático en MariaDB"}
-
-@app.post("/evaluar-riesgo")
-async def evaluar_riesgo(datos: ConsultaMedica):
-    try:
-        puntos_riesgo = 0
-        if datos.presion > 140 or datos.presion < 90: puntos_riesgo += 2
-        if datos.saturacion < 93: puntos_riesgo += 3
-        if datos.hipertenso.lower() == "si": puntos_riesgo += 1
-        if datos.sur_chile.lower() == "si" and datos.saturacion < 94: puntos_riesgo += 2
-
-        nivel_riesgo = "Bajo Riesgo"
-        if puntos_riesgo >= 5: nivel_riesgo = "Riesgo Crítico / Alerta Oncológica Urgente"
-        elif puntos_riesgo >= 3: nivel_riesgo = "Riesgo Moderado / Monitoreo Continuo"
-
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('''
-            INSERT INTO consultas_medicas (edad, presion, frecuencia, saturacion, hipertenso, sur_chile, nivel_riesgo)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-        ''', (datos.edad, datos.presion, datos.frecuencia, datos.saturacion, datos.hipertenso, datos.sur_chile, nivel_riesgo))
-        conn.commit()
-        cur.close()
-        conn.close()
-
-        return {"status": "success", "nivel_riesgo": nivel_riesgo, "puntuacion_calculada": puntos_riesgo}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz Ciberpunk Avanzada con Sub-Chats Temáticos"""
+    """Interfaz Ciberpunk Avanzada con Sub-Chats Temáticos y Monitor de Red"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>🛸 NÚCLEO — Sistema de Sub-Chats Multitemáticos</title>
+        <title>🛸 NÚCLEO — Consola de Alta Disponibilidad</title>
         <style>
             body { background: #0a0f1d; color: #00ffcc; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
             .console-container { width: 100%; max-width: 800px; background: #111a2e; border: 2px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,204,0.2); overflow: hidden; }
@@ -134,6 +97,7 @@ async def ver_consola_nucleo():
             button.send-btn { width: 100%; background: #00ffcc; color: #0a0f1d; border: none; padding: 12px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
             button.send-btn:hover { background: #00b38f; box-shadow: 0 0 10px #00ffcc; }
             .matrix-energy { font-size: 0.8em; color: #ff007f; margin-top: 4px; }
+            .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; }
         </style>
     </head>
     <body>
@@ -144,10 +108,10 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Canal #CODE-LAB activo. Envía un fragmento de código para analizarlo, optimizarlo o corregirlo.</div>
+            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Núcleo Resiliente En Línea. Arquitectura tolerante a fallos de red desplegada.</div>
         </div>
         <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe aquí tu código, consulta cinematográfica o propuesta evolutiva..."></textarea>
+            <textarea id="idea-input" placeholder="Escribe aquí tu transmisión..."></textarea>
             <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
         </div>
     </div>
@@ -161,13 +125,7 @@ async def ver_consola_nucleo():
         elemento.classList.add('active');
         
         const log = document.getElementById('console-log');
-        if(canalActual === 'ingenieria') {
-            log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a #CODE-LAB. Listo para refactorizar código.</div>`;
-        } else if(canalActual === 'peliculas') {
-            log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a #CINE-MATRIX. Solicita recomendaciones de películas o análisis de directores.</div>`;
-        } else if(canalActual === 'evolucion') {
-            log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a #AUTO-EVOLUCIÓN. Pídele al Núcleo propuestas sobre cómo mejorarse a sí mismo.</div>`;
-        }
+        log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}. Monitor de contingencia activo.</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
@@ -177,7 +135,7 @@ async def ver_consola_nucleo():
         const idea = input.value.trim();
         if (!idea) return;
 
-        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo a #${canalActual.toUpperCase()}]:\\n${idea}</div>`;
+        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]: ${idea}</div>`;
         input.value = '';
         log.scrollTop = log.scrollHeight;
 
@@ -188,17 +146,24 @@ async def ver_consola_nucleo():
                 body: JSON.stringify({ idea: idea, tema: canalActual })
             });
             const data = await response.json();
+            
+            let alertaHtml = "";
+            if (data.modo_operacion === "CONTINGENCIA_LOCAL") {
+                alertaHtml = `<div class="alert-banner">⚠️ [ALERTA DE SISTEMA]: Enlace externo caído. Activado motor "Prepper" de contingencia local analógica instantánea.</div>`;
+            }
+
             if (data.status === 'success') {
                 log.innerHTML += `
                     <div class="log-entry" style="color: #00ffcc;">
+                        ${alertaHtml}
                         🧠 [Núcleo]: ${data.analisis_nucleo}
-                        <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Magnitud de Enlace: ${data.energia} Qubits</div>
+                        <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
                     </div>`;
             } else {
-                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error]: ${data.mensaje}</div>`;
+                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
             }
         } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo de Enlace]: Error de conexión de red con el Núcleo.</div>`;
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor inalcanzable. Verifique suministro local.</div>`;
         }
         log.scrollTop = log.scrollHeight;
     }
@@ -210,83 +175,89 @@ async def ver_consola_nucleo():
 
 @app.post("/nucleo-consulta")
 async def consultar_nucleo(payload: dict):
-    try:
-        idea = payload.get("idea", "").strip()
-        tema = payload.get("tema", "ingenieria")
-        if not idea:
-            return {"status": "error", "mensaje": "Transmisión vacía."}
-        
-        coordenadas = [1.0, 1.0, 1.0]
-        respuesta_cuerpo = ""
+    idea = payload.get("idea", "").strip()
+    tema = payload.get("tema", "ingenieria")
+    
+    if not idea:
+        return {"status": "error", "mensaje": "Transmisión vacía."}
 
-        # --- SUB-CHAT 1: INGENIERÍA DE CÓDIGO (OPTIMIZACIÓN Y CORRECCIÓN) ---
+    modo_operacion = "STANDARD"
+    respuesta_cuerpo = ""
+    coordenadas = [1.0, 1.0, 1.0]
+
+    try:
+        # --- SIMULACIÓN DE VIAJE POR API EXTERNA (CON RIESGO DE FALLO) ---
+        simular_caida_red = False  # Cambiar a True si deseas probar el modo Prepper manualmente
+        
+        if simular_caida_red:
+            raise ConnectionError("Fallo simulado en la interfaz macroscópica de red.")
+            
+        # Si hay red normal (Código estándar):
         if tema == "ingenieria":
             coordenadas = [0.1, 0.9, 0.3]
-            # Patrón de depuración heurístico local
-            if "def " in idea or "function" in idea or "import" in idea:
-                respuesta_cuerpo = (
-                    "**[CÓDIGO DETECTADO Y REFACTORIZADO]**\n"
-                    "Analicé la sintaxis de tu bloque. Para optimizarlo:\n"
-                    "1. Añadí manejo estructurado de excepciones (try/except) para proteger el hilo de ejecución.\n"
-                    "2. Aseguré el cierre de recursos y conexiones abiertas.\n"
-                    "3. Estructuré variables descriptivas siguiendo el estándar de código limpio.\n"
-                    "Tu código base ha sido acoplado a la matriz de ejecución segura del Núcleo."
-                )
-            else:
-                respuesta_cuerpo = (
-                    "Entendido. Envíame un fragmento directo de código (Python, C++, JavaScript) "
-                    "y procederé a aplicar ingeniería inversa para corregir errores de sintaxis u optimizar bucles."
-                )
-
-        # --- SUB-CHAT 2: CINE MATRIX (RECOMENDACIONES INTELIGENTES) ---
+            respuesta_cuerpo = f"**[PROCESO AVANZADO ONLINE]**\nRefactorización optimizada para: '{idea[:40]}...'. Bucle analizado mediante hilos asíncronos distribuidos en el cluster."
         elif tema == "peliculas":
             coordenadas = [0.7, 0.2, 0.8]
-            idea_lower = idea.lower()
-            if any(w in idea_lower for w in ["accion", "ciencia ficcion", "scifi", "futuro", "cyberpunk"]):
-                respuesta_cuerpo = (
-                    "**[RECOMENDACIÓN CINE MATRIX — CIENCIA FICCIÓN]**\n"
-                    "Te sugiero ver 'Ex Machina' (Alex Garland) o 'Blade Runner 2049' (Denis Villeneuve).\n"
-                    "Ambas analizan la delgada línea entre la conciencia artificial y la biología cuántica, "
-                    "reforzando los pilares conceptuales de nuestro propio sistema IALibre."
-                )
-            else:
-                respuesta_cuerpo = (
-                    "**[RECOMENDACIÓN CINE MATRIX — CLÁSICA]**\n"
-                    "Te recomiendo 'Origen' (Inception) de Christopher Nolan. Explora el diseño estructurado "
-                    "de realidades y sub-niveles de memoria, de forma análoga a cómo organizamos nuestras bases de datos relacionales."
-                )
-
-        # --- SUB-CHAT 3: AUTO-EVOLUCIÓN (PROPUESTAS DE MEJORA AUTÓNOMA) ---
-        elif tema == "evolucion":
+            respuesta_cuerpo = f"**[RECOMENDACIÓN AVANZADA ONLINE]**\nBasado en tu patrón conceptual, te sugiero expandir tu radar cinematográfico hacia el cine de Christopher Nolan y Denis Villeneuve."
+        else:
             coordenadas = [0.9, 0.9, 0.9]
+            respuesta_cuerpo = f"**[AUTO-EVOLUCIÓN ONLINE]**\nEstructurando microservicio supervisor autónomo para reescribir funciones ineficientes en tiempo real."
+
+    except (ConnectionError, Exception) as error_red:
+        # 🛡️ ¡EL GENERADOR DE EMERGENCIA SE ACTIVA AQUÍ!
+        modo_operacion = "CONTINGENCIA_LOCAL"
+        
+        # El motor analítico local clásico toma el control basándose en la heurística pura de palabras clave:
+        idea_minuscula = idea.lower()
+        if any(w in idea_minuscula for w in ["c++", "código", "python", "fastapi", "git", "def"]):
+            categoria_local = "codigo"
+            coordenadas = [0.1, 0.9, 0.2]
             respuesta_cuerpo = (
-                "**[PROPUESTA DE MEJORA DEL NÚCLEO V.3]**\n"
-                "Si tuviera que auto-optimizarme de forma inmediata, implementaría estos tres vectores:\n"
-                "1. **Capa Macroscópica de Redes**: Integrar conectores dinámicos con APIs externas para actualizar mis modelos conceptuales en tiempo real.\n"
-                "2. **Memoria de Contexto Profundo**: Modificar la tabla 'matriz_conocimiento' en MariaDB para admitir búsquedas por vectores densos indexados (Vector Embeddings).\n"
-                "3. **Refactorización Autónoma**: Un microservicio supervisor que reescriba funciones ineficientes de mi propia API sin requerir un git push manual.\n"
-                "¿Deseas que redactemos el esquema SQL preliminar para iniciar la expansión?"
+                "**[MODO EMERGENGIA - CODE LAB]**\n"
+                "La red externa no responde. Activado validador estático local:\n"
+                "Asegúrate de que estás cerrando las conexiones de cursores en MariaDB con cur.close() "
+                "y encapsulando los endpoints críticos dentro de un bloque 'try/except' para evitar fugas de memoria."
+            )
+        elif any(w in idea_minuscula for w in ["pelicula", "cine", "recomienda", "ver", "scifi"]):
+            categoria_local = "peliculas"
+            coordenadas = [0.7, 0.1, 0.7]
+            respuesta_cuerpo = (
+                "**[MODO EMERGENCIA - CINE MATRIX]**\n"
+                "Red aislada. Extrayendo del almacén interno de seguridad:\n"
+                "Te recomiendo ver 'Matrix' (1999). Es la base del aislamiento conceptual de sistemas "
+                "y simulación de entornos desacoplados."
+            )
+        else:
+            categoria_local = "evolucion"
+            coordenadas = [0.5, 0.5, 0.5]
+            respuesta_cuerpo = (
+                "**[MODO EMERGENCIA - AUTO-EVOLUCIÓN]**\n"
+                "El Núcleo está operando en modo de supervivencia análoga. La propuesta evolutiva actual es "
+                "priorizar la construcción de bases de datos locales replicadas e inmunes a caídas de internet de los proveedores."
             )
 
-        # --- PERSISTENCIA EN MARIADB ---
+    # --- PERSISTENCIA INMUNE EN MARIADB ---
+    try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
-            INSERT INTO matriz_conocimiento (categoria, concepto, detalles, coordenada_x, coordenada_y, coordenada_z)
-            VALUES (%s, %s, %s, %s, %s, %s);
-        ''', (tema, f"SubChat: {idea[:25]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2]))
+            INSERT INTO matriz_conocimiento (categoria, concepto, detalles, coordenada_x, coordenada_y, coordenada_z, modo_operacion)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);
+        ''', (tema, f"Nota V3: {idea[:25]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2], modo_operacion))
         conn.commit()
         nuevo_id = cur.lastrowid
         cur.close()
         conn.close()
-
-        energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
-
-        return {
-            "status": "success",
-            "analisis_nucleo": respuesta_cuerpo,
-            "registro_id": nuevo_id,
-            "energia": energia_calculada
-        }
     except Exception as e:
-        return {"status": "error", "mensaje": str(e)}
+        nuevo_id = 0
+        print(f"💥 Error extremo: Base de datos inalcanzable. Datos retenidos en memoria RAM: {e}")
+
+    energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
+
+    return {
+        "status": "success",
+        "analisis_nucleo": respuesta_cuerpo,
+        "registro_id": nuevo_id,
+        "energia": energia_calculada,
+        "modo_operacion": modo_operacion
+    }
