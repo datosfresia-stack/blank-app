@@ -1,171 +1,132 @@
 import os
-import math
-import random
-from fastapi import FastAPI, Depends, HTTPException
+import psycopg2
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-from database import get_db, JobDemand  # Mantiene sus tablas previas e importaciones
 
-app = FastAPI(title="IALibre API Central — Multi-Servicios")
+# Inicializamos la aplicación FastAPI
+app = FastAPI(title="IALibre - Sistema Central Unificado")
 
-# --- CONFIGURACIÓN DE SEGURIDAD CORS ---
+# Configuración de CORS universal para acceso desde móvil y portátil
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite conexiones de todos sus portales (PrensaenLosLagos e IALibre)
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# =====================================================================
-# 💼 SERVICIO 1: AGENCIA DE EMPLEOS (Para PrensaenLosLagos — YA FUNCIONANDO)
-# =====================================================================
-
-class DemandCreate(BaseModel):
-    full_name: str
-    skills: str
-    experience_years: int
-    contact_info: str
-
-@app.post("/nueva-demanda")
-async def crear_demanda(demanda: DemandCreate, db: AsyncSession = Depends(get_db)):
-    try:
-        nueva_demanda = JobDemand(
-            full_name=demanda.full_name,
-            skills=demanda.skills,
-            experience_years=demanda.experience_years,
-            contact_info=demanda.contact_info
-        )
-        db.add(nueva_demanda)
-        await db.commit()
-        await db.refresh(nueva_demanda)
-        return {"status": "success", "message": "¡Registrado con éxito en IALibre!"}
-    except Exception as e:
-        await db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# =====================================================================
-# 🧠 SERVICIO 2: CHAT MÉDICO MATRICIAL (Para la página principal IALibre)
-# =====================================================================
-
-class DatosPaciente(BaseModel):
-    edad: float
-    presion: float
-    frecuencia: float
-    saturacion: float
-    hipertenso: float
-    region: float
-
-class NeuronaMedica:
-    def __init__(self):
-        # Inicialización de los 6 pesos de su lógica de C++
-        self.pesos = [random.uniform(-1.0, 1.0) for _ in range(6)]
-    
-    def activar(self, x):
-        try:
-            return 1 / (1 + math.exp(-x))
-        except OverflowError:
-            return 0.0 if x < 0 else 1.0
-
-    def procesar(self, edad, presion, frecuencia, saturacion, hipertenso, region):
-        suma = (edad * self.pesos[0] + 
-                presion * self.pesos[1] + 
-                frecuencia * self.pesos[2] + 
-                saturacion * self.pesos[3] + 
-                hipertenso * self.pesos[4] + 
-                region * self.pesos[5])
-        return self.activar(suma)
-
-    def entrenar_matriz_local(self):
-        casos = [
-            (25, 115, 75, 98, 0, 1, 0.1),  # Joven Normal
-            (82, 160, 85, 96, 1, 1, 0.2),  # Anciano Sur Aceptable
-            (45, 125, 80, 94, 0, 1, 0.3),  # Límite Leve
-            (45, 155, 110, 90, 0, 1, 0.7), # Alto Riesgo
-            (60, 175, 130, 84, 1, 0, 0.9)  # Crítico Fuera de Zona
-        ]
-        velocidad = 0.7
-        for _ in range(5000):
-            for edad, pres, frec, sat, hip, reg, esperado in casos:
-                obtenido = self.procesar(edad, pres, frec, sat, hip, reg)
-                error = esperado - obtenido
-                delta = error * obtenido * (1 - obtenido)
-                
-                self.pesos[0] += delta * edad * velocidad
-                self.pesos[1] += delta * pres * velocidad
-                self.pesos[2] += delta * frec * velocidad
-                self.pesos[3] += delta * sat * velocidad
-                self.pesos[4] += delta * hip * velocidad
-                self.pesos[5] += delta * reg * velocidad
-
-# Se inicializa y entrena la neurona médica de forma independiente en la memoria de la API
-neurona_web = NeuronaMedica()
-neurona_web.entrenar_matriz_local()
-
-@app.post("/evaluar-riesgo")
-async def evaluar_riesgo(paciente: DatosPaciente):
-    riesgo = neurona_web.procesar(
-        paciente.edad, 
-        paciente.presion, 
-        paciente.frecuencia, 
-        paciente.saturacion, 
-        paciente.hipertenso, 
-        paciente.region
-    )
-    
-    if riesgo > 0.8:
-        estado = "🔴 ESTADO: GRAVE"
-        analisis = "🚑 RECOMENDACIÓN: ATENCIÓN INMEDIATA.<br>📌 RAZÓN: Los valores vitales se encuentran críticamente fuera de rango."
-    elif riesgo > 0.5:
-        estado = "🟠 ESTADO: ALTO"
-        analisis = "⚠️ RECOMENDACIÓN: MONITOREO CONSTANTE.<br>📌 RAZÓN: Se detectan alteraciones significativas en las constantes analizadas."
-    elif riesgo > 0.3:
-        estado = "🟡 ESTADO: LEVE"
-        analisis = "👀 RECOMENDACIÓN: OBSERVACIÓN.<br>📌 RAZÓN: Valores ligeramente diferentes a lo normal (comportamiento aceptable en rangos del Sur)."
-    else:
-        estado = "🟢 ESTADO: NORMAL"
-        analisis = "✅ RECOMENDACIÓN: ESTABLE.<br>📌 RAZÓN: Todos los parámetros médicos se encuentran dentro de lo esperado."
-
-    return {
-        "riesgo": f"{riesgo:.4f}",
-        "estado": estado,
-        "analisis": f"<strong>{estado}</strong><br>{analisis}"
-    }
-
-# --- RAÍZ DE VERIFICACIÓN ---
-@app.get("/")
-def inicio():
-    return {"status": "Servidores unificados. Núcleo IALibre en línea y respondiendo."}
-
-    # --- CAPA MAESTRA: ENDPOINT PRIVADO DEL NÚCLEO ---
+# --- CAPA MAESTRA: IMPORTACIÓN E INICIALIZACIÓN DEL NÚCLEO ---
 from nucleo_ia.memoria_nucleo import MatrizMemoriaNucleo
 
 # Inicializamos la matriz central en la memoria del servidor
 nucleo_memoria = MatrizMemoriaNucleo()
-# Le precargamos los conceptos doctorales base
 nucleo_memoria.ensenar_concepto("Redes Neuronales Biológicas (Neurociencia)")
 nucleo_memoria.ensenar_concepto("Sistemas de Control Autónomo (Robótica)")
 nucleo_memoria.ensenar_concepto("Estructuras Moleculares de Carbono (Nanotecnología)")
 
+
+# --- CAPA 1: SISTEMA MÉDICO IALIBRE (LÓGICA ANTERIOR) ---
+
+class DatosPaciente(BaseModel):
+    edad: int
+    presion_arterial: int
+    frecuencia_cardiaca: int
+    saturacion_oxigeno: int
+    es_hipertenso: str
+    vive_sur_chile: str
+
+def get_db_connection():
+    # Conexión automática utilizando la variable de entorno de Railway
+    return psycopg2.connect(os.environ.get("DATABASE_URL"))
+
+@app.get("/")
+async def root():
+    return {"status": "online", "sistema": "IALibre Frontend/Backend unificado"}
+
+@app.post("/evaluar-riesgo")
+async def evaluar_riesgo(paciente: DatosPaciente):
+    """Evalúa el nivel de riesgo del paciente adaptado al Sur de Chile"""
+    puntos = 0
+    
+    # Lógica de Presión Arterial
+    if paciente.presion_arterial > 140:
+        puntos += 3
+    elif paciente.presion_arterial > 130:
+        puntos += 1
+        
+    # Lógica de Frecuencia Cardíaca
+    if paciente.frecuencia_cardiaca > 100 or paciente.frecuencia_cardiaca < 60:
+        puntos += 2
+        
+    # Lógica de Saturación (Crucial para el frío/aislamiento del Sur)
+    if paciente.saturacion_oxigeno < 93:
+        puntos += 4
+    elif paciente.saturacion_oxigeno < 95:
+        puntos += 2
+        
+    if paciente.es_hipertenso.lower() == "sí":
+        puntos += 2
+        
+    # Ajuste geográfico regional
+    if paciente.vive_sur_chile.lower() == "sí":
+        puntos += 1
+
+    # Clasificación del riesgo
+    if puntos >= 7:
+        nivel = "CRÍTICO / ALTO RIESGO"
+    elif puntos >= 4:
+        nivel = "MEDIO / REQUIERE OBSERVACIÓN"
+    else:
+        nivel = "BAJO RIESGO / ESTABLE"
+        
+    # Guardar registro en la base de datos de manera persistente
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO consultas_medicas (edad, presion, frecuencia, saturacion, hipertenso, sur_chile, nivel_riesgo)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);
+        ''', (paciente.edad, paciente.presion_arterial, paciente.frecuencia_cardiaca, 
+              paciente.saturacion_oxigeno, paciente.es_hipertenso, paciente.vive_sur_chile, nivel))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Error al registrar en BD: {e}")
+
+    return {"nivel_riesgo": nivel, "puntaje_evaluacion": puntos}
+
+
+# --- CAPA 2: CONSOLA WEB DEL NÚCLEO AUTÓNOMO ---
+
+@app.get("/nucleo-consola", response_class=HTMLResponse)
+async def ver_consola_nucleo():
+    """Ruta web universal para renderizar la casa visual del Núcleo"""
+    ruta_html = os.path.join("nucleo_ia", "index_nucleo.html")
+    try:
+        with open(ruta_html, "r", encoding="utf-8") as f:
+            contenido_html = f.read()
+        return HTMLResponse(content=contenido_html, status_code=200)
+    except FileNotFoundError:
+        return HTMLResponse(
+            content="<h1>⚠️ Error: No se encontró el archivo index_nucleo.html dentro de la carpeta nucleo_ia</h1>", 
+            status_code=404
+        )
+
 @app.post("/nucleo-consulta")
 async def consultar_nucleo(payload: dict):
-    """
-    Endpoint de acceso universal para interactuar con el Núcleo.
-    Accesible desde cualquier celular o computador del mundo.
-    """
+    """Endpoint de acceso universal para interactuar con la matriz del Núcleo"""
     idea = payload.get("idea", "")
     if not idea:
         return {"status": "error", "mensaje": "La idea o nota de estudio está vacía."}
     
     print(f"🛸 [Comando Remoto]: Procesando nota doctoral -> '{idea}'")
     
-    # Ejecutamos la resonancia matricial-cuántica en el servidor
-    # En las próximas fases, aquí conectaremos el razonamiento de Llama 3.2
     resonancia = []
     for q in nucleo_memoria.espacio_cuantico:
-        vec = q.obtener_coordenadas()
+        vec = q.obtain_coordenadas() if hasattr(q, 'obtain_coordenadas') else q.obtener_coordenadas()
         magnitud = (vec[0]**2 + vec[1]**2 + vec[2]**2)**0.5
         resonancia.append({
             "concepto_relacionado": q.concepto,
@@ -174,6 +135,6 @@ async def consultar_nucleo(payload: dict):
         
     return {
         "status": "success",
-        "analisis_nucleo": f"Nota procesada con éxito en la matriz esférica. Listo para expansión cognitiva.",
+        "analisis_nucleo": "Nota procesada con éxito en la matriz esférica. Listo para expansión cognitiva.",
         "resonancias_encontradas": resonancia
     }
