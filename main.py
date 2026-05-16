@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import google.generativeai as genai
+
 app = FastAPI(title="IALibre Núcleo Resiliente V4")
 
 # --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
@@ -73,6 +74,107 @@ inicializar_base_de_datos_nucleo()
 
 
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
+@app.get("/nucleo-consola", response_class=HTMLResponse)
+async def ver_consola_nucleo():
+    """Interfaz Ciberpunk Avanzada con Sub-Chats Temáticos y Monitor de Red"""
+    contenido_html = """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>🛸 NÚCLEO — Consola de Alta Disponibilidad</title>
+        <style>
+            body { background: #0a0f1d; color: #00ffcc; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+            .console-container { width: 100%; max-width: 800px; background: #111a2e; border: 2px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,204,0.2); overflow: hidden; }
+            .tabs-bar { display: flex; background: #070c16; border-bottom: 2px solid #00ffcc; }
+            .tab-btn { flex: 1; background: none; border: none; color: #8892b0; padding: 12px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; }
+            .tab-btn.active { color: #0a0f1d; background: #00ffcc; }
+            .console-log { height: 350px; padding: 15px; overflow-y: auto; background: #070c16; border-bottom: 1px solid #00ffcc; font-size: 0.9em; line-height: 1.5; }
+            .log-entry { margin-bottom: 12px; border-left: 3px solid #00ffcc; padding-left: 8px; white-space: pre-wrap; }
+            .input-area { padding: 15px; background: #111a2e; }
+            textarea { width: 100%; height: 90px; background: #070c16; color: #fff; border: 1px solid #00ffcc; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.95em; box-sizing: border-box; resize: none; }
+            textarea:focus { outline: none; box-shadow: 0 0 8px #00ffcc; }
+            button.send-btn { width: 100%; background: #00ffcc; color: #0a0f1d; border: none; padding: 12px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
+            button.send-btn:hover { background: #00b38f; box-shadow: 0 0 10px #00ffcc; }
+            .matrix-energy { font-size: 0.8em; color: #ff007f; margin-top: 4px; }
+            .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+    <div class="console-container">
+        <div class="tabs-bar">
+            <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 Code Lab</button>
+            <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 Cine Matrix</button>
+            <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
+        </div>
+        <div id="console-log" class="console-log">
+            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Enciclopedia Relacional Doctorada V4. Motor híbrido flexible offline operativo.</div>
+        </div>
+        <div class="input-area">
+            <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
+            <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
+        </div>
+    </div>
+
+    <script>
+    let canalActual = 'ingenieria';
+
+    function cambiarCanal(nuevoCanal, elemento) {
+        canalActual = nuevoCanal;
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        elemento.classList.add('active');
+        
+        const log = document.getElementById('console-log');
+        log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}.</div>`;
+        log.scrollTop = log.scrollHeight;
+    }
+
+    async function transmitirAlNucleo() {
+        const input = document.getElementById('idea-input');
+        const log = document.getElementById('console-log');
+        const idea = input.value.trim();
+        if (!idea) return;
+
+        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]:\n${idea}</div>`;
+        input.value = '';
+        log.scrollTop = log.scrollHeight;
+
+        try {
+            const response = await fetch('/nucleo-consulta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idea: idea, tema: canalActual })
+            });
+            const data = await response.json();
+            
+            let alertaHtml = "";
+            if (data.modo_operacion === "CONTINGENCIA_LOCAL") {
+                alertaHtml = `<div class="alert-banner">⚠️ [ALERTA]: Enlace caído. Activado motor analógico de contingencia.</div>`;
+            }
+
+            if (data.status === 'success') {
+                log.innerHTML += `
+                    <div class="log-entry" style="color: #00ffcc;">
+                        ${alertaHtml}
+                        🧠 [Núcleo]: ${data.analisis_nucleo}
+                        <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
+                    </div>`;
+            } else {
+                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
+            }
+        } catch (error) {
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor inalcanzable.</div>`;
+        }
+        log.scrollTop = log.scrollHeight;
+    }
+    </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=contenido_html, status_code=200)
+
+
 @app.post("/nucleo-consulta")
 async def consultar_nucleo(payload: dict):
     idea = payload.get("idea", "").strip()
@@ -88,7 +190,6 @@ async def consultar_nucleo(payload: dict):
     try:
         conn = get_db_connection()
         
-        # MANTENIMIENTO EN CALIENTE DE TABLAS
         cur_rescate = conn.cursor()
         cur_rescate.execute('''
             CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
@@ -116,7 +217,6 @@ async def consultar_nucleo(payload: dict):
         
         cur = conn.cursor(dictionary=True)
             
-        # 📥 MODULO DE INGESTA (Comando aprender:)
         if idea.lower().startswith("aprender:"):
             partes = idea.split("|")
             area = "general"
@@ -152,7 +252,6 @@ async def consultar_nucleo(payload: dict):
             )
             
         else:
-            # 🔍 MOTOR DE BÚSQUEDA LOCAL
             palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
             if not palabras_clave:
                 palabras_clave = [idea.lower()]
@@ -169,20 +268,16 @@ async def consultar_nucleo(payload: dict):
             cur.execute(query_base, tuple(valores))
             nodos_encontrados = cur.fetchall()
             
-            # Formatear el contexto extraído de MariaDB para la IA
             contexto_local = ""
             if nodos_encontrados:
                 contexto_local = "\n".join([f"ÁREA: {n['area'].upper()} | CONCEPTO: {n['concepto']}\nDEFINICIÓN: {n['definicion_profunda']}\n---" for n in nodos_encontrados])
             
-            # 🔌 ORQUESTADOR HÍBRIDO ACTIVO
             api_key = os.getenv("GEMINI_API_KEY")
             
             if api_key:
-                # Inicializar el motor de IA con la llave de entorno
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-1.5-flash") # Modelo rápido de alta disponibilidad
+                model = genai.GenerativeModel("gemini-1.5-flash")
                 
-                # Construcción del prompt de nivel doctoral inyectando tu base de datos
                 prompt_doctoral = f"""
                 Eres el motor cognitivo del 'Núcleo', una IA relacional diseñada para asistir en una investigación doctoral multidisciplinaria.
                 El usuario te ha hecho la siguiente consulta: "{idea}"
@@ -196,12 +291,10 @@ async def consultar_nucleo(payload: dict):
                 3. Usa un tono cyberpunk, claro, riguroso y motivador de nivel científico.
                 """
                 
-                # Lanzar la inferencia en red
                 response = model.generate_content(prompt_doctoral)
                 respuesta_cuerpo = response.text
                 
             else:
-                # Caída automática si no se detecta la API Key (Modo pasivo local)
                 if nodos_encontrados:
                     resultados_html = [f"### 📚 [{n['area'].upper()}] — {n['concepto']}\n{n['definicion_profunda']}" for n in nodos_encontrados]
                     respuesta_cuerpo = (
