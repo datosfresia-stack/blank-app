@@ -29,11 +29,12 @@ def get_db_connection():
     )
 
 def inicializar_base_de_datos_nucleo():
-    """Crea las tablas necesarias para almacenar la memoria multidimensional"""
+    """Crea automáticamente las tablas para almacenar la memoria enciclopédica avanzada"""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
+        # 1. Tabla original de consultas médicas (Por seguridad, la mantenemos)
         cur.execute('''
             CREATE TABLE IF NOT EXISTS consultas_medicas (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,6 +49,7 @@ def inicializar_base_de_datos_nucleo():
             );
         ''')
         
+        # 2. Tabla original de matriz de conocimiento
         cur.execute('''
             CREATE TABLE IF NOT EXISTS matriz_conocimiento (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,16 +63,38 @@ def inicializar_base_de_datos_nucleo():
                 fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
+
+        # 3. 🧠 NUEVA TABLA ENCICLOPÉDICA: Nodos del Saber
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                area VARCHAR(100) NOT NULL,
+                concepto VARCHAR(255) NOT NULL,
+                definicion_profunda LONGTEXT NOT NULL,
+                requisitos_previos TEXT,
+                fecha_indexacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+
+        # 4. 🧬 NUEVA TABLA ENCICLOPÉDICA: Enlaces Interdisciplinarios
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS enciclopedia_enlaces (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nodo_origen_id INT,
+                nodo_destino_id INT,
+                tipo_conexion VARCHAR(100),
+                magnitud_qubit FLOAT,
+                FOREIGN KEY (nodo_origen_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE,
+                FOREIGN KEY (nodo_destino_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE
+            );
+        ''')
         
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Matriz de conocimiento e índices de resiliencia verificados.")
+        print("🛸 [Base de Datos]: Tablas de grafos enciclopédicos desplegadas e indexadas correctamente.")
     except Exception as e:
-        print(f"⚠️ Alerta de arranque aislado (Sin MariaDB temporalmente): {e}")
-
-inicializar_base_de_datos_nucleo()
-
+        print(f"⚠️ Alerta de arranque aislado: {e}")
 
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
