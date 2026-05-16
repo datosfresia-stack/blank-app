@@ -135,7 +135,7 @@ async def ver_consola_nucleo():
         const idea = input.value.trim();
         if (!idea) return;
 
-        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]: ${idea}</div>`;
+        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]:\n${idea}</div>`;
         input.value = '';
         log.scrollTop = log.scrollHeight;
 
@@ -186,71 +186,112 @@ async def consultar_nucleo(payload: dict):
     coordenadas = [1.0, 1.0, 1.0]
 
     try:
-        # --- SIMULACIÓN DE VIAJE POR API EXTERNA (CON RIESGO DE FALLO) ---
-        simular_caida_red = False  # Cambiar a True si deseas probar el modo Prepper manualmente
+        # --- SWITCH DE SIMULACIÓN DE CAÍDA (Poner en True para forzar contingencia local) ---
+        simular_caida_red = False  
         
         if simular_caida_red:
             raise ConnectionError("Fallo simulado en la interfaz macroscópica de red.")
             
-        # Si hay red normal (Código estándar):
+        # --- FLUJO PRINCIPAL ONLINE (MODO STANDARD) ---
         if tema == "ingenieria":
             coordenadas = [0.1, 0.9, 0.3]
-            respuesta_cuerpo = f"**[PROCESO AVANZADO ONLINE]**\nRefactorización optimizada para: '{idea[:40]}...'. Bucle analizado mediante hilos asíncronos distribuidos en el cluster."
+            idea_lower = idea.lower()
+            
+            # Motor inteligente de refactorización estática
+            if "optimiza" in idea_lower and ("list" in idea_lower or "comprehension" in idea_lower):
+                respuesta_cuerpo = (
+                    "**[CÓDIGO OPTIMIZADO EN MEMORIA — LIST COMPREHENSION]**\n\n"
+                    "He refactorizado tu bucle iterativo eliminando la sobrecarga del método `.append()`. "
+                    "La comprensión de listas ejecuta el ciclo directamente a nivel de C dentro del intérprete, "
+                    "reduciendo la huella de memoria y acelerando la ejecución.\n\n"
+                    "```python\n"
+                    "from typing import List\n\n"
+                    "def procesar_datos(lista: List[int]) -> List[int]:\n"
+                    "    \"\"\"Optimización de alta velocidad con Type Hinting de tipo estático.\"\"\"\n"
+                    "    return [x * 2 for x in lista]\n"
+                    "```\n\n"
+                    "✨ *Hito alcanzado: Sintaxis robustecida y acoplada al estándar PEP 8.*"
+                )
+            elif "def " in idea or "function" in idea or "import" in idea:
+                respuesta_cuerpo = (
+                    "**[ANÁLISIS ESTÁTICO DE CÓDIGO]**\n\n"
+                    "Detecté una estructura funcional en tu mensaje. Para maximizar la estabilidad en Railway:\n"
+                    "1. Envuelve el bloque lógico en una estructura `try/except`.\n"
+                    "2. Si manejas conexiones de red o base de datos, asegura el cierre con un bloque `finally`.\n\n"
+                    "Escribe 'optimiza' junto a tu función para reescribirla automáticamente con patrones avanzados."
+                )
+            else:
+                respuesta_cuerpo = f"**[PROCESO AVANZADO ONLINE]**\nInstrucción de desarrollo procesada: '{idea[:40]}...'. Listo para refactorizar o inyectar control de excepciones."
+                
         elif tema == "peliculas":
             coordenadas = [0.7, 0.2, 0.8]
-            respuesta_cuerpo = f"**[RECOMENDACIÓN AVANZADA ONLINE]**\nBasado en tu patrón conceptual, te sugiero expandir tu radar cinematográfico hacia el cine de Christopher Nolan y Denis Villeneuve."
+            idea_lower = idea.lower()
+            if any(w in idea_lower for w in ["accion", "ciencia ficcion", "scifi", "futuro", "cyberpunk"]):
+                respuesta_cuerpo = (
+                    "**[RECOMENDACIÓN CINE MATRIX — CIENCIA FICCIÓN]**\n\n"
+                    "Te sugiero ver 'Ex Machina' (Alex Garland) o 'Blade Runner 2049' (Denis Villeneuve).\n"
+                    "Ambas películas exploran el despertar cognitivo y la crisis de identidad de redes neuronales sintéticas."
+                )
+            else:
+                respuesta_cuerpo = (
+                    "**[RECOMENDACIÓN CINE MATRIX — CLÁSICA]**\n\n"
+                    "Te recomiendo 'Origen' (Inception) de Christopher Nolan. Explora el diseño estructurado "
+                    "de realidades y sub-niveles de memoria, de forma análoga a cómo organizamos nuestras bases de datos relacionales."
+                )
         else:
             coordenadas = [0.9, 0.9, 0.9]
-            respuesta_cuerpo = f"**[AUTO-EVOLUCIÓN ONLINE]**\nEstructurando microservicio supervisor autónomo para reescribir funciones ineficientes en tiempo real."
+            respuesta_cuerpo = (
+                "**[PROPUESTA DE MEJORA DEL NÚCLEO V.3]**\n\n"
+                "Para auto-optimizarme de forma inmediata, propongo:\n"
+                "1. **Capa Macroscópica**: Integrar conectores dinámicos con APIs externas para actualizar mis modelos semánticos.\n"
+                "2. **Memoria de Contexto**: Modificar la tabla 'matriz_conocimiento' en MariaDB para admitir Vector Embeddings densos.\n"
+                "3. **Refactorización Autónoma**: Un microservicio que reescriba funciones ineficientes de mi propia API sin requerir git push."
+            )
 
-    except (ConnectionError, Exception) as error_red:
-        # 🛡️ ¡EL GENERADOR DE EMERGENCIA SE ACTIVA AQUÍ!
+    except (ConnectionError, Exception):
+        # 🛡️ MODO PREPPER ACTIVADO (CORTES DE RED / CAÍDAS DE API)
         modo_operacion = "CONTINGENCIA_LOCAL"
-        
-        # El motor analítico local clásico toma el control basándose en la heurística pura de palabras clave:
         idea_minuscula = idea.lower()
+        
         if any(w in idea_minuscula for w in ["c++", "código", "python", "fastapi", "git", "def"]):
-            categoria_local = "codigo"
             coordenadas = [0.1, 0.9, 0.2]
             respuesta_cuerpo = (
-                "**[MODO EMERGENGIA - CODE LAB]**\n"
-                "La red externa no responde. Activado validador estático local:\n"
+                "**[MODO EMERGENCIA - CODE LAB]**\n\n"
+                "La red externa no responde. Activado validador estático de contingencia:\n"
                 "Asegúrate de que estás cerrando las conexiones de cursores en MariaDB con cur.close() "
-                "y encapsulando los endpoints críticos dentro de un bloque 'try/except' para evitar fugas de memoria."
+                "y encapsulando los endpoints críticos dentro de un bloque 'try/except' para evitar caídas del contenedor."
             )
         elif any(w in idea_minuscula for w in ["pelicula", "cine", "recomienda", "ver", "scifi"]):
-            categoria_local = "peliculas"
             coordenadas = [0.7, 0.1, 0.7]
             respuesta_cuerpo = (
-                "**[MODO EMERGENCIA - CINE MATRIX]**\n"
+                "**[MODO EMERGENCIA - CINE MATRIX]**\n\n"
                 "Red aislada. Extrayendo del almacén interno de seguridad:\n"
-                "Te recomiendo ver 'Matrix' (1999). Es la base del aislamiento conceptual de sistemas "
-                "y simulación de entornos desacoplados."
+                "Te recomiendo ver 'Matrix' (1999). Es el pilar del aislamiento de sistemas "
+                "y simulación de entornos desacoplados resilientes."
             )
         else:
-            categoria_local = "evolucion"
             coordenadas = [0.5, 0.5, 0.5]
             respuesta_cuerpo = (
-                "**[MODO EMERGENCIA - AUTO-EVOLUCIÓN]**\n"
-                "El Núcleo está operando en modo de supervivencia análoga. La propuesta evolutiva actual es "
-                "priorizar la construcción de bases de datos locales replicadas e inmunes a caídas de internet de los proveedores."
+                "**[MODO EMERGENCIA - AUTO-EVOLUCIÓN]**\n\n"
+                "El Núcleo opera en modo de supervivencia análoga. Prioridad estructural: "
+                "Diseñar bases de datos locales replicadas independientes de los servidores de internet del extranjero."
             )
 
-    # --- PERSISTENCIA INMUNE EN MARIADB ---
+    # --- PERSISTENCIA EN MARIADB (RAILWAY) ---
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
             INSERT INTO matriz_conocimiento (categoria, concepto, detalles, coordenada_x, coordenada_y, coordenada_z, modo_operacion)
             VALUES (%s, %s, %s, %s, %s, %s, %s);
-        ''', (tema, f"Nota V3: {idea[:25]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2], modo_operacion))
+        ''', (tema, f"SubChat: {idea[:25]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2], modo_operacion))
         conn.commit()
         nuevo_id = cur.lastrowid
         cur.close()
         conn.close()
     except Exception as e:
         nuevo_id = 0
-        print(f"💥 Error extremo: Base de datos inalcanzable. Datos retenidos en memoria RAM: {e}")
+        print(f"💥 Error extremo de base de datos: {e}")
 
     energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
 
