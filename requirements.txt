@@ -8,3 +8,4 @@ python-dotenv
 psycopg2-binary>=2.9.0
 mysql-connector-python
 google-generativeai
+httpx
