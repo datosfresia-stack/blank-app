@@ -183,14 +183,12 @@ async def consultar_nucleo(payload: dict):
 
     modo_operacion = "STANDARD"
     respuesta_cuerpo = ""
-    
-    # Ecosistema de áreas doctorales prioritarias
     areas_interes = ["informatica", "robotica", "electronica", "nanotecnologia", "neurociencia", "biorobotica", "medicina", "ancestral", "idiomas"]
 
     try:
         conn = get_db_connection()
         
-        # 🔧 PARCHE DE INYECCIÓN FORZADA EN CALIENTE (Garantiza que las tablas existan siempre)
+        # 🔧 MANTENIMIENTO EN CALIENTE DE TABLAS
         cur_rescate = conn.cursor()
         cur_rescate.execute('''
             CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
@@ -218,7 +216,7 @@ async def consultar_nucleo(payload: dict):
         
         cur = conn.cursor(dictionary=True)
             
-        # 📥 DETECTOR DE INGESTA ENCICLOPÉDICA MULTIDISCIPLINARIA
+        # 📥 MODULO DE INGESTA (Comando aprender:)
         if idea.lower().startswith("aprender:"):
             partes = idea.split("|")
             area = "general"
@@ -230,29 +228,18 @@ async def consultar_nucleo(payload: dict):
                 if "concepto=" in parte.lower(): concepto = parte.split("=")[1].strip()
                 if "detalles=" in parte.lower(): detalles = parte.split("=")[1].strip()
 
-            # 1. Insertar Nodo Principal
-            cur.execute('''
-                INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda)
-                VALUES (%s, %s, %s);
-            ''', (area, concepto, detalles))
+            cur.execute('INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda) VALUES (%s, %s, %s);', (area, concepto, detalles))
             conn.commit()
             nuevo_nodo_id = cur.lastrowid
             
-            # 2. Generar Enlaces Cruzados Inteligentes Flexibles
             enlaces_creados = []
             detalles_lower = detalles.lower()
-            
             for otra_area in areas_interes:
-                # Modificado: Detecta aproximaciones de áreas en el texto
                 if (otra_area in detalles_lower or otra_area[:-2] in detalles_lower) and otra_area != area:
                     cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area LIKE %s LIMIT 1;", (f"%{otra_area}%",))
                     nodo_destino = cur.fetchone()
-                    
                     if nodo_destino:
-                        cur.execute('''
-                            INSERT INTO enciclopedia_enlaces (nodo_origen_id, nodo_destino_id, tipo_conexion, magnitud_qubit)
-                            VALUES (%s, %s, %s, %s);
-                        ''', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', 1.6180))
+                        cur.execute('INSERT INTO enciclopedia_enlaces (nodo_origen_id, nodo_destino_id, tipo_conexion, magnitud_qubit) VALUES (%s, %s, %s, %s);', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', 1.6180))
                         conn.commit()
                         enlaces_creados.append(f"{otra_area.upper()} ({nodo_destino['concepto']})")
 
@@ -265,47 +252,57 @@ async def consultar_nucleo(payload: dict):
             )
             
         else:
-            # 🔍 MODO LECTURA EVOLUCIONADO: Búsqueda Semántica Flexible por aproximación (LIKE)
+            # 🔍 MOTOR DE BÚSQUEDA LOCAL + PREPARACIÓN DE PASARELA HÍBRIDA
             palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
-            
             if not palabras_clave:
                 palabras_clave = [idea.lower()]
 
             query_base = "SELECT * FROM enciclopedia_nodos WHERE "
             condiciones = []
             valores = []
-            
             for palabra in palabras_clave:
                 condiciones.append("(area LIKE %s OR concepto LIKE %s OR definicion_profunda LIKE %s)")
                 termino = f"%{palabra}%"
                 valores.extend([termino, termino, termino])
                 
             query_base += " OR ".join(condiciones)
-            
             cur.execute(query_base, tuple(valores))
             nodos_encontrados = cur.fetchall()
             
-            resultados_html = []
-            for nodo in nodos_encontrados:
-                resultados_html.append(
-                    f"### 📚 [{nodo['area'].upper()}] — {nodo['concepto']}\n{nodo['definicion_profunda']}"
-                )
+            # Formatear el contexto extraído de MariaDB
+            contexto_local = ""
+            if nodos_encontrados:
+                contexto_local = "\n".join([f"[{n['area'].upper()}] {n['concepto']}: {n['definicion_profunda']}" for n in nodos_encontrados])
             
-            if resultados_html:
-                respuesta_cuerpo = f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN INTEGRAL]**\n\n" + "\n\n---\n\n".join(resultados_html)
+            # 🔌 CANALIZADOR HÍBRIDO (El Cerebro del Sistema)
+            # Aquí se define el comportamiento del Orquestador
+            ia_disponible = False # Cambiar a True cuando enlacemos la API física
+            
+            if ia_disponible:
+                # Todo listo para conectar con Gemini (Online) o Qwen/Ollama (Offline)
+                # respuesta_cuerpo = generar_inferencia_llm(idea, contexto_local)
+                pass
             else:
-                respuesta_cuerpo = (
-                    f"**[SISTEMA ENCICLOPÉDICO RELACIONAL ONLINE]**\n\n"
-                    f"No se encontraron nodos que coincidan con '{idea}'.\n\n"
-                    f"Prueba expandiendo los detalles con términos más amplios."
-                )
+                # Respuesta base estructurada si la IA está en modo pasivo
+                if nodos_encontrados:
+                    resultados_html = [f"### 📚 [{n['area'].upper()}] — {n['concepto']}\n{n['definicion_profunda']}" for n in nodos_encontrados]
+                    respuesta_cuerpo = (
+                        f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN INTEGRAL]**\n\n" + "\n\n---\n\n".join(resultados_html) + 
+                        f"\n\n---\n📡 *[PASARELA HÍBRIDA]: Listo para conectar inferencia avanzada sobre estos {len(nodos_encontrados)} nodos.*"
+                    )
+                else:
+                    respuesta_cuerpo = (
+                        f"**[SISTEMA ENCICLOPÉDICO RELACIONAL ONLINE]**\n\n"
+                        f"No se encontraron registros locales para '{idea}'.\n\n"
+                        f"📡 *[PASARELA HÍBRIDA]: El nodo de inferencia externa está configurado en modo pasivo.*"
+                    )
 
         cur.close()
         conn.close()
 
     except Exception as e:
         modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = f"**[MODO EMERGENCIA - MOTOR CAÍDO]**\n\nFallo en el escáner flexible: {e}"
+        respuesta_cuerpo = f"**[MODO EMERGENCIA - MOTOR CAÍDO]**\n\nFallo en el orquestador: {e}"
 
     return {
         "status": "success",
