@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-app = FastAPI(title="IALibre Núcleo Resiliente V3")
+app = FastAPI(title="IALibre Núcleo Resiliente V4")
 
 # --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
 def get_db_connection():
@@ -108,7 +108,7 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Enciclopedia Relacional Doctorada V3. Inicialización lista.</div>
+            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Enciclopedia Relacional Doctorada V4. Motor híbrido flexible offline operativo.</div>
         </div>
         <div class="input-area">
             <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
@@ -190,7 +190,7 @@ async def consultar_nucleo(payload: dict):
     try:
         conn = get_db_connection()
         
-        # 🔧 PARCHE DE INYECCIÓN FORZADA EN CALIENTE (Garantiza que las tablas existan al primer clic)
+        # 🔧 PARCHE DE INYECCIÓN FORZADA EN CALIENTE (Garantiza que las tablas existan siempre)
         cur_rescate = conn.cursor()
         cur_rescate.execute('''
             CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
@@ -216,7 +216,6 @@ async def consultar_nucleo(payload: dict):
         conn.commit()
         cur_rescate.close()
         
-        # Activamos el cursor en modo diccionario para leer los nodos de forma limpia
         cur = conn.cursor(dictionary=True)
             
         # 📥 DETECTOR DE INGESTA ENCICLOPÉDICA MULTIDISCIPLINARIA
@@ -239,13 +238,14 @@ async def consultar_nucleo(payload: dict):
             conn.commit()
             nuevo_nodo_id = cur.lastrowid
             
-            # 2. Generar Enlaces Cruzados Inteligentes
+            # 2. Generar Enlaces Cruzados Inteligentes Flexibles
             enlaces_creados = []
             detalles_lower = detalles.lower()
             
             for otra_area in areas_interes:
-                if otra_area in detalles_lower and otra_area != area:
-                    cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area = %s LIMIT 1;", (otra_area,))
+                # Modificado: Detecta aproximaciones de áreas en el texto
+                if (otra_area in detalles_lower or otra_area[:-2] in detalles_lower) and otra_area != area:
+                    cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area LIKE %s LIMIT 1;", (f"%{otra_area}%",))
                     nodo_destino = cur.fetchone()
                     
                     if nodo_destino:
@@ -261,30 +261,43 @@ async def consultar_nucleo(payload: dict):
                 f"**[LOG DE INGESTA ENCICLOPÉDICA — ÉXITO]**\n\n"
                 f"🧠 **Nodo Indexado:** '{concepto}' asignado al sector de `{area.upper()}`.\n"
                 f"🔗 **Enlaces Cruzados Automatizados:** {str_enlaces}.\n\n"
-                f"El conocimiento ha quedado fijado en la estructura relacional de MariaDB para tus líneas de investigación doctoral."
+                f"El conocimiento ha quedado fijado en la estructura relacional de MariaDB."
             )
             
         else:
-            # 🔍 MODO LECTURA: Escaneo semántico de la base de conocimiento existente
-            idea_lower = idea.lower()
-            cur.execute("SELECT * FROM enciclopedia_nodos;")
-            todos_los_nodos = cur.fetchall()
+            # 🔍 MODO LECTURA EVOLUCIONADO: Búsqueda Semántica Flexible por aproximación (LIKE)
+            palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
             
-            nodos_encontrados = []
-            for nodo in todos_los_nodos:
-                if nodo['concepto'].lower() in idea_lower or nodo['area'].lower() in idea_lower:
-                    nodos_encontrados.append(
-                        f"### 📚 [{nodo['area'].upper()}] — {nodo['concepto']}\n{nodo['definicion_profunda']}"
-                    )
+            if not palabras_clave:
+                palabras_clave = [idea.lower()]
+
+            query_base = "SELECT * FROM enciclopedia_nodos WHERE "
+            condiciones = []
+            valores = []
             
-            if nodos_encontrados:
-                respuesta_cuerpo = f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN]**\n\n" + "\n\n---\n\n".join(nodos_encontrados)
+            for palabra in palabras_clave:
+                condiciones.append("(area LIKE %s OR concepto LIKE %s OR definicion_profunda LIKE %s)")
+                termino = f"%{palabra}%"
+                valores.extend([termino, termino, termino])
+                
+            query_base += " OR ".join(condiciones)
+            
+            cur.execute(query_base, tuple(valores))
+            nodos_encontrados = cur.fetchall()
+            
+            resultados_html = []
+            for nodo in nodos_encontrados:
+                resultados_html.append(
+                    f"### 📚 [{nodo['area'].upper()}] — {nodo['concepto']}\n{nodo['definicion_profunda']}"
+                )
+            
+            if resultados_html:
+                respuesta_cuerpo = f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN INTEGRAL]**\n\n" + "\n\n---\n\n".join(resultados_html)
             else:
                 respuesta_cuerpo = (
                     f"**[SISTEMA ENCICLOPÉDICO RELACIONAL ONLINE]**\n\n"
-                    f"¡Servidor sincronizado con éxito! La alerta se ha desactivado y tu entorno opera en modo `STANDARD`.\n\n"
-                    f"🧪 **Iniciemos tu enciclopedia inyectando tu primer nodo de nivel doctoral. Copia y envía este comando de prueba:**\n\n"
-                    f"`aprender: area=neurociencia | concepto=BCI | detalles=Las interfaces cerebro computador conectan señales neurobiologicas con sistemas de biorobotica utilizando instrumentación electronica de escala nanotecnologia.`"
+                    f"No se encontraron nodos que coincidan con '{idea}'.\n\n"
+                    f"Prueba expandiendo los detalles con términos más amplios."
                 )
 
         cur.close()
@@ -292,7 +305,7 @@ async def consultar_nucleo(payload: dict):
 
     except Exception as e:
         modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = f"**[MODO ENERGENCIA - RED EXPANSIVA COLAPSADA]**\n\nFallo en el motor de grafos relacionales: {e}"
+        respuesta_cuerpo = f"**[MODO EMERGENCIA - MOTOR CAÍDO]**\n\nFallo en el escáner flexible: {e}"
 
     return {
         "status": "success",
