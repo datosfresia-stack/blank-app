@@ -29,12 +29,11 @@ def get_db_connection():
     )
 
 def inicializar_base_de_datos_nucleo():
-    """Crea automáticamente las tablas para almacenar la memoria enciclopédica avanzada"""
+    """Intenta crear las estructuras base al arrancar el contenedor"""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # 1. Tabla original de consultas médicas (Por seguridad, la mantenemos)
         cur.execute('''
             CREATE TABLE IF NOT EXISTS consultas_medicas (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -49,7 +48,6 @@ def inicializar_base_de_datos_nucleo():
             );
         ''')
         
-        # 2. Tabla original de matriz de conocimiento
         cur.execute('''
             CREATE TABLE IF NOT EXISTS matriz_conocimiento (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -63,38 +61,16 @@ def inicializar_base_de_datos_nucleo():
                 fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
-
-        # 3. 🧠 NUEVA TABLA ENCICLOPÉDICA: Nodos del Saber
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                area VARCHAR(100) NOT NULL,
-                concepto VARCHAR(255) NOT NULL,
-                definicion_profunda LONGTEXT NOT NULL,
-                requisitos_previos TEXT,
-                fecha_indexacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        ''')
-
-        # 4. 🧬 NUEVA TABLA ENCICLOPÉDICA: Enlaces Interdisciplinarios
-        cur.execute('''
-            CREATE TABLE IF NOT EXISTS enciclopedia_enlaces (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nodo_origen_id INT,
-                nodo_destino_id INT,
-                tipo_conexion VARCHAR(100),
-                magnitud_qubit FLOAT,
-                FOREIGN KEY (nodo_origen_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE,
-                FOREIGN KEY (nodo_destino_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE
-            );
-        ''')
         
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Tablas de grafos enciclopédicos desplegadas e indexadas correctamente.")
+        print("🛸 [Base de Datos]: Índices de resiliencia verificados de forma preliminar.")
     except Exception as e:
-        print(f"⚠️ Alerta de arranque aislado: {e}")
+        print(f"⚠️ Alerta de arranque aislado (Sin MariaDB temporalmente): {e}")
+
+inicializar_base_de_datos_nucleo()
+
 
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
@@ -132,7 +108,7 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Núcleo Resiliente En Línea. Generador Políglota multi-lenguaje activo.</div>
+            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Enciclopedia Relacional Doctorada V3. Inicialización lista.</div>
         </div>
         <div class="input-area">
             <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
@@ -149,7 +125,7 @@ async def ver_consola_nucleo():
         elemento.classList.add('active');
         
         const log = document.getElementById('console-log');
-        log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}. Monitor de contingencia activo.</div>`;
+        log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}.</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
@@ -187,7 +163,7 @@ async def ver_consola_nucleo():
                 log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
             }
         } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor inalcanzable. Verifique suministro local.</div>`;
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor inalcanzable.</div>`;
         }
         log.scrollTop = log.scrollHeight;
     }
@@ -208,17 +184,43 @@ async def consultar_nucleo(payload: dict):
     modo_operacion = "STANDARD"
     respuesta_cuerpo = ""
     
-    # Listado de áreas de tu interés doctoral para el escaneo automático de enlaces
+    # Ecosistema de áreas doctorales prioritarias
     areas_interes = ["informatica", "robotica", "electronica", "nanotecnologia", "neurociencia", "biorobotica", "medicina", "ancestral", "idiomas"]
 
     try:
         conn = get_db_connection()
-        cur = conn.cursor(dictionary=True) # Activamos modo diccionario para leer fácil por nombre de columna
         
-        # 📥 DETECTOR DE INGESTA ENCICLOPÉDICA
-        # Si tu mensaje empieza con "aprender:", el Núcleo lo guarda como conocimiento formal
+        # 🔧 PARCHE DE INYECCIÓN FORZADA EN CALIENTE (Garantiza que las tablas existan al primer clic)
+        cur_rescate = conn.cursor()
+        cur_rescate.execute('''
+            CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                area VARCHAR(100) NOT NULL,
+                concepto VARCHAR(255) NOT NULL,
+                definicion_profunda LONGTEXT NOT NULL,
+                requisitos_previos TEXT,
+                fecha_indexacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+        cur_rescate.execute('''
+            CREATE TABLE IF NOT EXISTS enciclopedia_enlaces (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nodo_origen_id INT,
+                nodo_destino_id INT,
+                tipo_conexion VARCHAR(100),
+                magnitud_qubit FLOAT,
+                FOREIGN KEY (nodo_origen_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE,
+                FOREIGN KEY (nodo_destino_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE
+            );
+        ''')
+        conn.commit()
+        cur_rescate.close()
+        
+        # Activamos el cursor en modo diccionario para leer los nodos de forma limpia
+        cur = conn.cursor(dictionary=True)
+            
+        # 📥 DETECTOR DE INGESTA ENCICLOPÉDICA MULTIDISCIPLINARIA
         if idea.lower().startswith("aprender:"):
-            # Formato esperado: aprender: area=neurociencia | concepto=Sinapsis Quimica | detalles=Definición profunda...
             partes = idea.split("|")
             area = "general"
             concepto = "Nuevo Concepto"
@@ -229,7 +231,7 @@ async def consultar_nucleo(payload: dict):
                 if "concepto=" in parte.lower(): concepto = parte.split("=")[1].strip()
                 if "detalles=" in parte.lower(): detalles = parte.split("=")[1].strip()
 
-            # 1. Insertar el nuevo Nodo de Conocimiento
+            # 1. Insertar Nodo Principal
             cur.execute('''
                 INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda)
                 VALUES (%s, %s, %s);
@@ -237,59 +239,52 @@ async def consultar_nucleo(payload: dict):
             conn.commit()
             nuevo_nodo_id = cur.lastrowid
             
-            # 2. Escaneo automático de Enlaces Cruzados (Interdisciplinaridad)
+            # 2. Generar Enlaces Cruzados Inteligentes
             enlaces_creados = []
             detalles_lower = detalles.lower()
             
-            # Buscamos si en la definición mencionas otra de tus áreas de interés
             for otra_area in areas_interes:
                 if otra_area in detalles_lower and otra_area != area:
-                    # Buscamos en la DB si ya existe algún nodo de esa otra área para conectarlo
                     cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area = %s LIMIT 1;", (otra_area,))
                     nodo_destino = cur.fetchone()
                     
                     if nodo_destino:
-                        # Creamos el enlace de resonancia cuántica entre las dos ciencias
-                        magnitud_qubit = 1.6180 # Proporción áurea de enlace por defecto
                         cur.execute('''
                             INSERT INTO enciclopedia_enlaces (nodo_origen_id, nodo_destino_id, tipo_conexion, magnitud_qubit)
                             VALUES (%s, %s, %s, %s);
-                        ''', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', magnitud_qubit))
+                        ''', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', 1.6180))
                         conn.commit()
                         enlaces_creados.append(f"{otra_area.upper()} ({nodo_destino['concepto']})")
 
-            # Estructurar respuesta de éxito
-            str_enlaces = ", ".join(enlaces_creados) if enlaces_creados else "Ninguno (Nodo aislado por ahora)"
+            str_enlaces = ", ".join(enlaces_creados) if enlaces_creados else "Ninguno (Nodo autónomo)"
             respuesta_cuerpo = (
                 f"**[LOG DE INGESTA ENCICLOPÉDICA — ÉXITO]**\n\n"
                 f"🧠 **Nodo Indexado:** '{concepto}' asignado al sector de `{area.upper()}`.\n"
                 f"🔗 **Enlaces Cruzados Automatizados:** {str_enlaces}.\n\n"
-                f"El conocimiento ha quedado fijado en la estructura molecular de MariaDB para tus futuras líneas de investigación doctoral."
+                f"El conocimiento ha quedado fijado en la estructura relacional de MariaDB para tus líneas de investigación doctoral."
             )
             
         else:
-            # 🔍 MODO CONSULTA: Si solo estás chateando, el sistema busca en la enciclopedia si sabe del tema
+            # 🔍 MODO LECTURA: Escaneo semántico de la base de conocimiento existente
             idea_lower = idea.lower()
             cur.execute("SELECT * FROM enciclopedia_nodos;")
             todos_los_nodos = cur.fetchall()
             
             nodos_encontrados = []
             for nodo in todos_los_nodos:
-                # Si tu mensaje menciona el concepto o el área, te extrae la definición
                 if nodo['concepto'].lower() in idea_lower or nodo['area'].lower() in idea_lower:
                     nodos_encontrados.append(
                         f"### 📚 [{nodo['area'].upper()}] — {nodo['concepto']}\n{nodo['definicion_profunda']}"
                     )
             
             if nodos_encontrados:
-                respuesta_cuerpo = f"**[EXTRACCIÓN DE MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN]**\n\n" + "\n\n---\n\n".join(nodos_encontrados)
+                respuesta_cuerpo = f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN]**\n\n" + "\n\n---\n\n".join(nodos_encontrados)
             else:
-                # Respuesta por defecto si la enciclopedia aún está vacía
                 respuesta_cuerpo = (
-                    f"**[SISTEMA ENCICLOPÉDICO ONLINE]**\n\n"
-                    f"Recibido: '{idea[:40]}...'. Tu enciclopedia relacional está lista pero no tiene páginas sobre este término todavía.\n\n"
-                    f"🧪 **Pruébame enseñándole algo al Núcleo ahora mismo copiando y enviando esto:**\n"
-                    f"`aprender: area=neurociencia | concepto=Bci | detalles=Las interfaces cerebro computador conectan neuronas con sistemas de biorobotica mediante electronica avanzada.`"
+                    f"**[SISTEMA ENCICLOPÉDICO RELACIONAL ONLINE]**\n\n"
+                    f"¡Servidor sincronizado con éxito! La alerta se ha desactivado y tu entorno opera en modo `STANDARD`.\n\n"
+                    f"🧪 **Iniciemos tu enciclopedia inyectando tu primer nodo de nivel doctoral. Copia y envía este comando de prueba:**\n\n"
+                    f"`aprender: area=neurociencia | concepto=BCI | detalles=Las interfaces cerebro computador conectan señales neurobiologicas con sistemas de biorobotica utilizando instrumentación electronica de escala nanotecnologia.`"
                 )
 
         cur.close()
@@ -297,7 +292,7 @@ async def consultar_nucleo(payload: dict):
 
     except Exception as e:
         modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = f"**[MODO ENERGENCIA - RED EXPANSIVA COLAZONADA]**\n\nFallo en el motor de grafos relacionales: {e}"
+        respuesta_cuerpo = f"**[MODO ENERGENCIA - RED EXPANSIVA COLAPSADA]**\n\nFallo en el motor de grafos relacionales: {e}"
 
     return {
         "status": "success",
