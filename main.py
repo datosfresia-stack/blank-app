@@ -108,10 +108,10 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Núcleo Resiliente En Línea. Arquitectura tolerante a fallos de red desplegada.</div>
+            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Núcleo Resiliente En Línea. Generador Políglota multi-lenguaje activo.</div>
         </div>
         <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe aquí tu transmisión..."></textarea>
+            <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
             <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
         </div>
     </div>
@@ -149,7 +149,7 @@ async def ver_consola_nucleo():
             
             let alertaHtml = "";
             if (data.modo_operacion === "CONTINGENCIA_LOCAL") {
-                alertaHtml = `<div class="alert-banner">⚠️ [ALERTA DE SISTEMA]: Enlace externo caído. Activado motor "Prepper" de contingencia local analógica instantánea.</div>`;
+                alertaHtml = `<div class="alert-banner">⚠️ [ALERTA]: Enlace caído. Activado motor analógico de contingencia.</div>`;
             }
 
             if (data.status === 'success') {
@@ -186,98 +186,125 @@ async def consultar_nucleo(payload: dict):
     coordenadas = [1.0, 1.0, 1.0]
 
     try:
-        # --- SWITCH DE SIMULACIÓN DE CAÍDA (Poner en True para forzar contingencia local) ---
         simular_caida_red = False  
-        
         if simular_caida_red:
-            raise ConnectionError("Fallo simulado en la interfaz macroscópica de red.")
+            raise ConnectionError("Fallo simulado de red.")
             
         # --- FLUJO PRINCIPAL ONLINE (MODO STANDARD) ---
         if tema == "ingenieria":
             coordenadas = [0.1, 0.9, 0.3]
             idea_lower = idea.lower()
             
-            # Motor inteligente de refactorización estática
-            if "optimiza" in idea_lower and ("list" in idea_lower or "comprehension" in idea_lower):
-                respuesta_cuerpo = (
-                    "**[CÓDIGO OPTIMIZADO EN MEMORIA — LIST COMPREHENSION]**\n\n"
-                    "He refactorizado tu bucle iterativo eliminando la sobrecarga del método `.append()`. "
-                    "La comprensión de listas ejecuta el ciclo directamente a nivel de C dentro del intérprete, "
-                    "reduciendo la huella de memoria y acelerando la ejecución.\n\n"
+            # 📚 BANCO DE PLANTILLAS MULTI-LENGUAJE SRE
+            plantillas_codigo = {
+                "javascript": (
+                    "```javascript\n"
+                    "// Calculadora básica en JavaScript (ES6+)\n"
+                    "const calcular = (op, n1, n2) => {\n"
+                    "    switch(op) {\n"
+                    "        case '+': return n1 + n2;\n"
+                    "        case '-': return n1 - n2;\n"
+                    "        case '*': return n1 * n2;\n"
+                    "        case '/': return n2 !== 0 ? n1 / n2 : 'Error: División por 0';\n"
+                    "        default: return 'Operación inválida';\n"
+                    "    }\n"
+                    "};\n"
+                    "console.log('Resultado:', calcular('+', 12, 8));\n"
+                    "```"
+                ),
+                "python": (
                     "```python\n"
-                    "from typing import List\n\n"
-                    "def procesar_datos(lista: List[int]) -> List[int]:\n"
-                    "    \"\"\"Optimización de alta velocidad con Type Hinting de tipo estático.\"\"\"\n"
-                    "    return [x * 2 for x in lista]\n"
-                    "```\n\n"
-                    "✨ *Hito alcanzado: Sintaxis robustecida y acoplada al estándar PEP 8.*"
+                    "# Calculadora básica en Python 3\n"
+                    "def calcular(operacion: str, n1: float, n2: float) -> float | str:\n"
+                    "    try:\n"
+                    "        if operacion == '+': return n1 + n2\n"
+                    "        elif operacion == '-': return n1 - n2\n"
+                    "        elif operacion == '*': return n1 * n2\n"
+                    "        elif operacion == '/': return n1 / n2\n"
+                    "        return 'Operador inválido'\n"
+                    "    except ZeroDivisionError:\n"
+                    "        return '❌ Error: División por cero.'\n\n"
+                    "print('Resultado:', calcular('+', 15.5, 4.5))\n"
+                    "```"
+                ),
+                "html": (
+                    "```html\n"
+                    "\n"
+                    "<div class='calculadora'>\n"
+                    "    <input type='text' id='pantalla' readonly />\n"
+                    "    <div class='botones'>\n"
+                    "        <button onclick='presionar(\"7\")'>7</button>\n"
+                    "        <button onclick='presionar(\"+\")'>+</button>\n"
+                    "        <button onclick='ejecutar()'>=</button>\n"
+                    "    </div>\n"
+                    "</div>\n"
+                    "```"
+                ),
+                "sql": (
+                    "```sql\n"
+                    "-- Consulta relacional estructurada para auditorías del Núcleo\n"
+                    "SELECT id, categoria, concepto, modo_operacion, fecha_aprendizaje \n"
+                    "FROM matriz_conocimiento \n"
+                    "WHERE categoria = 'ingenieria' \n"
+                    "ORDER BY fecha_aprendizaje DESC \n"
+                    "LIMIT 10;\n"
+                    "```"
+                ),
+                "c++": (
+                    "```cpp\n"
+                    "// Código fuente en C++ Estándar\n"
+                    "#include <iostream>\n"
+                    "int main() {\n"
+                    "    double n1 = 10, n2 = 5;\n"
+                    "    std::cout << \"Suma local: \" << (n1 + n2) << std::endl;\n"
+                    "    return 0;\n"
+                    "}\n"
+                    "```"
                 )
-            elif "def " in idea or "function" in idea or "import" in idea:
+            }
+
+            # Motor de detección semántica de lenguaje
+            lenguaje_detectado = None
+            for lang in plantillas_codigo.keys():
+                if lang in idea_lower or (lang == "c++" and "cpp" in idea_lower):
+                    lenguaje_detectado = lang
+                    break
+            
+            if lenguaje_detectado:
                 respuesta_cuerpo = (
-                    "**[ANÁLISIS ESTÁTICO DE CÓDIGO]**\n\n"
-                    "Detecté una estructura funcional en tu mensaje. Para maximizar la estabilidad en Railway:\n"
-                    "1. Envuelve el bloque lógico en una estructura `try/except`.\n"
-                    "2. Si manejas conexiones de red o base de datos, asegura el cierre con un bloque `finally`.\n\n"
-                    "Escribe 'optimiza' junto a tu función para reescribirla automáticamente con patrones avanzados."
+                    f"**[CÓDIGO FUENTE POLÍGLOTA — {lenguaje_detectado.upper()} DETECTADO]**\n\n"
+                    f"Extraje la plantilla limpia solicitada directamente del clúster de compilación del Núcleo:\n\n"
+                    f"{plantillas_codigo[lenguaje_detectado]}\n\n"
+                    "✨ *Sugerencia: Puedes pedirme scripts en Python, JavaScript, C++, HTML o SQL.*"
+                )
+            elif "optimiza" in idea_lower and ("list" in idea_lower or "comprehension" in idea_lower):
+                respuesta_cuerpo = (
+                    "**[CÓDIGO OPTIMIZADO — LIST COMPREHENSION]**\n\n"
+                    "```python\n"
+                    "from typing import List\n"
+                    "def procesar_datos(lista: List[int]) -> List[int]:\n"
+                    "    return [x * 2 for x in lista]\n"
+                    "```"
                 )
             else:
-                respuesta_cuerpo = f"**[PROCESO AVANZADO ONLINE]**\nInstrucción de desarrollo procesada: '{idea[:40]}...'. Listo para refactorizar o inyectar control de excepciones."
+                respuesta_cuerpo = f"**[CODE LAB — ONLINE]**\nRecibido: '{idea[:40]}...'. Especifica un lenguaje como Python, JavaScript, SQL, C++ o HTML para inyectar código fuente real."
                 
         elif tema == "peliculas":
             coordenadas = [0.7, 0.2, 0.8]
             idea_lower = idea.lower()
             if any(w in idea_lower for w in ["accion", "ciencia ficcion", "scifi", "futuro", "cyberpunk"]):
-                respuesta_cuerpo = (
-                    "**[RECOMENDACIÓN CINE MATRIX — CIENCIA FICCIÓN]**\n\n"
-                    "Te sugiero ver 'Ex Machina' (Alex Garland) o 'Blade Runner 2049' (Denis Villeneuve).\n"
-                    "Ambas películas exploran el despertar cognitivo y la crisis de identidad de redes neuronales sintéticas."
-                )
+                respuesta_cuerpo = "**[RECOMENDACIÓN CINE MATRIX]**\n\nTe sugiero ver 'Ex Machina' o 'Blade Runner 2049'."
             else:
-                respuesta_cuerpo = (
-                    "**[RECOMENDACIÓN CINE MATRIX — CLÁSICA]**\n\n"
-                    "Te recomiendo 'Origen' (Inception) de Christopher Nolan. Explora el diseño estructurado "
-                    "de realidades y sub-niveles de memoria, de forma análoga a cómo organizamos nuestras bases de datos relacionales."
-                )
+                respuesta_cuerpo = "**[RECOMENDACIÓN CINE MATRIX]**\n\nTe recomiendo 'Origen' (Inception) de Christopher Nolan."
         else:
             coordenadas = [0.9, 0.9, 0.9]
-            respuesta_cuerpo = (
-                "**[PROPUESTA DE MEJORA DEL NÚCLEO V.3]**\n\n"
-                "Para auto-optimizarme de forma inmediata, propongo:\n"
-                "1. **Capa Macroscópica**: Integrar conectores dinámicos con APIs externas para actualizar mis modelos semánticos.\n"
-                "2. **Memoria de Contexto**: Modificar la tabla 'matriz_conocimiento' en MariaDB para admitir Vector Embeddings densos.\n"
-                "3. **Refactorización Autónoma**: Un microservicio que reescriba funciones ineficientes de mi propia API sin requerir git push."
-            )
+            respuesta_cuerpo = "**[PROPUESTA DE MEJORA V.3]**\n\n1. Conectores dinámicos.\n2. Vector Embeddings en MariaDB.\n3. Refactorización Autónoma."
 
     except (ConnectionError, Exception):
-        # 🛡️ MODO PREPPER ACTIVADO (CORTES DE RED / CAÍDAS DE API)
         modo_operacion = "CONTINGENCIA_LOCAL"
-        idea_minuscula = idea.lower()
-        
-        if any(w in idea_minuscula for w in ["c++", "código", "python", "fastapi", "git", "def"]):
-            coordenadas = [0.1, 0.9, 0.2]
-            respuesta_cuerpo = (
-                "**[MODO EMERGENCIA - CODE LAB]**\n\n"
-                "La red externa no responde. Activado validador estático de contingencia:\n"
-                "Asegúrate de que estás cerrando las conexiones de cursores en MariaDB con cur.close() "
-                "y encapsulando los endpoints críticos dentro de un bloque 'try/except' para evitar caídas del contenedor."
-            )
-        elif any(w in idea_minuscula for w in ["pelicula", "cine", "recomienda", "ver", "scifi"]):
-            coordenadas = [0.7, 0.1, 0.7]
-            respuesta_cuerpo = (
-                "**[MODO EMERGENCIA - CINE MATRIX]**\n\n"
-                "Red aislada. Extrayendo del almacén interno de seguridad:\n"
-                "Te recomiendo ver 'Matrix' (1999). Es el pilar del aislamiento de sistemas "
-                "y simulación de entornos desacoplados resilientes."
-            )
-        else:
-            coordenadas = [0.5, 0.5, 0.5]
-            respuesta_cuerpo = (
-                "**[MODO EMERGENCIA - AUTO-EVOLUCIÓN]**\n\n"
-                "El Núcleo opera en modo de supervivencia análoga. Prioridad estructural: "
-                "Diseñar bases de datos locales replicadas independientes de los servidores de internet del extranjero."
-            )
+        respuesta_cuerpo = "**[MODO ENERGENCIA - CODE LAB]**\n\nRed inalcanzable. Asegúrate de estructurar bloques 'try/except' locales en tus scripts de desarrollo."
 
-    # --- PERSISTENCIA EN MARIADB (RAILWAY) ---
+    # --- PERSISTENCIA EN MARIADB ---
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -291,7 +318,7 @@ async def consultar_nucleo(payload: dict):
         conn.close()
     except Exception as e:
         nuevo_id = 0
-        print(f"💥 Error extremo de base de datos: {e}")
+        print(f"💥 Error de base de datos: {e}")
 
     energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
 
