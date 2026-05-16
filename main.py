@@ -40,6 +40,47 @@ class DatosPaciente(BaseModel):
 def get_db_connection():
     # Conexión automática utilizando la variable de entorno de Railway
     return psycopg2.connect(os.environ.get("DATABASE_URL"))
+def inicializar_base_de_datos_nucleo():
+    """Crea las tablas necesarias para almacenar la memoria a largo plazo del Núcleo"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        # Tabla para las consultas médicas del Sur de Chile (Ya existente)
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS consultas_medicas (
+                id SERIAL PRIMARY KEY,
+                edad INTEGER,
+                presion INTEGER,
+                frecuencia INTEGER,
+                saturacion INTEGER,
+                hipertenso VARCHAR(10),
+                sur_chile VARCHAR(10),
+                nivel_riesgo VARCHAR(50),
+                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+        # NUEVA TABLA: El cerebro del Núcleo para almacenar códigos, neurociencia y metas
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS matriz_conocimiento (
+                id SERIAL PRIMARY KEY,
+                categoria VARCHAR(100), -- 'codigo', 'neurociencia', 'nanotecnologia', 'medicina'
+                concepto VARCHAR(255),
+                detalles TEXT,          -- Aquí se guardan los fragmentos de código fuente o papers
+                coordenada_x FLOAT,
+                coordenada_y FLOAT,
+                coordenada_z FLOAT,
+                fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("🛸 [Base de Datos]: Matriz de conocimiento eterno verificada e inicializada con éxito.")
+    except Exception as e:
+        print(f"⚠️ No se pudo inicializar el almacenamiento del Núcleo: {e}")
+
+# Ejecutamos la inicialización al arrancar el servidor
+inicializar_base_de_datos_nucleo()
 
 @app.get("/")
 async def root():
