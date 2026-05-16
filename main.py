@@ -276,7 +276,7 @@ async def consultar_nucleo(payload: dict):
             
             if api_key:
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-2.5-flash")
                 
                 prompt_doctoral = f"""
                 Eres el motor cognitivo del 'Núcleo', una IA relacional diseñada para asistir en una investigación doctoral multidisciplinaria.
