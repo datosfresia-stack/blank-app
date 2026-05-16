@@ -13,8 +13,7 @@ def get_db_connection():
     if not DATABASE_URL:
         raise RuntimeError("❌ Variable de entorno DATABASE_URL no configurada.")
     
-    # Adaptación heurística para parsear la URL estándar de MariaDB
-    # Estructura esperada: mysql://user:password@host:port/database
+    # Adaptación estructural para parsear el string de conexión de Railway
     url = DATABASE_URL.replace("mysql://", "").replace("mariadb://", "")
     auth, rest = url.split("@")
     user, password = auth.split(":")
@@ -30,7 +29,7 @@ def get_db_connection():
     )
 
 def inicializar_base_de_datos_nucleo():
-    """Crea las tablas necesarias para almacenar la memoria en MariaDB si no existen"""
+    """Crea las tablas de almacenamiento relacional si no existen en MariaDB"""
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -67,11 +66,11 @@ def inicializar_base_de_datos_nucleo():
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Matriz de conocimiento eterno verificada e inicializada en MariaDB.")
+        print("🛸 [Base de Datos]: Matriz de conocimiento eterno verificada en MariaDB.")
     except Exception as e:
-        print(f"⚠️ No se pudo inicializar el almacenamiento del Núcleo: {e}")
+        print(f"⚠️ Alerta de modo aislado: No se pudo conectar a MariaDB durante el arranque: {e}")
 
-# Ejecutamos la inicialización al arrancar el contenedor en Railway
+# Inicialización segura en tiempo de carga del contenedor
 inicializar_base_de_datos_nucleo()
 
 
@@ -88,7 +87,7 @@ class ConsultaMedica(BaseModel):
 # --- ENDPOINTS LÓGICA SANITARIA (SUR DE CHILE) ---
 @app.get("/")
 async def raiz_sistema():
-    return {"status": "online", "sistema": "IALibre Frontend/Backend unificado operando en MariaDB"}
+    return {"status": "online", "sistema": "IALibre Backend unificado operando en MariaDB"}
 
 @app.post("/evaluar-riesgo")
 async def evaluar_riesgo(datos: ConsultaMedica):
@@ -102,7 +101,7 @@ async def evaluar_riesgo(datos: ConsultaMedica):
         if datos.hipertenso.lower() == "si":
             puntos_riesgo += 1
             
-        # Ponderación geográfica: Factor de aislamiento en el Sur de Chile
+        # Ponderación de aislamiento geográfico en el Sur de Chile
         if datos.sur_chile.lower() == "si" and datos.saturacion < 94:
             puntos_riesgo += 2
 
@@ -112,7 +111,7 @@ async def evaluar_riesgo(datos: ConsultaMedica):
         elif puntos_riesgo >= 3:
             nivel_riesgo = "Riesgo Moderado / Monitoreo Continuo"
 
-        # Guardar registro en MariaDB utilizando marcadores estandar de formato (%s)
+        # Inserción nativa SQL con marcadores estandar (%s) para MySQL/MariaDB
         conn = get_db_connection()
         cur = conn.cursor()
         cur.execute('''
@@ -136,7 +135,7 @@ async def evaluar_riesgo(datos: ConsultaMedica):
 # --- ENDPOINTS CONSOLA INTERACTIVA DEL NÚCLEO ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz visual ciberpunk integrada para el control universal autónomo"""
+    """Interfaz visual de la consola cuántica clásica integrada"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
@@ -164,7 +163,7 @@ async def ver_consola_nucleo():
     <div class="console-container">
         <div class="console-header">🛸 NÚCLEO AUTÓNOMO INTERFAZ V.1</div>
         <div id="console-log" class="console-log">
-            <div class="log-entry system-msg">[SISTEMA]: Núcleo en línea. Matriz cuántica clásica inicializada.</div>
+            <div class="log-entry system-msg">[SISTEMA]: Núcleo acoplado con éxito. Entorno operativo en la nube activo.</div>
             <div class="log-entry system-msg">[SISTEMA]: Esperando transferencia de conocimiento doctoral...</div>
         </div>
         <div class="input-area">
@@ -218,7 +217,7 @@ async def ver_consola_nucleo():
 async def consultar_nucleo(payload: dict):
     """
     Endpoint del Núcleo: Clasifica, analiza y almacena notas doctorales 
-    e ingeniería en la base de datos MariaDB de forma permanente.
+    en la base de datos MariaDB de forma permanente.
     """
     try:
         idea = payload.get("idea", "").strip()
@@ -227,7 +226,7 @@ async def consultar_nucleo(payload: dict):
         
         print(f"🛸 [Procesando Conocimiento]: '{idea}'")
         
-        # --- MOTOR HEURÍSTICO LOCAL: Clasificación por Palabras Clave ---
+        # --- MOTOR HEURÍSTICO LOCAL ---
         idea_minuscula = idea.lower()
         categoria = "ingenieria"
         coordenadas = [1.0, 1.0, 1.0]
@@ -254,7 +253,7 @@ async def consultar_nucleo(payload: dict):
         ''', (categoria, f"Nota Doc: {idea[:30]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2]))
         
         conn.commit()
-        nuevo_id = cur.lastrowid  # Captura el ID auto-incremental nativo en MariaDB
+        nuevo_id = cur.lastrowid
         cur.close()
         conn.close()
 
@@ -267,11 +266,14 @@ async def consultar_nucleo(payload: dict):
             "ingenieria": "Meta de ingeniería procesada. Continúa estructurando tus diagramas de flujo antes de compilar."
         }
 
+        # Cálculo de la magnitud vectorial euclidiana
+        energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
+
         return {
             "status": "success",
             "analisis_nucleo": f"[REGISTRO ETERNO N° {nuevo_id} - CAT: {categoria.upper()}]: {guias_autonomas[categoria]}",
             "resonancias_encontradas": [
-                {"concepto_relacionado": f"Matriz Cuántica ({categoria.upper()})", "energia_qubit": round((coordenadas[0]**2 + coordinates_y := coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)}
+                {"concepto_relacionado": f"Matriz Cuántica ({categoria.upper()})", "energia_qubit": energia_calculada}
             ]
         }
         
