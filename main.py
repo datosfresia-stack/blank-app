@@ -207,149 +207,102 @@ async def consultar_nucleo(payload: dict):
 
     modo_operacion = "STANDARD"
     respuesta_cuerpo = ""
-    coordenadas = [1.0, 1.0, 1.0]
+    
+    # Listado de áreas de tu interés doctoral para el escaneo automático de enlaces
+    areas_interes = ["informatica", "robotica", "electronica", "nanotecnologia", "neurociencia", "biorobotica", "medicina", "ancestral", "idiomas"]
 
-    try:
-        simular_caida_red = False  
-        if simular_caida_red:
-            raise ConnectionError("Fallo simulado de red.")
-            
-        # --- FLUJO PRINCIPAL ONLINE (MODO STANDARD) ---
-        if tema == "ingenieria":
-            coordenadas = [0.1, 0.9, 0.3]
-            idea_lower = idea.lower()
-            
-            # 📚 BANCO DE PLANTILLAS MULTI-LENGUAJE SRE
-            plantillas_codigo = {
-                "javascript": (
-                    "```javascript\n"
-                    "// Calculadora básica en JavaScript (ES6+)\n"
-                    "const calcular = (op, n1, n2) => {\n"
-                    "    switch(op) {\n"
-                    "        case '+': return n1 + n2;\n"
-                    "        case '-': return n1 - n2;\n"
-                    "        case '*': return n1 * n2;\n"
-                    "        case '/': return n2 !== 0 ? n1 / n2 : 'Error: División por 0';\n"
-                    "        default: return 'Operación inválida';\n"
-                    "    }\n"
-                    "};\n"
-                    "console.log('Resultado:', calcular('+', 12, 8));\n"
-                    "```"
-                ),
-                "python": (
-                    "```python\n"
-                    "# Calculadora básica en Python 3\n"
-                    "def calcular(operacion: str, n1: float, n2: float) -> float | str:\n"
-                    "    try:\n"
-                    "        if operacion == '+': return n1 + n2\n"
-                    "        elif operacion == '-': return n1 - n2\n"
-                    "        elif operacion == '*': return n1 * n2\n"
-                    "        elif operacion == '/': return n1 / n2\n"
-                    "        return 'Operador inválido'\n"
-                    "    except ZeroDivisionError:\n"
-                    "        return '❌ Error: División por cero.'\n\n"
-                    "print('Resultado:', calcular('+', 15.5, 4.5))\n"
-                    "```"
-                ),
-                "html": (
-                    "```html\n"
-                    "\n"
-                    "<div class='calculadora'>\n"
-                    "    <input type='text' id='pantalla' readonly />\n"
-                    "    <div class='botones'>\n"
-                    "        <button onclick='presionar(\"7\")'>7</button>\n"
-                    "        <button onclick='presionar(\"+\")'>+</button>\n"
-                    "        <button onclick='ejecutar()'>=</button>\n"
-                    "    </div>\n"
-                    "</div>\n"
-                    "```"
-                ),
-                "sql": (
-                    "```sql\n"
-                    "-- Consulta relacional estructurada para auditorías del Núcleo\n"
-                    "SELECT id, categoria, concepto, modo_operacion, fecha_aprendizaje \n"
-                    "FROM matriz_conocimiento \n"
-                    "WHERE categoria = 'ingenieria' \n"
-                    "ORDER BY fecha_aprendizaje DESC \n"
-                    "LIMIT 10;\n"
-                    "```"
-                ),
-                "c++": (
-                    "```cpp\n"
-                    "// Código fuente en C++ Estándar\n"
-                    "#include <iostream>\n"
-                    "int main() {\n"
-                    "    double n1 = 10, n2 = 5;\n"
-                    "    std::cout << \"Suma local: \" << (n1 + n2) << std::endl;\n"
-                    "    return 0;\n"
-                    "}\n"
-                    "```"
-                )
-            }
-
-            # Motor de detección semántica de lenguaje
-            lenguaje_detectado = None
-            for lang in plantillas_codigo.keys():
-                if lang in idea_lower or (lang == "c++" and "cpp" in idea_lower):
-                    lenguaje_detectado = lang
-                    break
-            
-            if lenguaje_detectado:
-                respuesta_cuerpo = (
-                    f"**[CÓDIGO FUENTE POLÍGLOTA — {lenguaje_detectado.upper()} DETECTADO]**\n\n"
-                    f"Extraje la plantilla limpia solicitada directamente del clúster de compilación del Núcleo:\n\n"
-                    f"{plantillas_codigo[lenguaje_detectado]}\n\n"
-                    "✨ *Sugerencia: Puedes pedirme scripts en Python, JavaScript, C++, HTML o SQL.*"
-                )
-            elif "optimiza" in idea_lower and ("list" in idea_lower or "comprehension" in idea_lower):
-                respuesta_cuerpo = (
-                    "**[CÓDIGO OPTIMIZADO — LIST COMPREHENSION]**\n\n"
-                    "```python\n"
-                    "from typing import List\n"
-                    "def procesar_datos(lista: List[int]) -> List[int]:\n"
-                    "    return [x * 2 for x in lista]\n"
-                    "```"
-                )
-            else:
-                respuesta_cuerpo = f"**[CODE LAB — ONLINE]**\nRecibido: '{idea[:40]}...'. Especifica un lenguaje como Python, JavaScript, SQL, C++ o HTML para inyectar código fuente real."
-                
-        elif tema == "peliculas":
-            coordenadas = [0.7, 0.2, 0.8]
-            idea_lower = idea.lower()
-            if any(w in idea_lower for w in ["accion", "ciencia ficcion", "scifi", "futuro", "cyberpunk"]):
-                respuesta_cuerpo = "**[RECOMENDACIÓN CINE MATRIX]**\n\nTe sugiero ver 'Ex Machina' o 'Blade Runner 2049'."
-            else:
-                respuesta_cuerpo = "**[RECOMENDACIÓN CINE MATRIX]**\n\nTe recomiendo 'Origen' (Inception) de Christopher Nolan."
-        else:
-            coordenadas = [0.9, 0.9, 0.9]
-            respuesta_cuerpo = "**[PROPUESTA DE MEJORA V.3]**\n\n1. Conectores dinámicos.\n2. Vector Embeddings en MariaDB.\n3. Refactorización Autónoma."
-
-    except (ConnectionError, Exception):
-        modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = "**[MODO ENERGENCIA - CODE LAB]**\n\nRed inalcanzable. Asegúrate de estructurar bloques 'try/except' locales en tus scripts de desarrollo."
-
-    # --- PERSISTENCIA EN MARIADB ---
     try:
         conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('''
-            INSERT INTO matriz_conocimiento (categoria, concepto, detalles, coordenada_x, coordenada_y, coordenada_z, modo_operacion)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
-        ''', (tema, f"SubChat: {idea[:25]}...", idea, coordenadas[0], coordenadas[1], coordenadas[2], modo_operacion))
-        conn.commit()
-        nuevo_id = cur.lastrowid
+        cur = conn.cursor(dictionary=True) # Activamos modo diccionario para leer fácil por nombre de columna
+        
+        # 📥 DETECTOR DE INGESTA ENCICLOPÉDICA
+        # Si tu mensaje empieza con "aprender:", el Núcleo lo guarda como conocimiento formal
+        if idea.lower().startswith("aprender:"):
+            # Formato esperado: aprender: area=neurociencia | concepto=Sinapsis Quimica | detalles=Definición profunda...
+            partes = idea.split("|")
+            area = "general"
+            concepto = "Nuevo Concepto"
+            detalles = idea
+            
+            for parte in partes:
+                if "area=" in parte.lower(): area = parte.split("=")[1].strip()
+                if "concepto=" in parte.lower(): concepto = parte.split("=")[1].strip()
+                if "detalles=" in parte.lower(): detalles = parte.split("=")[1].strip()
+
+            # 1. Insertar el nuevo Nodo de Conocimiento
+            cur.execute('''
+                INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda)
+                VALUES (%s, %s, %s);
+            ''', (area, concepto, detalles))
+            conn.commit()
+            nuevo_nodo_id = cur.lastrowid
+            
+            # 2. Escaneo automático de Enlaces Cruzados (Interdisciplinaridad)
+            enlaces_creados = []
+            detalles_lower = detalles.lower()
+            
+            # Buscamos si en la definición mencionas otra de tus áreas de interés
+            for otra_area in areas_interes:
+                if otra_area in detalles_lower and otra_area != area:
+                    # Buscamos en la DB si ya existe algún nodo de esa otra área para conectarlo
+                    cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area = %s LIMIT 1;", (otra_area,))
+                    nodo_destino = cur.fetchone()
+                    
+                    if nodo_destino:
+                        # Creamos el enlace de resonancia cuántica entre las dos ciencias
+                        magnitud_qubit = 1.6180 # Proporción áurea de enlace por defecto
+                        cur.execute('''
+                            INSERT INTO enciclopedia_enlaces (nodo_origen_id, nodo_destino_id, tipo_conexion, magnitud_qubit)
+                            VALUES (%s, %s, %s, %s);
+                        ''', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', magnitud_qubit))
+                        conn.commit()
+                        enlaces_creados.append(f"{otra_area.upper()} ({nodo_destino['concepto']})")
+
+            # Estructurar respuesta de éxito
+            str_enlaces = ", ".join(enlaces_creados) if enlaces_creados else "Ninguno (Nodo aislado por ahora)"
+            respuesta_cuerpo = (
+                f"**[LOG DE INGESTA ENCICLOPÉDICA — ÉXITO]**\n\n"
+                f"🧠 **Nodo Indexado:** '{concepto}' asignado al sector de `{area.upper()}`.\n"
+                f"🔗 **Enlaces Cruzados Automatizados:** {str_enlaces}.\n\n"
+                f"El conocimiento ha quedado fijado en la estructura molecular de MariaDB para tus futuras líneas de investigación doctoral."
+            )
+            
+        else:
+            # 🔍 MODO CONSULTA: Si solo estás chateando, el sistema busca en la enciclopedia si sabe del tema
+            idea_lower = idea.lower()
+            cur.execute("SELECT * FROM enciclopedia_nodos;")
+            todos_los_nodos = cur.fetchall()
+            
+            nodos_encontrados = []
+            for nodo in todos_los_nodos:
+                # Si tu mensaje menciona el concepto o el área, te extrae la definición
+                if nodo['concepto'].lower() in idea_lower or nodo['area'].lower() in idea_lower:
+                    nodos_encontrados.append(
+                        f"### 📚 [{nodo['area'].upper()}] — {nodo['concepto']}\n{nodo['definicion_profunda']}"
+                    )
+            
+            if nodos_encontrados:
+                respuesta_cuerpo = f"**[EXTRACCIÓN DE MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN]**\n\n" + "\n\n---\n\n".join(nodos_encontrados)
+            else:
+                # Respuesta por defecto si la enciclopedia aún está vacía
+                respuesta_cuerpo = (
+                    f"**[SISTEMA ENCICLOPÉDICO ONLINE]**\n\n"
+                    f"Recibido: '{idea[:40]}...'. Tu enciclopedia relacional está lista pero no tiene páginas sobre este término todavía.\n\n"
+                    f"🧪 **Pruébame enseñándole algo al Núcleo ahora mismo copiando y enviando esto:**\n"
+                    f"`aprender: area=neurociencia | concepto=Bci | detalles=Las interfaces cerebro computador conectan neuronas con sistemas de biorobotica mediante electronica avanzada.`"
+                )
+
         cur.close()
         conn.close()
-    except Exception as e:
-        nuevo_id = 0
-        print(f"💥 Error de base de datos: {e}")
 
-    energia_calculada = round((coordenadas[0]**2 + coordenadas[1]**2 + coordenadas[2]**2)**0.5, 4)
+    except Exception as e:
+        modo_operacion = "CONTINGENCIA_LOCAL"
+        respuesta_cuerpo = f"**[MODO ENERGENCIA - RED EXPANSIVA COLAZONADA]**\n\nFallo en el motor de grafos relacionales: {e}"
 
     return {
         "status": "success",
         "analisis_nucleo": respuesta_cuerpo,
-        "registro_id": nuevo_id,
-        "energia": energia_calculada,
+        "registro_id": 1,
+        "energia": 1.618,
         "modo_operacion": modo_operacion
     }
