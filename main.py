@@ -138,3 +138,42 @@ async def evaluar_riesgo(paciente: DatosPaciente):
 @app.get("/")
 def inicio():
     return {"status": "Servidores unificados. Núcleo IALibre en línea y respondiendo."}
+
+    # --- CAPA MAESTRA: ENDPOINT PRIVADO DEL NÚCLEO ---
+from nucleo_ia.memoria_nucleo import MatrizMemoriaNucleo
+
+# Inicializamos la matriz central en la memoria del servidor
+nucleo_memoria = MatrizMemoriaNucleo()
+# Le precargamos los conceptos doctorales base
+nucleo_memoria.ensenar_concepto("Redes Neuronales Biológicas (Neurociencia)")
+nucleo_memoria.ensenar_concepto("Sistemas de Control Autónomo (Robótica)")
+nucleo_memoria.ensenar_concepto("Estructuras Moleculares de Carbono (Nanotecnología)")
+
+@app.post("/nucleo-consulta")
+async def consultar_nucleo(payload: dict):
+    """
+    Endpoint de acceso universal para interactuar con el Núcleo.
+    Accesible desde cualquier celular o computador del mundo.
+    """
+    idea = payload.get("idea", "")
+    if not idea:
+        return {"status": "error", "mensaje": "La idea o nota de estudio está vacía."}
+    
+    print(f"🛸 [Comando Remoto]: Procesando nota doctoral -> '{idea}'")
+    
+    # Ejecutamos la resonancia matricial-cuántica en el servidor
+    # En las próximas fases, aquí conectaremos el razonamiento de Llama 3.2
+    resonancia = []
+    for q in nucleo_memoria.espacio_cuantico:
+        vec = q.obtener_coordenadas()
+        magnitud = (vec[0]**2 + vec[1]**2 + vec[2]**2)**0.5
+        resonancia.append({
+            "concepto_relacionado": q.concepto,
+            "energia_qubit": round(magnitud, 4)
+        })
+        
+    return {
+        "status": "success",
+        "analisis_nucleo": f"Nota procesada con éxito en la matriz esférica. Listo para expansión cognitiva.",
+        "resonancias_encontradas": resonancia
+    }
