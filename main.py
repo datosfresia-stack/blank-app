@@ -191,10 +191,10 @@ async def ver_consola_nucleo():
     return HTMLResponse(content=contenido_html, status_code=200)
 
 
-# --- CONSOLA DE SUB-CHATS INTERACTIVOS UNIFICADA ---
+# --- CONSOLA DE SUB-CHATS INTERACTIVOS UNIFICADA (PARCHE DEFINITIVO) ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz Monocromática con Chat de Sesión Continuo y Canales Doctorales"""
+    """Interfaz Monocromática con Estilos Cian Originales y Transmisión Corregida"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
@@ -204,19 +204,20 @@ async def ver_consola_nucleo():
         <title>🛸 NÚCLEO — Consola de Alta Disponibilidad</title>
         <style>
             body { background: #0a0f1d; color: #ffffff; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-            .console-container { width: 100%; max-width: 900px; width: 100%; background: #111a2e; border: 2px solid #ffffff; border-radius: 8px; box-shadow: 0 0 20px rgba(255,255,255,0.1); overflow: hidden; display: flex; flex-direction: column; }
-            .tabs-bar { display: flex; background: #070c16; border-bottom: 2px solid #ffffff; flex-wrap: wrap; }
-            .tab-btn { flex: 1; min-width: 120px; background: none; border: none; color: #a0a0a0; padding: 12px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; }
-            .tab-btn.active { color: #0a0f1d; background: #ffffff; }
-            .console-log { height: 450px; padding: 15px; overflow-y: auto; background: #070c16; border-bottom: 1px solid #ffffff; font-size: 0.9em; line-height: 1.5; }
-            .log-entry { margin-bottom: 15px; border-left: 3px solid #ffffff; padding-left: 10px; white-space: pre-wrap; word-break: break-word; }
-            .input-area { padding: 15px; background: #111a2e; }
-            textarea { width: 100%; height: 110px; background: #070c16; color: #ffffff; border: 1px solid #ffffff; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.95em; box-sizing: border-box; resize: vertical; }
-            textarea:focus { outline: none; box-shadow: 0 0 8px #ffffff; }
-            button.send-btn { width: 100%; background: #ffffff; color: #0a0f1d; border: none; padding: 14px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
-            button.send-btn:hover { background: #e0e0e0; box-shadow: 0 0 10px #ffffff; }
-            .matrix-energy { font-size: 0.8em; color: #a0a0a0; margin-top: 6px; }
-            .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; }
+            .console-container { width: 100%; max-width: 950px; width: 100%; background: #070c16; border: 2px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,204,0.2); overflow: hidden; display: flex; flex-direction: column; }
+            .tabs-bar { display: flex; background: #0a0f1d; border-bottom: 2px solid #00ffcc; flex-wrap: wrap; }
+            .tab-btn { flex: 1; min-width: 120px; background: none; border: none; color: #a0a0a0; padding: 14px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; border-right: 1px solid rgba(0,255,204,0.3); }
+            .tab-btn:last-child { border-right: none; }
+            .tab-btn.active { color: #070c16; background: #00ffcc; }
+            .console-log { height: 480px; padding: 20px; overflow-y: auto; background: #070c16; border-bottom: 2px solid #00ffcc; font-size: 0.95em; line-height: 1.6; }
+            .log-entry { margin-bottom: 18px; border-left: 3px solid #00ffcc; padding-left: 12px; white-space: pre-wrap; word-break: break-word; }
+            .input-area { padding: 20px; background: #070c16; }
+            textarea { width: 100%; height: 110px; background: #070c16; color: #ffffff; border: 2px solid #00ffcc; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 1em; box-sizing: border-box; resize: vertical; }
+            textarea:focus { outline: none; box-shadow: 0 0 12px #00ffcc; }
+            button.send-btn { width: 100%; background: #00ffcc; color: #070c16; border: none; padding: 16px; font-size: 1.05em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 6px; margin-top: 12px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+            button.send-btn:hover { background: #00ccaa; box-shadow: 0 0 15px #00ffcc; }
+            .matrix-energy { font-size: 0.8em; color: #ff33aa; margin-top: 6px; font-weight: bold; }
+            .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; margin-bottom: 5px; }
         </style>
     </head>
     <body>
@@ -228,10 +229,10 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #a0a0a0;">[SISTEMA]: Enlace directo secuencial establecido. Sesión unificada activa para flujos de desarrollo extensos. Listo para Miguel.</div>
+            <div class="log-entry" style="color: #00ffcc;">[SISTEMA]: Enlace directo secuencial establecido. canal #CHAT_DIRECTO activo. Listo para operar, Miguel.</div>
         </div>
         <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe tus preguntas, reflexiones o códigos fuentes masivos aquí..."></textarea>
+            <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
             <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
         </div>
     </div>
@@ -252,10 +253,17 @@ async def ver_consola_nucleo():
     async function transmitirAlNucleo() {
         const input = document.getElementById('idea-input');
         const log = document.getElementById('console-log');
+        
+        if (!input || !log) {
+            alert("Error crítico: No se encontraron los componentes en la interfaz.");
+            return;
+        }
+
         const idea = input.value.trim();
         if (!idea) return;
 
-        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Miguel — Transmisión Activa]:\n${escaparHTML(idea)}</div>`;
+        // Imprimir inmediatamente en pantalla para verificar que el botón funciona
+        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Miguel — Transmisión Activa]:\\n${escaparHTML(idea)}</div>`;
         input.value = '';
         log.scrollTop = log.scrollHeight;
 
@@ -265,6 +273,7 @@ async def ver_consola_nucleo():
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idea: idea, tema: canalActual })
             });
+            
             const data = await response.json();
             
             let alertaHtml = "";
@@ -274,16 +283,16 @@ async def ver_consola_nucleo():
 
             if (data.status === 'success') {
                 log.innerHTML += `
-                    <div class="log-entry" style="color: #ffffff;">
+                    <div class="log-entry" style="color: #00ffcc;">
                         ${alertaHtml}
                         🧠 [Núcleo]: ${formatearRespuesta(data.analisis_nucleo)}
-                        <div class="matrix-energy"> ↳ Registro: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
+                        <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
                     </div>`;
             } else {
                 log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
             }
         } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor o pasarela de red inalcanzable.</div>`;
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: La pasarela de red no devolvió una respuesta válida.</div>`;
         }
         log.scrollTop = log.scrollHeight;
     }
@@ -294,8 +303,8 @@ async def ver_consola_nucleo():
 
     function formatearRespuesta(texto) {
         if (!texto) return "";
-        let resultado = escaparHTML(texto);
-        return resultado.replace(/\n/g, "<br>").replace(/\\n/g, "<br>");
+        let sinSaltosFalsos = texto.replace(/\\\\n/g, "<br>").replace(/\\n/g, "<br>");
+        return sinSaltosFalsos;
     }
     </script>
     </body>
