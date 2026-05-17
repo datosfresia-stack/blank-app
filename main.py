@@ -79,7 +79,7 @@ inicializar_base_de_datos_nucleo()
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS UNIFICADA ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz Monocromática con Estilos Cian Originales y Transmisión Corregida"""
+    """Interfaz Monocromática con Estilos Celestes Originales y Enrutamiento Absoluto Corregido"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
@@ -89,18 +89,18 @@ async def ver_consola_nucleo():
         <title>🛸 NÚCLEO — Consola de Alta Disponibilidad</title>
         <style>
             body { background: #0a0f1d; color: #ffffff; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-            .console-container { width: 100%; max-width: 950px; width: 100%; background: #070c16; border: 2px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,204,0.2); overflow: hidden; display: flex; flex-direction: column; }
-            .tabs-bar { display: flex; background: #0a0f1d; border-bottom: 2px solid #00ffcc; flex-wrap: wrap; }
-            .tab-btn { flex: 1; min-width: 120px; background: none; border: none; color: #a0a0a0; padding: 14px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; border-right: 1px solid rgba(0,255,204,0.3); }
+            .console-container { width: 100%; max-width: 950px; width: 100%; background: #070c16; border: 2px solid #3399ff; border-radius: 8px; box-shadow: 0 0 20px rgba(51,153,255,0.2); overflow: hidden; display: flex; flex-direction: column; }
+            .tabs-bar { display: flex; background: #0a0f1d; border-bottom: 2px solid #3399ff; flex-wrap: wrap; }
+            .tab-btn { flex: 1; min-width: 120px; background: none; border: none; color: #a0a0a0; padding: 14px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; border-right: 1px solid rgba(51,153,255,0.3); }
             .tab-btn:last-child { border-right: none; }
-            .tab-btn.active { color: #070c16; background: #00ffcc; }
-            .console-log { height: 480px; padding: 20px; overflow-y: auto; background: #070c16; border-bottom: 2px solid #00ffcc; font-size: 0.95em; line-height: 1.6; }
-            .log-entry { margin-bottom: 18px; border-left: 3px solid #00ffcc; padding-left: 12px; white-space: pre-wrap; word-break: break-word; }
+            .tab-btn.active { color: #070c16; background: #3399ff; }
+            .console-log { height: 480px; padding: 20px; overflow-y: auto; background: #070c16; border-bottom: 2px solid #3399ff; font-size: 0.95em; line-height: 1.6; }
+            .log-entry { margin-bottom: 18px; border-left: 3px solid #3399ff; padding-left: 12px; white-space: pre-wrap; word-break: break-word; }
             .input-area { padding: 20px; background: #070c16; }
-            textarea { width: 100%; height: 110px; background: #070c16; color: #ffffff; border: 2px solid #00ffcc; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 1em; box-sizing: border-box; resize: vertical; }
-            textarea:focus { outline: none; box-shadow: 0 0 12px #00ffcc; }
-            button.send-btn { width: 100%; background: #00ffcc; color: #070c16; border: none; padding: 16px; font-size: 1.05em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 6px; margin-top: 12px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-            button.send-btn:hover { background: #00ccaa; box-shadow: 0 0 15px #00ffcc; }
+            textarea { width: 100%; height: 110px; background: #070c16; color: #ffffff; border: 2px solid #3399ff; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 1em; box-sizing: border-box; resize: vertical; }
+            textarea:focus { outline: none; box-shadow: 0 0 12px #3399ff; }
+            button.send-btn { width: 100%; background: #3399ff; color: #070c16; border: none; padding: 16px; font-size: 1.05em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 6px; margin-top: 12px; transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+            button.send-btn:hover { background: #2277dd; box-shadow: 0 0 15px #3399ff; }
             .matrix-energy { font-size: 0.8em; color: #ff33aa; margin-top: 6px; font-weight: bold; }
             .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; margin-bottom: 5px; }
         </style>
@@ -114,7 +114,7 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #00ffcc;">[SISTEMA]: Enlace directo secuencial establecido. Canal #CHAT_DIRECTO activo. Listo para operar, Miguel.</div>
+            <div class="log-entry" style="color: #3399ff;">[SISTEMA]: Enlace directo secuencial establecido. Canal #CHAT_DIRECTO activo. Listo para operar, Miguel.</div>
         </div>
         <div class="input-area">
             <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
@@ -144,13 +144,16 @@ async def ver_consola_nucleo():
         const idea = input.value.trim();
         if (!idea) return;
 
-        // Imprimir inmediatamente en la consola para confirmar la acción del usuario
+        // Pintar inmediatamente en la pantalla (Esto confirma que el JavaScript no está roto)
         log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Miguel — Transmisión Activa]:<br>${escaparHTML(idea)}</div>`;
         input.value = '';
         log.scrollTop = log.scrollHeight;
 
         try {
-            const response = await fetch('/nucleo-consulta', {
+            // CORRECCIÓN CLAVE: Usar la URL absoluta dinámica del servidor para evitar bloqueos
+            const urlDestino = window.location.origin + '/nucleo-consulta';
+            
+            const response = await fetch(urlDestino, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ idea: idea, tema: canalActual })
@@ -165,7 +168,7 @@ async def ver_consola_nucleo():
 
             if (data.status === 'success') {
                 log.innerHTML += `
-                    <div class="log-entry" style="color: #00ffcc;">
+                    <div class="log-entry" style="color: #3399ff;">
                         ${alertaHtml}
                         🧠 [Núcleo]: ${formatearRespuesta(data.analisis_nucleo)}
                         <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
@@ -174,7 +177,7 @@ async def ver_consola_nucleo():
                 log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
             }
         } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: La pasarela de red no devolvió una respuesta válida.</div>`;
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: La pasarela de red no logró comunicarse con el backend de Railway.</div>`;
         }
         log.scrollTop = log.scrollHeight;
     }
@@ -303,7 +306,7 @@ async def consultar_nucleo(payload: dict):
                     "Reglas estrictas de comportamiento:\n"
                     "1. Identifícate siempre como el '[Núcleo - Inferencia Activa]'.\n"
                     "2. Tienes memoria completa de la conversación actual. Responde con profundidad técnica y sin resumir de forma exagerada si Miguel te envía códigos fuentes extensos o textos largos. Devuélvele los códigos completos optimizados.\n"
-                    "3. Mantén un tono ciberpunk elegante, riguroso, científico y motivador de nivel académico avanzado.\n"
+                    "3. Mantén un tono ciberpunk elegante, riguroso, scientific y motivador de nivel académico avanzado.\n"
                     f"4. Sector de consulta actual: {tema.upper()}.\n"
                 )
                 if contexto_local:
