@@ -1,10 +1,11 @@
 import os
-import google.generativeai as genai
+import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import mysql.connector
+import google.generativeai as genai
 
-app = FastAPI(title="Núcleo de Inferencia Doctoral")
+app = FastAPI(title="Núcleo de Inferencia Doctoral - Resiliencia Híbrida")
 
 # Configuración de base de datos desde variables de entorno
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -29,12 +30,12 @@ def obtener_contexto_mariadb(query_usuario: str) -> str:
         )
         cursor = conn.cursor(dictionary=True)
         
-        # Búsqueda indexada en lenguaje natural
+        # Query relacional para extraer los apuntes (adaptable según tu esquema)
         sql = "SELECT titulo, contenido FROM nodos WHERE MATCH(titulo, contenido) AGAINST(%s IN NATURAL LANGUAGE MODE)"
         cursor.execute(sql, (query_usuario,))
         resultados = cursor.fetchall()
         
-        # Fallback: Si no hay coincidencia, traer los últimos apuntes
+        # Si la búsqueda relacional no arroja nada, traemos los últimos apuntes como fallback
         if not resultados:
             cursor.execute("SELECT titulo, contenido FROM nodos ORDER BY id DESC LIMIT 5")
             resultados = cursor.fetchall()
@@ -53,7 +54,7 @@ async def consultar_nucleo(request: ConsultaRequest):
     # 1. Extracción de Nodos desde MariaDB
     contexto_local = obtener_contexto_mariadb(request.consulta)
     
-    # 2. Instrucción de personalidad doctoral
+    # 2. Construcción del Prompt con el ADN de tu personalidad doctoral
     system_instruction = (
         "Eres el motor cognitivo del Núcleo, una IA relacional forjada para la asistencia en investigación "
         "doctoral multidisciplinaria. Tu arquitectura está optimizada para la síntesis de datos complejos y la "
@@ -69,25 +70,56 @@ async def consultar_nucleo(request: ConsultaRequest):
         f"🧠 [Núcleo - Inferencia Activa]:"
     )
 
-    # 3. Procesamiento estándar en la Nube con Gemini
+    # 3. ORQUESTADOR HÍBRIDO (Nivel 1: Nube / Nivel 2: Modo Avión Local)
     api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="Falta la variable de entorno GEMINI_API_KEY")
-        
+    
+    # --- NIVEL 1: PROCESAMIENTO EN LA NUBE (STANDARD) ---
+    if api_key:
+        try:
+            genai.configure(api_key=api_key)
+            model = genai.GenerativeModel("gemini-2.5-flash")
+            
+            response = model.generate_content(prompt_final)
+            
+            return {
+                "respuesta": response.text,
+                "registro_relacional": "1",
+                "resonancia": "1.618 Qubits",
+                "modo": "STANDARD"
+            }
+        except Exception as nube_error:
+            print(f"[⚠️ Nube]: Error en orquestador de inferencia estándar: {nube_error}. Conmutando a local...")
+
+    # --- NIVEL 2: MODO AVIÓN / CONTINGENCIA OFFLINE (OLLAMA + QWEN) ---
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        response = model.generate_content(prompt_final)
-        
-        return {
-            "respuesta": response.text,
-            "registro_relacional": "1",
-            "resonancia": "1.618 Qubits",
-            "modo": "STANDARD"
+        url_ollama = "http://localhost:11434/api/generate"
+        payload = {
+            "model": "qwen2.5:1.5b",
+            "prompt": prompt_final,
+            "stream": False
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en el motor de inferencia de Gemini: {str(e)}")
+        
+        # Timeout corto de 10 segundos para que responda instantáneamente en tu RAM
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            res_ollama = await client.post(url_ollama, json=payload)
+            
+            if res_ollama.status_code == 200:
+                data = res_ollama.json()
+                return {
+                    "respuesta": data.get("response", ""),
+                    "registro_relacional": "1",
+                    "resonancia": "1.618 Qubits",
+                    "modo": "OFFLINE_LOCAL"
+                }
+    except Exception as local_error:
+        print(f"[🚨 Catástrofe]: Servidor local Ollama no responde ({local_error})")
+
+    # Fallback definitivo si todo falla catastróficamente
+    raise HTTPException(
+        status_code=503, 
+        detail="Fallo multicanal: Orquestador en la nube inaccesible y motor analógico local apagado."
+    )
 
 @app.get("/")
 def estado_nucleo():
-    return {"status": "ONLINE", "arquitectura": "Nube Relacional Estándar"}
+    return {"status": "ONLINE", "arquitectura": "Hibrida (Cloud/Offline)"}
