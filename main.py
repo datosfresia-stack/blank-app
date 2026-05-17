@@ -76,7 +76,7 @@ inicializar_base_de_datos_nucleo()
 # --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz Ciberpunk Avanzada con Sub-Chats Temáticos y Monitor de Red"""
+    """Interfaz Monocromática de Alta Visibilidad con Sub-Chats Temáticos y Monitor de Red"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
@@ -85,19 +85,19 @@ async def ver_consola_nucleo():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>🛸 NÚCLEO — Consola de Alta Disponibilidad</title>
         <style>
-            body { background: #0a0f1d; color: #00ffcc; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-            .console-container { width: 100%; max-width: 800px; background: #111a2e; border: 2px solid #00ffcc; border-radius: 8px; box-shadow: 0 0 20px rgba(0,255,204,0.2); overflow: hidden; }
-            .tabs-bar { display: flex; background: #070c16; border-bottom: 2px solid #00ffcc; }
-            .tab-btn { flex: 1; background: none; border: none; color: #8892b0; padding: 12px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; }
-            .tab-btn.active { color: #0a0f1d; background: #00ffcc; }
-            .console-log { height: 350px; padding: 15px; overflow-y: auto; background: #070c16; border-bottom: 1px solid #00ffcc; font-size: 0.9em; line-height: 1.5; }
-            .log-entry { margin-bottom: 12px; border-left: 3px solid #00ffcc; padding-left: 8px; white-space: pre-wrap; }
+            body { background: #0a0f1d; color: #ffffff; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+            .console-container { width: 100%; max-width: 800px; background: #111a2e; border: 2px solid #ffffff; border-radius: 8px; box-shadow: 0 0 20px rgba(255,255,255,0.1); overflow: hidden; }
+            .tabs-bar { display: flex; background: #070c16; border-bottom: 2px solid #ffffff; }
+            .tab-btn { flex: 1; background: none; border: none; color: #a0a0a0; padding: 12px; cursor: pointer; font-family: monospace; font-weight: bold; transition: all 0.3s; text-transform: uppercase; font-size: 0.85em; }
+            .tab-btn.active { color: #0a0f1d; background: #ffffff; }
+            .console-log { height: 350px; padding: 15px; overflow-y: auto; background: #070c16; border-bottom: 1px solid #ffffff; font-size: 0.9em; line-height: 1.5; }
+            .log-entry { margin-bottom: 12px; border-left: 3px solid #ffffff; padding-left: 8px; white-space: pre-wrap; }
             .input-area { padding: 15px; background: #111a2e; }
-            textarea { width: 100%; height: 90px; background: #070c16; color: #fff; border: 1px solid #00ffcc; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.95em; box-sizing: border-box; resize: none; }
-            textarea:focus { outline: none; box-shadow: 0 0 8px #00ffcc; }
-            button.send-btn { width: 100%; background: #00ffcc; color: #0a0f1d; border: none; padding: 12px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
-            button.send-btn:hover { background: #00b38f; box-shadow: 0 0 10px #00ffcc; }
-            .matrix-energy { font-size: 0.8em; color: #ff007f; margin-top: 4px; }
+            textarea { width: 100%; height: 90px; background: #070c16; color: #ffffff; border: 1px solid #ffffff; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.95em; box-sizing: border-box; resize: none; }
+            textarea:focus { outline: none; box-shadow: 0 0 8px #ffffff; }
+            button.send-btn { width: 100%; background: #ffffff; color: #0a0f1d; border: none; padding: 12px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
+            button.send-btn:hover { background: #e0e0e0; box-shadow: 0 0 10px #ffffff; }
+            .matrix-energy { font-size: 0.8em; color: #a0a0a0; margin-top: 4px; }
             .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; }
         </style>
     </head>
@@ -109,7 +109,7 @@ async def ver_consola_nucleo():
             <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
         </div>
         <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #8892b0;">[SISTEMA]: Enciclopedia Relacional Doctorada V4. Motor híbrido flexible offline operativo.</div>
+            <div class="log-entry" style="color: #a0a0a0;">[SISTEMA]: Enciclopedia Relacional Doctorada V4. Motor híbrido flexible offline operativo.</div>
         </div>
         <div class="input-area">
             <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
@@ -126,7 +126,7 @@ async def ver_consola_nucleo():
         elemento.classList.add('active');
         
         const log = document.getElementById('console-log');
-        log.innerHTML += `<div class="log-entry" style="color: #8892b0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}.</div>`;
+        log.innerHTML += `<div class="log-entry" style="color: #a0a0a0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}.</div>`;
         log.scrollTop = log.scrollHeight;
     }
 
@@ -155,7 +155,7 @@ async def ver_consola_nucleo():
 
             if (data.status === 'success') {
                 log.innerHTML += `
-                    <div class="log-entry" style="color: #00ffcc;">
+                    <div class="log-entry" style="color: #ffffff;">
                         ${alertaHtml}
                         🧠 [Núcleo]: ${data.analisis_nucleo}
                         <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
@@ -221,19 +221,19 @@ async def consultar_nucleo(payload: dict):
             partes = idea.split("|")
             area = "general"
             concepto = "Nuevo Concepto"
-            detalles = idea
+            details = idea
             
             for parte in partes:
                 if "area=" in parte.lower(): area = parte.split("=")[1].strip()
                 if "concepto=" in parte.lower(): concepto = parte.split("=")[1].strip()
-                if "detalles=" in parte.lower(): detalles = parte.split("=")[1].strip()
+                if "detalles=" in parte.lower(): details = parte.split("=")[1].strip()
 
-            cur.execute('INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda) VALUES (%s, %s, %s);', (area, concepto, detalles))
+            cur.execute('INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda) VALUES (%s, %s, %s);', (area, concepto, details))
             conn.commit()
             nuevo_nodo_id = cur.lastrowid
             
             enlaces_creados = []
-            detalles_lower = detalles.lower()
+            detalles_lower = details.lower()
             for otra_area in areas_interes:
                 if (otra_area in detalles_lower or otra_area[:-2] in detalles_lower) and otra_area != area:
                     cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area LIKE %s LIMIT 1;", (f"%{otra_area}%",))
