@@ -180,9 +180,10 @@ async def ver_consola_nucleo():
     }
 
     function formatearRespuesta(texto) {
-        // Formateador simple para preservar saltos de línea y saltar etiquetas crudas de código si las hay
-        return escaparHTML(texto).replace(/\\n/g, "<br>");
-    }
+    if (!texto) return "";
+    // Reemplaza los saltos de línea literales y los escapados por etiquetas HTML <br>
+    return escaparHTML(texto).replace(/\n/g, "<br>").replace(/\\n/g, "<br>");
+}
     </script>
     </body>
     </html>
