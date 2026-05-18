@@ -23,7 +23,6 @@
             background: #111a2e; 
             border: 2px solid #00ffcc; 
             border-radius: 8px; 
-            box-shadow: 0 0 20px rgba(0,255,204,0.2); 
             overflow: hidden; 
         }
         .console-header { 
@@ -87,56 +86,47 @@
 </head>
 <body>
     <div class="console-container">
-        <div class="console-header">🛸 NÚCLEO AUTÓNOMO | NUCLEO_PROPIO_v2.2</div>
+        <div class="console-header">🛸 NÚCLEO | ACTIVO </div>
         
         <div id="console-log" class="console-log">
-            <div class="log-entry system-msg">[SISTEMA]: ✅ Matriz cuántica clásica inicializada.</div>
-            <div class="log-entry system-msg">[ESTADO]: 🧠 Modo: SIEMPRE_LOCAL | Conectado a: 192.168.1.9:8080</div>
-            <div class="log-entry system-msg">[SISTEMA]: 💾 Almacenamiento: 100GB Disponibles | Esperando transferencia de conocimiento...</div>
+            <div class="log-entry system-msg">[SISTEMA]: Núcleo en línea. Matriz cuántica clásica inicializada.</div>
+            <div class="log-entry system-msg">[ESTADO]: Conectado a base de datos. Esperando transferencia de conocimiento...</div>
         </div>
 
         <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe una enseñanza, regla, pregunta o nuevo conocimiento aquí..."></textarea>
-            <button onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
+            <textarea id="idea-input" placeholder="Escriba un nuevo avance, idea o consulta de investigación..."></textarea>
+            <button onclick="transmitirAlNucleo()">Transmitir Conocimiento</button>
         </div>
     </div>
 
     <script>
-        async function transmitirAlNucleo() {
+        function transmitirAlNucleo() {
             const input = document.getElementById('idea-input');
             const log = document.getElementById('console-log');
             const idea = input.value.trim();
             
             if (!idea) return;
 
-            // Mostrar en consola local la acción
             log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]: ${idea}</div>`;
             input.value = '';
             log.scrollTop = log.scrollHeight;
 
-            try {
-                // 🔗 Conecta con tu sistema actualizado en main.py
-                const response = await fetch('/transmitir', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        mensaje: idea,
-                        canal: "ingenieria" 
-                    })
-                });
-
-                const data = await response.json();
-
-                // Mostrar respuesta procesada por TU INTELIGENCIA
+            fetch('/transmitir', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje: idea, canal: "general" })
+            })
+            .then(response => response.json())
+            .then(data => {
                 log.innerHTML += `
                 <div class="log-entry success-msg">
                     🧠 [NÚCLEO]: ${data.respuesta}<br>
-                    <div class="matrix-energy">⚛️ ${data.estado} | Motor: ${data.modelo_usado}</div>
+                    <div class="matrix-energy">⚡ ${data.estado}</div>
                 </div>`;
-
-            } catch (error) {
-                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo de Enlace]: Verifica que el sistema local esté activo.</div>`;
-            }
+            })
+            .catch(error => {
+                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error]: Fallo de enlace.</div>`;
+            });
 
             log.scrollTop = log.scrollHeight;
         }
