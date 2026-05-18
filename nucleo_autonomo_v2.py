@@ -182,4 +182,4 @@ async def recibir_peticion(peticion: PeticionUsuario):
 if __name__ == "__main__":
     inicializar_base_de_datos_nucleo()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
