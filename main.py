@@ -1,6 +1,5 @@
-<<<<<<< HEAD
 from fastapi import FastAPI, Depends
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,24 +25,28 @@ def procesar_informacion(mensaje: str):
     else:
         return f"✅ Procesado y guardado: '{mensaje}'."
 
-# 🖥️ INTERFAZ
+# 🖥️ RUTAS PRINCIPALES
 @app.get("/", response_class=HTMLResponse)
 async def raiz():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    with open("index.html", "r", encoding="utf-8") as archivo:
+        contenido_html = archivo.read()
+    return HTMLResponse(content=contenido_html)
 
-# 📡 ESTRUCTURA
+@app.get("/nucleo-consola", response_class=HTMLResponse)
+async def ir_a_consola():
+    return await raiz()
+
+# 📡 ESTRUCTURA DE DATOS
 class DatosEntrada(BaseModel):
     mensaje: str
     canal: str
-
-# 📡 PROCESAMIENTO
+    # 📡 PROCESAMIENTO PRINCIPAL
 @app.post("/transmitir")
 async def recibir(datos: DatosEntrada, db: AsyncSession = Depends(get_db)):
     respuesta = procesar_informacion(datos.mensaje)
     guardar_en_memoria(datos.canal, datos.mensaje, respuesta)
 
-    # Guardar en BD
+    # Guardar en Base de Datos
     try:
         cat = {"ingenieria":"CODE_LAB", "peliculas":"CINE_MATRIX", "evolucion":"AUTO_EVOLUCION"}.get(datos.canal, "GENERAL")
         nuevo = MatrizConocimiento(categoria=cat, concepto=datos.mensaje, detalles=respuesta)
@@ -55,7 +58,7 @@ async def recibir(datos: DatosEntrada, db: AsyncSession = Depends(get_db)):
 
     return {"respuesta": respuesta, "estado": estado}
 
-# 🚀 ARRANQUE
+# 🚀 ARRANQUE DEL SISTEMA
 @app.on_event("startup")
 async def inicio():
     await init_db()
@@ -63,10 +66,3 @@ async def inicio():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
-=======
-from nucleo_autonomo_v2 import app
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8080)
->>>>>>> 99d5f15fbde2402e83541437908ff6bca135880d
