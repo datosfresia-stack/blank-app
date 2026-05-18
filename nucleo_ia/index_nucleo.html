@@ -3,142 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛸 NÚCLEO — Consola de Comando Universal</title>
+    <title>NUCLEO</title>
     <style>
-        body { 
-            background: #0a0f1d; 
-            color: #00ffcc; 
-            font-family: 'Courier New', Courier, monospace; 
-            margin: 0; 
-            padding: 15px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            box-sizing: border-box; 
+        body {
+            background: #ffffff;
+            color: #000000;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
-        .console-container { 
-            width: 100%; 
-            max-width: 700px; 
-            background: #111a2e; 
-            border: 2px solid #00ffcc; 
-            border-radius: 8px; 
-            box-shadow: 0 0 20px rgba(0,255,204,0.2); 
-            overflow: hidden; 
+        .console-container {
+            width: 100%;
+            max-width: 800px;
+            background: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            overflow: hidden;
         }
-        .console-header { 
-            background: #00ffcc; 
-            color: #0a0f1d; 
-            padding: 12px; 
-            font-weight: bold; 
-            text-align: center; 
-            font-size: 1.1em; 
-            letter-spacing: 2px; 
+        .console-header {
+            background: #000000;
+            color: #ffffff;
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1em;
         }
-        .console-log { 
-            height: 300px; 
-            padding: 15px; 
-            overflow-y: auto; 
-            background: #070c16; 
-            border-bottom: 1px solid #00ffcc; 
-            font-size: 0.9em; 
-            line-height: 1.5; 
+        .console-log {
+            height: 400px;
+            padding: 15px;
+            overflow-y: auto;
+            background: #ffffff;
+            border-bottom: 1px solid #cccccc;
+            font-size: 0.95em;
+            line-height: 1.6;
         }
-        .log-entry { 
-            margin-bottom: 10px; 
-            border-left: 3px solid #00ffcc; 
-            padding-left: 8px; 
+        .msg-usuario {
+            text-align: right;
+            color: #000000;
+            margin: 6px 0;
+            padding: 3px 6px;
         }
-        .system-msg { color: #8892b0; }
-        .success-msg { color: #00ffcc; }
-        .input-area { padding: 15px; background: #111a2e; }
-        textarea { 
-            width: 100%; 
-            height: 80px; 
-            background: #070c16; 
-            color: #fff; 
-            border: 1px solid #00ffcc; 
-            border-radius: 4px; 
-            padding: 10px; 
-            font-family: monospace; 
-            font-size: 1em; 
-            box-sizing: border-box; 
-            resize: none; 
+        .msg-sistema {
+            text-align: left;
+            color: #000000;
+            margin: 6px 0;
+            padding: 3px 6px;
         }
-        textarea:focus { outline: none; box-shadow: 0 0 8px #00ffcc; }
-        button { 
-            width: 100%; 
-            background: #00ffcc; 
-            color: #0a0f1d; 
-            border: none; 
-            padding: 12px; 
-            font-size: 1em; 
-            font-weight: bold; 
-            font-family: monospace; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            margin-top: 10px; 
-            transition: all 0.3s; 
-            text-transform: uppercase; 
+        .input-area {
+            padding: 15px;
+            background: #f9f9f9;
+            display: flex;
+            gap: 10px;
         }
-        button:hover { background: #00b38f; box-shadow: 0 0 10px #00ffcc; }
-        .matrix-energy { font-size: 0.8em; color: #ff007f; margin-top: 5px; }
+        textarea {
+            flex: 1;
+            height: 60px;
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #000000;
+            border-radius: 2px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.95em;
+            resize: none;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #555555;
+        }
+        button {
+            background: #000000;
+            color: #ffffff;
+            border: none;
+            padding: 0 20px;
+            font-size: 0.95em;
+            font-family: monospace;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: opacity 0.2s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
     <div class="console-container">
-        <div class="console-header">🛸 NÚCLEO AUTÓNOMO | NUCLEO_PROPIO_v2.2</div>
-        
+        <div class="console-header">NUCLEO | MODO LOCAL</div>
+
         <div id="console-log" class="console-log">
-            <div class="log-entry system-msg">[SISTEMA]: ✅ Matriz cuántica clásica inicializada.</div>
-            <div class="log-entry system-msg">[ESTADO]: 🧠 Modo: SIEMPRE_LOCAL | Conectado a: 192.168.1.9:8080</div>
-            <div class="log-entry system-msg">[SISTEMA]: 💾 Almacenamiento: 100GB Disponibles | Esperando transferencia de conocimiento...</div>
+            <div class="msg-sistema">Sistema operativo. Esperando instrucciones.</div>
         </div>
 
         <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe una enseñanza, regla, pregunta o nuevo conocimiento aquí..."></textarea>
-            <button onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
+            <textarea id="idea-input" placeholder="Escribe aquí..."></textarea>
+            <button onclick="transmitirAlNucleo()">Enviar</button>
         </div>
     </div>
 
     <script>
-        async function transmitirAlNucleo() {
+        function transmitirAlNucleo() {
             const input = document.getElementById('idea-input');
             const log = document.getElementById('console-log');
             const idea = input.value.trim();
             
             if (!idea) return;
 
-            // Mostrar en consola local la acción
-            log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]: ${idea}</div>`;
+            // Mostrar mensaje del usuario
+            const entradaUsuario = document.createElement('div');
+            entradaUsuario.className = 'msg-usuario';
+            entradaUsuario.textContent = idea;
+            log.appendChild(entradaUsuario);
             input.value = '';
             log.scrollTop = log.scrollHeight;
 
-            try {
-                // 🔗 Conecta con tu sistema actualizado en main.py
-                const response = await fetch('/transmitir', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        mensaje: idea,
-                        canal: "ingenieria" 
-                    })
-                });
-
-                const data = await response.json();
-
-                // Mostrar respuesta procesada por TU INTELIGENCIA
-                log.innerHTML += `
-                <div class="log-entry success-msg">
-                    🧠 [NÚCLEO]: ${data.respuesta}<br>
-                    <div class="matrix-energy">⚛️ ${data.estado} | Motor: ${data.modelo_usado}</div>
-                </div>`;
-
-            } catch (error) {
-                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo de Enlace]: Verifica que el sistema local esté activo.</div>`;
-            }
-
-            log.scrollTop = log.scrollHeight;
+            // Enviar datos al sistema
+            fetch('/procesar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contenido: idea })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Mostrar respuesta del sistema
+                const respuestaSystema = document.createElement('div');
+                respuestaSystema.className = 'msg-sistema';
+                respuestaSystema.textContent = data.respuesta;
+                log.appendChild(respuestaSystema);
+                log.scrollTop = log.scrollHeight;
+            })
+            .catch(error => {
+                const errorMsg = document.createElement('div');
+                errorMsg.className = 'msg-sistema';
+                errorMsg.textContent = 'Error de conexión.';
+                log.appendChild(errorMsg);
+                log.scrollTop = log.scrollHeight;
+            });
         }
     </script>
 </body>
