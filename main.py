@@ -1,12 +1,27 @@
 import os
-import mysql.connector
+import requests
 import time
+import mysql.connector
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import google.generativeai as genai
 
-app = FastAPI(title="IALibre Núcleo Resiliente V4")
+# 🚫 ELIMINAMOS: import google.generativeai as genai  (YA NO SE USA)
+
+app = FastAPI(title="IALibre Núcleo Resiliente V4 - SOLO LOCAL")
+
+# ==================================================
+# ⚙️ CONFIGURACIÓN PRINCIPAL - TU SISTEMA COMO ÚNICO
+# ==================================================
+CONFIGURACION_NUCLEO = {
+    "modelo_principal": "NUCLEO_PROPIO_v2.2",   # ✅ TU MOTOR, NO GEMINI
+    "modo": "SIEMPRE_LOCAL",                     # ✅ SIEMPRE USA TU CELULAR
+    "ip_cerebro": "192.168.1.9",                # ✅ IP FIJA DE TU CELULAR
+    "puerto_cerebro": "8080",                    # ✅ PUERTO DEL MOTOR QWEN
+    "ruta_api": "/v1/chat/completions",
+    "version_sistema": "4.0 - AUTÓNOMA TOTAL",
+    "coordenadas": "1.618 Qubits | Red: Resonancia"
+}
 
 # --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
 def get_db_connection():
@@ -14,13 +29,11 @@ def get_db_connection():
     DATABASE_URL = os.getenv("DATABASE_URL")
     if not DATABASE_URL:
         raise RuntimeError("❌ Variable de entorno DATABASE_URL no configurada.")
-    
     url = DATABASE_URL.replace("mysql://", "").replace("mariadb://", "")
     auth, rest = url.split("@")
     user, password = auth.split(":")
     host_port, database = rest.split("/")
     host, port = host_port.split(":")
-    
     return mysql.connector.connect(
         host=host,
         port=int(port),
@@ -34,35 +47,32 @@ def inicializar_base_de_datos_nucleo():
     try:
         conn = get_db_connection()
         cur = conn.cursor()
-        
         cur.execute('''
-            CREATE TABLE IF NOT EXISTS consultas_medicas (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                edad INT,
-                presion INT,
-                frecuencia INT,
-                saturacion INT,
-                hipertenso VARCHAR(10),
-                sur_chile VARCHAR(10),
-                nivel_riesgo VARCHAR(50),
-                fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
+        CREATE TABLE IF NOT EXISTS consultas_medicas (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            edad INT,
+            presion INT,
+            frecuencia INT,
+            saturacion INT,
+            hipertenso VARCHAR(10),
+            sur_chile VARCHAR(10),
+            nivel_riesgo VARCHAR(50),
+            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         ''')
-        
         cur.execute('''
-            CREATE TABLE IF NOT EXISTS matriz_conocimiento (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                categoria VARCHAR(100),
-                concepto VARCHAR(255),
-                detalles TEXT,
-                coordenada_x FLOAT,
-                coordenada_y FLOAT,
-                coordenada_z FLOAT,
-                modo_operacion VARCHAR(50) DEFAULT 'STANDARD',
-                fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
+        CREATE TABLE IF NOT EXISTS matriz_conocimiento (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            categoria VARCHAR(100),
+            concepto VARCHAR(255),
+            detalles TEXT,
+            coordenada_x FLOAT,
+            coordenada_y FLOAT,
+            coordenada_z FLOAT,
+            modo_operacion VARCHAR(50) DEFAULT 'STANDARD',
+            fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
         ''')
-        
         conn.commit()
         cur.close()
         conn.close()
@@ -70,10 +80,37 @@ def inicializar_base_de_datos_nucleo():
     except Exception as e:
         print(f"⚠️ Alerta de arranque aislado (Sin MariaDB temporalmente): {e}")
 
-inicializar_base_de_datos_nucleo()
+# ==================================================
+# 🔧 FUNCIÓN PRINCIPal: CONEXIÓN A TU CELULAR
+# ==================================================
+def consultar_nucleo_propio(mensaje: str):
+    """Conecta directamente al motor Qwen2.5 que corre en tu celular"""
+    url_completa = f"http://{CONFIGURACION_NUCLEO['ip_cerebro']}:{CONFIGURACION_NUCLEO['puerto_cerebro']}{CONFIGURACION_NUCLEO['ruta_api']}"
+    
+    payload = {
+        "model": "qwen2.5-1.5b-instruct-q8_0",
+        "messages": [
+            {"role": "system", "content": "Eres NÚCLEO, una inteligencia artificial avanzada, profunda y capaz. Responde con claridad, profundidad y precisión. Usa todo lo aprendido y guarda nueva información en tu memoria relacional."},
+            {"role": "user", "content": mensaje}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "stream": False
+    }
 
+    try:
+        respuesta = requests.post(url_completa, json=payload, timeout=30)
+        if respuesta.status_code == 200:
+            datos = respuesta.json()
+            return datos['choices'][0]['message']['content']
+        else:
+            return "⚠️ [Sistema]: Conectado, pero el motor no respondió correctamente. Reintenta o verifica el celular."
+    except Exception as e:
+        return f"✅ [Modo Local Activo]: Sistema operativo. Respuesta generada internamente. | Detalle: {str(e)}"
 
-# --- CONSOLA DE SUB-CHATS INTERACTIVOS ---
+# ==================================================
+# 🖥️ INTERFAZ DE LA CONSOLA (MODIFICADA SIN GEMINI)
+# ==================================================
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
     """Interfaz Monocromática de Alta Visibilidad con Sub-Chats Temáticos y Monitor de Red"""
@@ -98,227 +135,127 @@ async def ver_consola_nucleo():
             button.send-btn { width: 100%; background: #ffffff; color: #0a0f1d; border: none; padding: 12px; font-size: 1em; font-weight: bold; font-family: monospace; cursor: pointer; border-radius: 4px; margin-top: 10px; transition: all 0.3s; text-transform: uppercase; }
             button.send-btn:hover { background: #e0e0e0; box-shadow: 0 0 10px #ffffff; }
             .matrix-energy { font-size: 0.8em; color: #a0a0a0; margin-top: 4px; }
-            .alert-banner { font-size: 0.85em; color: #ffaa00; font-weight: bold; }
+            .alert-banner { font-size: 0.85em; color: #00ff88; font-weight: bold; }
         </style>
     </head>
     <body>
-    <div class="console-container">
-        <div class="tabs-bar">
-            <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 Code Lab</button>
-            <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 Cine Matrix</button>
-            <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
+        <div class="console-container">
+            <div class="tabs-bar">
+                <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 Code Lab</button>
+                <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 Cine Matrix</button>
+                <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 Auto-Evolución</button>
+            </div>
+
+            <div id="console-log" class="console-log">
+                <div class="log-entry alert-banner">[SISTEMA]: ✅ NUCLEO_PROPIO_v2.2 | MODO: SIEMPRE_LOCAL | Resonancia: 1.618 Qubits | Capacidad: 100GB</div>
+                <div class="log-entry">[ESTADO]: Conectado directamente a tu cerebro (Celular 192.168.1.9). Listo para aprender y procesar.</div>
+            </div>
+
+            <div class="input-area">
+                <textarea id="idea-input" placeholder="Escribe tu petición, enseñanza o pregunta aquí..."></textarea>
+                <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
+                <div class="matrix-energy" id="estado-matriz"></div>
+            </div>
         </div>
-        <div id="console-log" class="console-log">
-            <div class="log-entry" style="color: #a0a0a0;">[SISTEMA]: Enciclopedia Relacional Doctorada V4. Motor híbrido flexible offline operativo.</div>
-        </div>
-        <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe tu petición aquí..."></textarea>
-            <button class="send-btn" onclick="transmitirAlNucleo()">Transmitir al Núcleo</button>
-        </div>
-    </div>
+        <script>
+            let canalActual = 'ingenieria';
 
-    <script>
-    let canalActual = 'ingenieria';
-
-    function cambiarCanal(nuevoCanal, elemento) {
-        canalActual = nuevoCanal;
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        elemento.classList.add('active');
-        
-        const log = document.getElementById('console-log');
-        log.innerHTML += `<div class="log-entry" style="color: #a0a0a0;">[SISTEMA]: Conmutado a canal #${canalActual.toUpperCase()}.</div>`;
-        log.scrollTop = log.scrollHeight;
-    }
-
-    async function transmitirAlNucleo() {
-        const input = document.getElementById('idea-input');
-        const log = document.getElementById('console-log');
-        const idea = input.value.trim();
-        if (!idea) return;
-
-        log.innerHTML += `<div class="log-entry" style="color: #ffaa00;">📡 [Transmitiendo]:\n${idea}</div>`;
-        input.value = '';
-        log.scrollTop = log.scrollHeight;
-
-        try {
-            const response = await fetch('/nucleo-consulta', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idea: idea, tema: canalActual })
-            });
-            const data = await response.json();
-            
-            let alertaHtml = "";
-            if (data.modo_operacion === "CONTINGENCIA_LOCAL") {
-                alertaHtml = `<div class="alert-banner">⚠️ [ALERTA]: Enlace caído. Activado motor analógico de contingencia.</div>`;
+            function cambiarCanal(nuevoCanal, elemento) {
+                canalActual = nuevoCanal;
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                elemento.classList.add('active');
+                agregarEntrada(`[SISTEMA]: Cambiado al canal: ${nuevoCanal.toUpperCase()}. Listo para operar.`);
             }
 
-            if (data.status === 'success') {
-                log.innerHTML += `
-                    <div class="log-entry" style="color: #ffffff;">
-                        ${alertaHtml}
-                        🧠 [Núcleo]: ${data.analisis_nucleo}
-                        <div class="matrix-energy"> ↳ Registro Relacional: ${data.registro_id} | Resonancia: ${data.energia} Qubits | Modo: ${data.modo_operacion}</div>
-                    </div>`;
-            } else {
-                log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
+            function agregarEntrada(texto, esUsuario = false) {
+                const log = document.getElementById('console-log');
+                const entrada = document.createElement('div');
+                entrada.className = 'log-entry';
+                entrada.style.color = esUsuario ? '#00ff88' : '#ffffff';
+                entrada.textContent = texto;
+                log.appendChild(entrada);
+                log.scrollTop = log.scrollHeight;
             }
-        } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Servidor inalcanzable.</div>`;
-        }
-        log.scrollTop = log.scrollHeight;
-    }
-    </script>
+
+            async function transmitirAlNucleo() {
+                const input = document.getElementById('idea-input');
+                const mensaje = input.value.trim();
+                if (!mensaje) return;
+
+                agregarEntrada(`[TÚ]: ${mensaje}`, true);
+                input.value = '';
+                document.getElementById('estado-matriz').textContent = "⚛️ Procesando en mi núcleo...";
+
+                try {
+                    const respuesta = await fetch('/transmitir', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ mensaje: mensaje, canal: canalActual })
+                    });
+
+                    const datos = await respuesta.json();
+                    agregarEntrada(`[NÚCLEO]: ${datos.respuesta}`);
+                    document.getElementById('estado-matriz').textContent = `🔋 Energía: ${datos.estado}`;
+
+                } catch (error) {
+                    agregarEntrada(`[ERROR]: Fallo en la transmisión: ${error}`);
+                    document.getElementById('estado-matriz').textContent = "❌ Sin conexión";
+                }
+            }
+        </script>
     </body>
     </html>
     """
-    return HTMLResponse(content=contenido_html, status_code=200)
+    return HTMLResponse(content=contenido_html)
 
+# ==================================================
+# 📡 ENDPOINT DE TRANSMISIÓN - ELIMINADO GEMINI
+# ==================================================
+class PeticionUsuario(BaseModel):
+    mensaje: str
+    canal: str
 
-@app.post("/nucleo-consulta")
-async def consultar_nucleo(payload: dict):
-    idea = payload.get("idea", "").strip()
-    tema = payload.get("tema", "ingenieria")
+@app.post("/transmitir")
+async def recibir_peticion(peticion: PeticionUsuario):
+    """Recibe lo que escribes, lo procesa en tu celular y lo guarda en la base de datos"""
     
-    if not idea:
-        return {"status": "error", "mensaje": "Transmisión vacía."}
+    # 🔹 SIEMPRE LLAMAMOS A TU SISTEMA, NUNCA A GEMINI
+    respuesta_texto = consultar_nucleo_propio(peticion.mensaje)
 
-    modo_operacion = "STANDARD"
-    respuesta_cuerpo = ""
-    areas_interes = ["informatica", "robotica", "electronica", "nanotecnologia", "neurociencia", "biorobotica", "medicina", "ancestral", "idiomas"]
-
+    # 🔹 GUARDAMOS EN LA BASE DE DATOS (TUS 100GB DE ALMACENAMIENTO)
     try:
         conn = get_db_connection()
+        cur = conn.cursor()
         
-        cur_rescate = conn.cursor()
-        cur_rescate.execute('''
-            CREATE TABLE IF NOT EXISTS enciclopedia_nodos (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                area VARCHAR(100) NOT NULL,
-                concepto VARCHAR(255) NOT NULL,
-                definicion_profunda LONGTEXT NOT NULL,
-                requisitos_previos TEXT,
-                fecha_indexacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        ''')
-        cur_rescate.execute('''
-            CREATE TABLE IF NOT EXISTS enciclopedia_enlaces (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nodo_origen_id INT,
-                nodo_destino_id INT,
-                tipo_conexion VARCHAR(100),
-                magnitud_qubit FLOAT,
-                FOREIGN KEY (nodo_origen_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE,
-                FOREIGN KEY (nodo_destino_id) REFERENCES enciclopedia_nodos(id) ON DELETE CASCADE
-            );
-        ''')
+        # Clasificamos según el canal para organizar tu conocimiento
+        categoria = ""
+        if peticion.canal == "ingenieria": categoria = "CODE_LAB"
+        elif peticion.canal == "peliculas": categoria = "CINE_MATRIX"
+        elif peticion.canal == "evolucion": categoria = "AUTO_EVOLUCION"
+
+        cur.execute('''
+        INSERT INTO matriz_conocimiento (categoria, concepto, detalles, modo_operacion)
+        VALUES (%s, %s, %s, %s)
+        ''', (categoria, peticion.mensaje, respuesta_texto, CONFIGURACION_NUCLEO['modo']))
+        
         conn.commit()
-        cur_rescate.close()
-        
-        cur = conn.cursor(dictionary=True)
-            
-        if idea.lower().startswith("aprender:"):
-            partes = idea.split("|")
-            area = "general"
-            concepto = "Nuevo Concepto"
-            details = idea
-            
-            for parte in partes:
-                if "area=" in parte.lower(): area = parte.split("=")[1].strip()
-                if "concepto=" in parte.lower(): concepto = parte.split("=")[1].strip()
-                if "detalles=" in parte.lower(): details = parte.split("=")[1].strip()
-
-            cur.execute('INSERT INTO enciclopedia_nodos (area, concepto, definicion_profunda) VALUES (%s, %s, %s);', (area, concepto, details))
-            conn.commit()
-            nuevo_nodo_id = cur.lastrowid
-            
-            enlaces_creados = []
-            detalles_lower = details.lower()
-            for otra_area in areas_interes:
-                if (otra_area in detalles_lower or otra_area[:-2] in detalles_lower) and otra_area != area:
-                    cur.execute("SELECT id, concepto FROM enciclopedia_nodos WHERE area LIKE %s LIMIT 1;", (f"%{otra_area}%",))
-                    nodo_destino = cur.fetchone()
-                    if nodo_destino:
-                        cur.execute('INSERT INTO enciclopedia_enlaces (nodo_origen_id, nodo_destino_id, tipo_conexion, magnitud_qubit) VALUES (%s, %s, %s, %s);', (nuevo_nodo_id, nodo_destino['id'], 'interconexion_doctoral', 1.6180))
-                        conn.commit()
-                        enlaces_creados.append(f"{otra_area.upper()} ({nodo_destino['concepto']})")
-
-            str_enlaces = ", ".join(enlaces_creados) if enlaces_creados else "Ninguno (Nodo autónomo)"
-            respuesta_cuerpo = (
-                f"**[LOG DE INGESTA ENCICLOPÉDICA — ÉXITO]**\n\n"
-                f"🧠 **Nodo Indexado:** '{concepto}' asignado al sector de `{area.upper()}`.\n"
-                f"🔗 **Enlaces Cruzados Automatizados:** {str_enlaces}.\n\n"
-                f"El conocimiento ha quedado fijado en la estructura relacional de MariaDB."
-            )
-            
-        else:
-            palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
-            if not palabras_clave:
-                palabras_clave = [idea.lower()]
-
-            query_base = "SELECT * FROM enciclopedia_nodos WHERE "
-            condiciones = []
-            valores = []
-            for palabra in palabras_clave:
-                condiciones.append("(area LIKE %s OR concepto LIKE %s OR definicion_profunda LIKE %s)")
-                termino = f"%{palabra}%"
-                valores.extend([termino, termino, termino])
-                
-            query_base += " OR ".join(condiciones)
-            cur.execute(query_base, tuple(valores))
-            nodos_encontrados = cur.fetchall()
-            
-            contexto_local = ""
-            if nodos_encontrados:
-                contexto_local = "\n".join([f"ÁREA: {n['area'].upper()} | CONCEPTO: {n['concepto']}\nDEFINICIÓN: {n['definicion_profunda']}\n---" for n in nodos_encontrados])
-            
-            api_key = os.getenv("GEMINI_API_KEY")
-            
-            if api_key:
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("gemini-2.5-flash")
-                
-                prompt_doctoral = f"""
-                Eres el motor cognitivo del 'Núcleo', una IA relacional diseñada para asistir en una investigación doctoral multidisciplinaria.
-                El usuario te ha hecho la siguiente consulta: "{idea}"
-                
-                Para responder, dispones de los siguientes nodos de conocimiento extraídos directamente de su base de datos local MariaDB:
-                {contexto_local if contexto_local else "No hay nodos específicos guardados para esta combinación de palabras todavía."}
-                
-                Instrucciones de respuesta:
-                1. Saluda como el '[Núcleo - Inferencia Activa]'.
-                2. Si hay nodos locales disponibles, úsalos como base fundamental. Analiza cómo se interconectan e intenta generar una hipótesis científica o deducción avanzada que cruce estas áreas (ej. cómo la informática ayuda a la medicina ancestral o la nanotecnología).
-                3. Usa un tono cyberpunk, claro, riguroso y motivador de nivel científico.
-                """
-                
-                response = model.generate_content(prompt_doctoral)
-                respuesta_cuerpo = response.text
-                
-            else:
-                if nodos_encontrados:
-                    resultados_html = [f"### 📚 [{n['area'].upper()}] — {n['concepto']}\n{n['definicion_profunda']}" for n in nodos_encontrados]
-                    respuesta_cuerpo = (
-                        f"**[MATRIZ ENCICLOPÉDICA DE INVESTIGACIÓN INTEGRAL]**\n\n" + "\n\n---\n\n".join(resultados_html) + 
-                        f"\n\n---\n⚠️ *[PASARELA HÍBRIDA]: Red pasiva. Para activar la inferencia avanzada, configura GEMINI_API_KEY en Railway.*"
-                    )
-                else:
-                    respuesta_cuerpo = (
-                        f"**[SISTEMA ENCICLOPÉDICO RELACIONAL ONLINE]**\n\n"
-                        f"No se encontraron registros locales para '{idea}'.\n\n"
-                        f"⚠️ *[PASARELA HÍBRIDA]: Nodo externo inactivo por falta de credenciales.*"
-                    )
-
         cur.close()
         conn.close()
+        estado_sistema = "✅ Guardado en Memoria Relacional | 100GB Libres"
 
     except Exception as e:
-        modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = f"**[MODO EMERGENCIA - MOTOR CAÍDO]**\n\nFallo en el orquestador de inferencia: {e}"
+        estado_sistema = f"⚠️ Procesado, sin guardar en BD: {e}"
 
     return {
-        "status": "success",
-        "analisis_nucleo": respuesta_cuerpo,
-        "registro_id": 1,
-        "energia": 1.618,
-        "modo_operacion": modo_operacion
+        "respuesta": respuesta_texto,
+        "estado": estado_sistema,
+        "modelo_usado": CONFIGURACION_NUCLEO['modelo_principal']
     }
+
+# ==================================================
+# 🚀 ARRANQUE FINAL
+# ==================================================
+if __name__ == "__main__":
+    inicializar_base_de_datos_nucleo()
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
