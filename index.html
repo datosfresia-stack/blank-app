@@ -3,169 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛸 NÚCLEO — Consola de Comando</title>
+    <title>NUCLEO AUTÓNOMO | CONSOLA</title>
     <style>
-        body { 
-            background: #000000 !important; 
-            color: #ffffff !important; 
-            font-family: 'Courier New', Courier, monospace; 
-            margin: 0; 
-            padding: 15px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            box-sizing: border-box;
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 20px;
+            font-size: 16px;
         }
-        .console-container { 
-            width: 100%; 
-            max-width: 800px; 
-            background: #000000; 
-            border: 2px solid #888888; 
-            border-radius: 8px; 
-            overflow: hidden; 
+        #consola {
+            border: 1px solid #0f0;
+            padding: 15px;
+            height: 70vh;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
         }
-        .tabs-bar { 
-            display: flex; 
-            background: #111111; 
-            border-bottom: 2px solid #888888; 
-        }
-        .tab-btn { 
-            flex:1; 
-            background:#000; 
-            border:none; 
-            color:#ffffff; 
-            padding:12px; 
-            cursor:pointer; 
-            font-family:monospace; 
-            font-weight:bold; 
-            transition:all 0.2s; 
-            text-transform:uppercase; 
-            font-size:0.85em; 
-        }
-        .tab-btn.active { 
-            color:#000; 
-            background:#888888; 
-        }
-        .console-log { 
-            height:350px; 
-            padding:15px; 
-            overflow-y:auto; 
-            background:#000000; 
-            border-bottom:1px solid #888888; 
-            font-size:0.9em; 
-            line-height:1.6;
-        }
-        .log-entry { 
-            margin-bottom:12px; 
-            border-left:3px solid #888888; 
-            padding-left:8px; 
-        }
-        .input-area { 
-            padding:15px; 
-            background:#000000; 
-        }
-        textarea { 
-            width:100%; 
-            height:90px; 
-            background:#1a1a1a; 
-            color:#ffffff !important; 
-            border:1px solid #888888; 
-            border-radius:4px; 
-            padding:10px; 
-            font-family:monospace; 
-            font-size:0.95em; 
-            box-sizing:border-box; 
-            resize:none; 
-        }
-        textarea:focus { outline:none; box-shadow:0 0 6px #aaaaaa; }
-        .send-btn { 
-            width:100%; 
-            background:#888888; 
-            color:#000000; 
-            border:none; 
-            padding:12px; 
-            font-size:1em; 
-            font-weight:bold; 
-            font-family:monospace; 
-            cursor:pointer; 
-            border-radius:4px; 
-            margin-top:10px; 
-            transition:all 0.3s; 
-            text-transform:uppercase; 
-        }
-        .send-btn:hover { background:#aaaaaa; }
-        .estado { 
-            font-size:0.8em; 
-            color:#bbbbbb; 
-            margin-top:4px; 
+        #entrada {
+            width: 100%;
+            background: #111;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="console-container">
-        <div class="tabs-bar">
-            <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 LABORATORIO DE PROGRAMACIÓN</button>
-            <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 MATRIZ DE CINE</button>
-            <button class="tab-btn" onclick="cambiarCanal('evolucion', this)">🧬 AUTO-EVOLUCIÓN</button>
-        </div>
-
-        <div id="console-log" class="console-log">
-            <div class="log-entry">[SISTEMA]: 🛸 NÚCLEO | SISTEMA REINICIADO Y ACTIVO</div>
-            <div class="log-entry">[ESTADO]: Conectado a base de datos y memoria. Esperando datos...</div>
-        </div>
-
-        <div class="input-area">
-            <textarea id="idea-input" placeholder="Escribe tu petición, enseñanza o pregunta aquí..."></textarea>
-            <button class="send-btn" onclick="transmitirAlNucleo()">TRANSMITIR AL NÚCLEO</button>
-            <div class="estado" id="estado-sistema"></div>
-        </div>
-    </div>
+    <h1>🚀 NÚCLEO AUTÓNOMO - SISTEMA OPERATIVO</h1>
+    <div id="consola">✅ Sistema listo. Escribe algo...</div>
+    <input type="text" id="entrada" placeholder="Escribe aquí y presiona ENTER...">
 
     <script>
-        let canalActual = 'ingenieria';
+        const consola = document.getElementById('consola');
+        const entrada = document.getElementById('entrada');
 
-        function cambiarCanal(nuevoCanal, el) {
-            canalActual = nuevoCanal;
-            document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-            el.classList.add('active');
-            let nombre = nuevoCanal === 'ingenieria' ? 'INGENIERÍA' : nuevoCanal === 'peliculas' ? 'PELÍCULAS' : 'EVOLUCIÓN';
-            agregarEntrada(`[SISTEMA]: Cambiado a ${nombre}. Modo especial activado.`);
-        }
+        entrada.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const mensaje = entrada.value;
+                if (!mensaje) return;
+                
+                // Mostramos lo que escribes
+                consola.innerHTML += `\n> ${mensaje}`;
+                entrada.value = "";
 
-        function agregarEntrada(texto, esUsuario = false) {
-            const log = document.getElementById('console-log');
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.style.color = esUsuario ? '#cccccc' : '#ffffff';
-            div.textContent = texto;
-            log.appendChild(div);
-            log.scrollTop = log.scrollHeight;
-        }
-
-        async function transmitirAlNucleo() {
-            const input = document.getElementById('idea-input');
-            const mensaje = input.value.trim();
-            if (!mensaje) return;
-
-            agregarEntrada(`[TÚ]: ${mensaje}`, true);
-            input.value = '';
-            document.getElementById('estado-sistema').textContent = "⚛️ Analizando...";
-
-            try {
-                const res = await fetch('/transmitir', {
+                // Enviamos al sistema
+                fetch('/transmitir', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({mensaje, canal:canalActual})
+                    body: JSON.stringify({mensaje: mensaje, canal: "PRUEBA_LOCAL"})
+                })
+                .then(res => res.json())
+                .then(datos => {
+                    consola.innerHTML += `\n${datos.respuesta}`;
+                    consola.scrollTop = consola.scrollHeight;
+                })
+                .catch(err => {
+                    consola.innerHTML += `\n❌ ERROR: No hay conexión con el núcleo`;
                 });
-                const data = await res.json();
-                agregarEntrada(`[NÚCLEO]: ${data.respuesta}`);
-                document.getElementById('estado-sistema').textContent = `💾 ${data.estado}`;
-            } catch(e) {
-                agregarEntrada(`[ERROR]: ${e}`);
-                document.getElementById('estado-sistema').textContent = "❌ Fallo de conexión";
             }
-        }
+        });
     </script>
 </body>
 </html>
