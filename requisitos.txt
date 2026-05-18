@@ -4,3 +4,5 @@ sqlalchemy[asyncio]
 aiomysql
 aiosqlite
 python-multipart
+mysql-connector-python
+google-generativeai
