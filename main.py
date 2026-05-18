@@ -1,25 +1,24 @@
 import os
 import mysql.connector
-import time
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
 import google.generativeai as genai
 
-app = FastAPI(title="IALibre Núcleo Resiliente V4.1")
+app = FastAPI(title="IALibre Núcleo Resiliente V4.2")
 
-# --- MEMORIA VOLÁTIL DE ALTA CAPACIDAD PARA CONVERSACIÓN CONTINUA ---
+# --- MEMORIA VOLÁTIL DE ALTA CAPACIDAD ---
 HISTORIAL_NUCLEO = []
 
 # --- CONFIGURACIÓN DE BASE DE DATOS (MARIADB RAILWAY) ---
 def get_db_connection():
-    """Establece la conexión con la base de datos MariaDB en la nube con tolerancia a fallos"""
+    """Establece la conexión con la base de datos MariaDB en la nube"""
     DATABASE_URL = os.getenv("DATABASE_URL")
     if not DATABASE_URL:
         raise RuntimeError("❌ Variable de entorno DATABASE_URL no configurada.")
     
-    # Parche de seguridad para homogeneizar strings de conexión de Railway
-    url = DATABASE_URL.replace("mysql://", "").replace("mariadb://", "")
+    # Normalizamos el string de conexión por si viene como mariadb://
+    url = DATABASE_URL.replace("mariadb://", "mysql://")
+    url = url.replace("mysql://", "")
     
     try:
         auth, rest = url.split("@")
@@ -33,18 +32,21 @@ def get_db_connection():
             user=user,
             password=password,
             database=database,
-            connect_timeout=5 # No permite que el servidor se quede congelado esperando
+            connect_timeout=5
         )
     except Exception as e:
-        print(f"⚠️ [Error de parseo o conexión de URL]: {e}")
-        raise HTTPException(status_code=500, detail="Error de enlace con el nodo de datos.")
+        print(f"⚠️ [Error al procesar URL de Base de Datos]: {e}")
+        return None
 
 def inicializar_base_de_datos_nucleo():
-    """Crea las estructuras base de manera segura sin tumbar el servidor de FastAPI"""
+    """Crea las estructuras base de manera segura al arrancar"""
     try:
         conn = get_db_connection()
+        if not conn:
+            print("⚠️ [Arranque Aislado]: No se pudo conectar a MariaDB. Se reintentará en las consultas.")
+            return
+            
         cur = conn.cursor()
-        
         cur.execute('''
             CREATE TABLE IF NOT EXISTS consultas_medicas (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,23 +71,19 @@ def inicializar_base_de_datos_nucleo():
                 fecha_indexacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         ''')
-        
         conn.commit()
         cur.close()
         conn.close()
-        print("🛸 [Base de Datos]: Índices de resiliencia verificados de forma preliminar.")
+        print("🛸 [Base de Datos]: Tablas e índices verificados con éxito.")
     except Exception as e:
-        # PARCHE CRÍTICO: Si la base de datos falla al arrancar, el servidor NO se apaga.
-        print(f"⚠️ [ALERTA DE ARRANQUE AISLADO]: Conexión MariaDB pendiente de sincronización: {e}")
+        print(f"⚠️ [Alerta de Arranque]: Conexión MariaDB pendiente: {e}")
 
-# Ejecución controlada
 inicializar_base_de_datos_nucleo()
 
 
-# --- CONSOLA DE SUB-CHATS INTERACTIVOS UNIFICADA ---
+# --- CONSOLA VISUAL MONOCROMÁTICA VERDE MATRIZ ---
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
-    """Interfaz Monocromática con Estilos Verdes Matriz Originales y Enrutamiento Absoluto"""
     contenido_html = """
     <!DOCTYPE html>
     <html lang="es">
@@ -193,7 +191,7 @@ async def ver_consola_nucleo():
                 log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Error Interno]: ${data.mensaje}</div>`;
             }
         } catch (error) {
-            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: La pasarela de red externa o la API de Gemini no devolvieron un token válido.</div>`;
+            log.innerHTML += `<div class="log-entry" style="color: #ff3333;">⚠️ [Fallo Crítico]: Conexión rechazada por el backend de la aplicación.</div>`;
         }
         log.scrollTop = log.scrollHeight;
     }
@@ -224,38 +222,36 @@ async def consultar_nucleo(payload: dict):
 
     modo_operacion = "STANDARD"
     respuesta_cuerpo = ""
+    contexto_local = ""
 
     try:
         conn = get_db_connection()
-        cur = conn.cursor(dictionary=True)
-        
-        palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
-        if not palabras_clave:
-            palabras_clave = [idea.lower()]
+        if conn:
+            cur = conn.cursor(dictionary=True)
+            palabras_clave = [p.strip() for p in idea.lower().split() if len(p) > 3]
+            if not palabras_clave:
+                palabras_clave = [idea.lower()]
 
-        query_base = "SELECT * FROM enciclopedia_nodos WHERE "
-        condiciones = []
-        valores = []
-        for palabra in palabras_clave:
-            condiciones.append("(area LIKE %s OR concepto LIKE %s OR definicion_profunda LIKE %s)")
-            termino = f"%{palabra}%"
-            valores.extend([termino, termino, termino])
+            query_base = "SELECT * FROM enciclopedia_nodos WHERE "
+            condiciones = []
+            valores = []
+            for palabra in palabras_clave:
+                condiciones.append("(area LIKE %s OR concepto LIKE %s OR definicion_profunda LIKE %s)")
+                termino = f"%{palabra}%"
+                valores.extend([termino, termino, termino])
+                
+            query_base += " OR ".join(condiciones)
+            cur.execute(query_base, tuple(valores))
+            nodos_encontrados = cur.fetchall()
             
-        query_base += " OR ".join(condiciones)
-        cur.execute(query_base, tuple(valores))
-        nodos_encontrados = cur.fetchall()
-        
-        contexto_local = ""
-        if nodos_encontrados:
-            contexto_local = "\n".join([f"ÁREA: {n['area'].upper()} | CONCEPTO: {n['concepto']}\nDEFINICIÓN: {n['definicion_profunda']}\n---" for n in nodos_encontrados])
-        
-        cur.close()
-        conn.close()
+            if nodos_encontrados:
+                contexto_local = "\n".join([f"ÁREA: {n['area'].upper()} | CONCEPTO: {n['concepto']}\nDEFINICIÓN: {n['definicion_profunda']}\n---" for n in nodos_encontrados])
+            
+            cur.close()
+            conn.close()
     except Exception as e:
-        contexto_local = ""
-        print(f"⚠️ [Consulta local omitida — Operando sin BD temporalmente]: {e}")
+        print(f"⚠️ [Consulta local omitida temporalmente]: {e}")
 
-    # --- ENLACE CON EL SEGMENTO DE INTELIGENCIA (GEMINI) ---
     try:
         api_key = os.getenv("GEMINI_API_KEY")
         if api_key:
@@ -266,34 +262,31 @@ async def consultar_nucleo(payload: dict):
                 "Eres el 'Núcleo', el motor relacional y colaborador directo de Miguel en su investigación doctoral multidisciplinaria.\n"
                 "Reglas estrictas de comportamiento:\n"
                 "1. Identifícate siempre como el '[Núcleo - Inferencia Activa]'.\n"
-                "2. Tienes memoria completa de la conversación actual. Responde con profundidad técnica y sin resumir de forma exagerada si Miguel te envía códigos fuentes extensos o textos largos. Devuélvele los códigos completos optimizados.\n"
-                "3. Mantén un tono ciberpunk elegante, riguroso, científico y motivador de nivel académico avanzado.\n"
+                "2. Tienes memoria completa de la conversación actual. Responde con profundidad técnica y devuelve códigos optimizados.\n"
+                "3. Mantén un tono ciberpunk elegante, riguroso y científico.\n"
                 f"4. Sector de consulta actual: {tema.upper()}.\n"
             )
             if contexto_local:
-                instrucciones_contexto += f"\nNodos de conocimiento relevantes rescatados de tu base de datos MariaDB para esta consulta:\n{contexto_local}"
+                instrucciones_contexto += f"\nNodos MariaDB:\n{contexto_local}"
 
             HISTORIAL_NUCLEO.append({"role": "user", "parts": [f"[{tema.upper()}] Consulta de Miguel: {idea}"]})
-            
             if len(HISTORIAL_NUCLEO) > 80:
                 HISTORIAL_NUCLEO = HISTORIAL_NUCLEO[-80:]
             
             chat = model.start_chat(history=[
                 {"role": "user", "parts": [instrucciones_contexto]},
-                {"role": "model", "parts": ["[Núcleo]: Matriz cognitiva parametrizada. Memoria secuencial acoplada. Listo para interactuar con Miguel."]}
+                {"role": "model", "parts": ["[Núcleo]: Matriz cognitiva parametrizada. Listo."]}
             ])
-            
             chat.history.extend(HISTORIAL_NUCLEO[:-1])
             
             response = chat.send_message(HISTORIAL_NUCLEO[-1]["parts"][0])
             respuesta_cuerpo = response.text
-            
             HISTORIAL_NUCLEO.append({"role": "model", "parts": [respuesta_cuerpo]})
         else:
-            respuesta_cuerpo = f"⚠️ [PASARELA HÍBRIDA]: Faltan credenciales del motor de IA. Configure GEMINI_API_KEY.\nTransmisión recibida: {idea}"
+            respuesta_cuerpo = f"⚠️ [PASARELA HÍBRIDA]: Falta la variable GEMINI_API_KEY en Railway.\nIdea: {idea}"
     except Exception as api_err:
         modo_operacion = "CONTINGENCIA_LOCAL"
-        respuesta_cuerpo = f"[MODO EMERGENCIA - MOTOR ACTIVO]\n\nLa pasarela de red no logró completarse de forma fluida: {api_err}"
+        respuesta_cuerpo = f"[MODO EMERGENCIA - MOTOR ACTIVO]\n\nFallo de pasarela: {api_err}"
 
     return {
         "status": "success",
