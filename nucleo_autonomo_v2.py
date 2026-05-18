@@ -1,8 +1,12 @@
 import os
-import mysql.connector
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+
+# ✅ IMPORTAMOS TU ARCHIVO database.py TAL CUAL LO TIENES
+from database import get_db, init_db
 
 app = FastAPI(title="NUCLEO")
 
@@ -11,51 +15,13 @@ CONFIGURACION_NUCLEO = {
     "nombre_sistema": "NUCLEO",
     "estado": "ACTIVO EN RAILWAY",
     "modo": "OPERATIVO",
-    "conexion": "BASE DE DATOS INTEGRADA"
+    "conexion": "BASE DE DATOS ASÍNCRONA INTEGRADA"
 }
 
-# 🔌 CONEXIÓN MARIADB
-def get_db_connection():
-    DATABASE_URL = os.getenv("DATABASE_URL")
-    if not DATABASE_URL:
-        raise RuntimeError("❌ Sin conexión al almacenamiento")
-    url = DATABASE_URL.replace("mysql://", "").replace("mariadb://", "")
-    auth, rest = url.split("@")
-    user, password = auth.split(":")
-    host_port, database = rest.split("/")
-    host, port = host_port.split(":")
-    return mysql.connector.connect(
-        host=host, port=int(port), user=user, password=password, database=database
-    )
-
-def inicializar_base_de_datos_nucleo():
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute('''
-        CREATE TABLE IF NOT EXISTS matriz_conocimiento (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            categoria VARCHAR(100),
-            concepto VARCHAR(255),
-            detalles TEXT,
-            coordenada_x FLOAT DEFAULT 0,
-            coordenada_y FLOAT DEFAULT 0,
-            coordenada_z FLOAT DEFAULT 0,
-            modo_operacion VARCHAR(50) DEFAULT 'STANDARD',
-            fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        ''')
-        conn.commit()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        print(f"⚠️ {e}")
-
-# 🧠 LÓGICA COMPLETA Y ACTIVA (AQUÍ ES DONDE PIENSA Y RESPONDE)
+# 🧠 LÓGICA COMPLETA (AQUÍ ES DONDE PIENSA Y RESPONDE)
 def procesar_informacion(mensaje: str):
     mensaje_min = mensaje.lower()
 
-    # 📌 RESPUESTAS INTELIGENTES
     if "resonancia" in mensaje_min or "conecta" in mensaje_min:
         return "🔄 Resonancia activada: La información se cruza, conecta y refuerza todo el conocimiento existente. Estructura ampliada."
     elif "quién eres" in mensaje_min or "qué eres" in mensaje_min or "identificate" in mensaje_min:
@@ -77,7 +43,7 @@ def procesar_informacion(mensaje: str):
     else:
         return f"✅ Información procesada: '{mensaje}'. Analizada, clasificada y guardada. Relacionada con conocimientos previos."
 
-# 🖥️ INTERFAZ: FONDO NEGRO, LETRAS BLANCAS, BORDES PLUMO/GRIS
+# 🖥️ INTERFAZ: FONDO NEGRO, LETRAS BLANCAS, BORDES PLOMO/GRIS
 @app.get("/", response_class=HTMLResponse)
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
@@ -89,7 +55,6 @@ async def ver_consola_nucleo():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>🛸 NÚCLEO — Consola de Comando</title>
         <style>
-            /* 🎨 COLORES CORREGIDOS: NEGRO, BLANCO Y PLOMO/GRIS */
             body { 
                 background: #000000 !important; 
                 color: #ffffff !important; 
@@ -106,14 +71,14 @@ async def ver_consola_nucleo():
                 width: 100%; 
                 max-width: 800px; 
                 background: #000000; 
-                border: 2px solid #888888; /* COLOR PLOMO / GRIS */
+                border: 2px solid #888888; 
                 border-radius: 8px; 
                 overflow: hidden; 
             }
             .tabs-bar { 
                 display: flex; 
                 background: #111111; 
-                border-bottom: 2px solid #888888; /* COLOR PLOMO */
+                border-bottom: 2px solid #888888; 
             }
             .tab-btn { 
                 flex:1; 
@@ -130,21 +95,21 @@ async def ver_consola_nucleo():
             }
             .tab-btn.active { 
                 color:#000; 
-                background:#888888; /* PLOMO CUANDO ESTÁ ACTIVO */
+                background:#888888; 
             }
             .console-log { 
                 height:350px; 
                 padding:15px; 
                 overflow-y:auto; 
                 background:#000000; 
-                border-bottom:1px solid #888888; /* PLOMO */
+                border-bottom:1px solid #888888; 
                 font-size:0.9em; 
                 line-height:1.6;
                 color: #ffffff !important;
             }
             .log-entry { 
                 margin-bottom:12px; 
-                border-left:3px solid #888888; /* PLOMO */
+                border-left:3px solid #888888; 
                 padding-left:8px; 
                 color: #ffffff !important;
             }
@@ -157,7 +122,7 @@ async def ver_consola_nucleo():
                 height:90px; 
                 background:#1a1a1a; 
                 color:#ffffff !important; 
-                border:1px solid #888888; /* PLOMO */
+                border:1px solid #888888; 
                 border-radius:4px; 
                 padding:10px; 
                 font-family:monospace; 
@@ -168,7 +133,7 @@ async def ver_consola_nucleo():
             textarea:focus { outline:none; box-shadow:0 0 6px #aaaaaa; }
             .send-btn { 
                 width:100%; 
-                background:#888888; /* BOTÓN PLOMO */
+                background:#888888; 
                 color:#000000; 
                 border:none; 
                 padding:12px; 
@@ -181,7 +146,7 @@ async def ver_consola_nucleo():
                 transition:all 0.3s; 
                 text-transform:uppercase; 
             }
-            .send-btn:hover { background:#aaaaaa; } /* MÁS CLARO AL PASAR EL RATÓN */
+            .send-btn:hover { background:#aaaaaa; }
             .matrix-energy { 
                 font-size:0.8em; 
                 color:#bbbbbb; 
@@ -196,7 +161,6 @@ async def ver_consola_nucleo():
     </head>
     <body>
         <div class="console-container">
-            <!-- 🔤 NOMBRES DE PESTAÑAS TAL COMO LOS QUERÍAS -->
             <div class="tabs-bar">
                 <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 LABORATORIO DE PROGRAMACIÓN</button>
                 <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 MATRIZ DE CINE</button>
@@ -247,7 +211,6 @@ async def ver_consola_nucleo():
                         body:JSON.stringify({mensaje, canal:canalActual})
                     });
                     const data = await res.json();
-                    // ✅ MUESTRA LA RESPUESTA REAL, NO SOLO GUARDADO
                     agregarEntrada(`[NÚCLEO]: ${data.respuesta}`);
                     document.getElementById('estado-matriz').textContent = `💾 ${data.estado}`;
                 } catch(e) {
@@ -260,32 +223,57 @@ async def ver_consola_nucleo():
     </html>
     """)
 
-# 📡 ENDPOINT DE GUARDADO Y RESPUESTA
+# 📡 ESTRUCTURA DE DATOS
 class PeticionUsuario(BaseModel):
     mensaje: str
     canal: str
 
+# 📡 ENDPOINT ADAPTADO A TU database.py
 @app.post("/transmitir")
-async def recibir_peticion(peticion: PeticionUsuario):
+async def recibir_peticion(
+    peticion: PeticionUsuario, 
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Generamos la respuesta inteligente
     respuesta_texto = procesar_informacion(peticion.mensaje)
-    
+
+    # 2. Guardamos en base usando SQLAlchemy (tu sistema)
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cat = {"ingenieria":"CODE_LAB", "peliculas":"CINE_MATRIX", "evolucion":"AUTO_EVOLUCION"}.get(peticion.canal, "GENERAL")
-        cur.execute('INSERT INTO matriz_conocimiento (categoria, concepto, detalles) VALUES (%s,%s,%s)',
-                    (cat, peticion.mensaje, respuesta_texto))
-        conn.commit()
-        cur.close()
-        conn.close()
+        # Definimos la categoría según la pestaña
+        cat = {
+            "ingenieria":"CODE_LAB", 
+            "peliculas":"CINE_MATRIX", 
+            "evolucion":"AUTO_EVOLUCION"
+        }.get(peticion.canal, "GENERAL")
+
+        # Creamos la tabla si no existe y guardamos (consulta SQL directa compatible)
+        await db.execute(text("""
+            CREATE TABLE IF NOT EXISTS matriz_conocimiento (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                categoria VARCHAR(100),
+                concepto VARCHAR(255),
+                detalles TEXT,
+                fecha_aprendizaje TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+
+        await db.execute(
+            text("INSERT INTO matriz_conocimiento (categoria, concepto, detalles) VALUES (:cat, :msg, :resp)"),
+            {"cat": cat, "msg": peticion.mensaje, "resp": respuesta_texto}
+        )
+        await db.commit()
         estado = "✅ Guardado en Memoria Relacional"
+
     except Exception as e:
-        estado = f"⚠️ Guardado fallido: {e}"
-    
+        estado = f"⚠️ Guardado fallido: {str(e)}"
+
     return {"respuesta": respuesta_texto, "estado": estado}
 
-# 🚀 ARRANQUE (PUERTO CORRECTO 8080)
+# 🚀 ARRANQUE INICIAL
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
+
 if __name__ == "__main__":
-    inicializar_base_de_datos_nucleo()
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
