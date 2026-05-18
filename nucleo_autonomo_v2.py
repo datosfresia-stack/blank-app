@@ -5,20 +5,23 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
-# ✅ IMPORTAMOS TU ARCHIVO database.py TAL CUAL LO TIENES
+# ✅ 1. Importamos tu base de datos
 from database import get_db, init_db
+
+# ✅ 2. Importamos TU MEMORIA (está en carpeta nucleo_ia)
+from nucleo_ia.memoria_nucleo import guardar_en_memoria, obtener_memoria
 
 app = FastAPI(title="NUCLEO")
 
-# ⚙️ CONFIGURACIÓN
+# ⚙️ CONFIGURACIÓN GENERAL
 CONFIGURACION_NUCLEO = {
     "nombre_sistema": "NUCLEO",
     "estado": "ACTIVO EN RAILWAY",
     "modo": "OPERATIVO",
-    "conexion": "BASE DE DATOS ASÍNCRONA INTEGRADA"
+    "conexion": "BASE + MEMORIA INTEGRADA"
 }
 
-# 🧠 LÓGICA COMPLETA (AQUÍ ES DONDE PIENSA Y RESPONDE)
+# 🧠 LÓGICA DE RESPUESTA (LO QUE PIENSA Y DICE)
 def procesar_informacion(mensaje: str):
     mensaje_min = mensaje.lower()
 
@@ -27,23 +30,27 @@ def procesar_informacion(mensaje: str):
     elif "quién eres" in mensaje_min or "qué eres" in mensaje_min or "identificate" in mensaje_min:
         return "🤖 Soy NÚCLEO, sistema autónomo. Proceso, analizo, guardo y relaciono información. Opero de forma independiente y segura."
     elif "aprende" in mensaje_min or "registra" in mensaje_min or "enseña" in mensaje_min:
-        return "🧠 Conocimiento integrado y almacenado en la matriz relacional. Ahora forma parte de mi base de datos permanente."
+        return "🧠 Conocimiento integrado y almacenado en la matriz relacional. Ahora forma parte de mi memoria permanente."
     elif "estado" in mensaje_min or "cómo estás" in mensaje_min or "sistema" in mensaje_min:
         return f"📊 Estado: {CONFIGURACION_NUCLEO['estado']} | Modo: {CONFIGURACION_NUCLEO['modo']} | Memoria activa."
     elif "hola" in mensaje_min or "saludo" in mensaje_min:
         return "👋 Hola. Sistema operativo estable. Esperando instrucciones o nueva información para procesar."
     elif "mejoras" in mensaje_min or "código" in mensaje_min or "optimizar" in mensaje_min:
-        return "⚙️ Análisis de código: Se recomienda modularizar funciones, optimizar consultas a base de datos y reforzar seguridad. Datos registrados para futura evolución."
+        return "⚙️ Análisis de código: Se recomienda modularizar funciones, optimizar consultas y reforzar seguridad. Datos guardados para evolución."
     elif "ayudar" in mensaje_min or "funciones" in mensaje_min or "qué haces" in mensaje_min:
-        return "💡 Puedo: Almacenar información, relacionar conceptos, responder consultas, analizar datos y evolucionar con cada enseñanza que me entregues."
+        return "💡 Puedo: Almacenar información, relacionar conceptos, responder consultas, analizar datos y evolucionar con cada enseñanza."
     elif "matriz" in mensaje_min or "cine" in mensaje_min:
-        return "🎬 Modo Cine activado: Se almacenan conceptos narrativos, estructuras de guion y análisis de contenido audiovisual."
+        return "🎬 Modo Cine activado: Almaceno narrativas, guiones y análisis audiovisual."
     elif "evolución" in mensaje_min or "crecimiento" in mensaje_min:
-        return "📈 Auto-evolución: Cada dato nuevo refuerza mi lógica. Aprendo de lo que me enseñas y mejoro mis respuestas automáticamente."
+        return "📈 Auto-evolución: Aprendo de lo que me dices. Cada dato nuevo refuerza mi lógica y mejora mis respuestas."
+    elif "qué recuerdas" in mensaje_min or "memoria" in mensaje_min:
+        # ✅ Aquí usa tu archivo memoria_nucleo.py para responder
+        recuerdos = obtener_memoria()
+        return f"💾 Recuerdo: {recuerdos if recuerdos else 'Aún no hay datos guardados o memoria limpia.'}"
     else:
-        return f"✅ Información procesada: '{mensaje}'. Analizada, clasificada y guardada. Relacionada con conocimientos previos."
+        return f"✅ Procesado: '{mensaje}'. Analizado, guardado y relacionado con conocimientos previos."
 
-# 🖥️ INTERFAZ: FONDO NEGRO, LETRAS BLANCAS, BORDES PLOMO/GRIS
+# 🖥️ INTERFAZ: NEGRO, BLANCO, PLOMO (SIN VERDE)
 @app.get("/", response_class=HTMLResponse)
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
@@ -169,7 +176,7 @@ async def ver_consola_nucleo():
 
             <div id="console-log" class="console-log">
                 <div class="log-entry alert-banner">[SISTEMA]: 🛸 NÚCLEO | ACTIVO EN RAILWAY</div>
-                <div class="log-entry">[ESTADO]: Conectado a base de datos. Esperando transferencia...</div>
+                <div class="log-entry">[ESTADO]: Conectado a base y memoria. Esperando...</div>
             </div>
 
             <div class="input-area">
@@ -186,7 +193,7 @@ async def ver_consola_nucleo():
                 document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
                 el.classList.add('active');
                 let nombre = nuevoCanal === 'ingenieria' ? 'INGENIERÍA' : nuevoCanal === 'peliculas' ? 'PELÍCULAS' : 'EVOLUCIÓN';
-                agregarEntrada(`[SISTEMA]: Cambiado a ${nombre}. Modo especial activado.`);
+                agregarEntrada(`[SISTEMA]: Cambiado a ${nombre}. Modo activado.`);
             }
             function agregarEntrada(texto, usuario=false) {
                 const log = document.getElementById('console-log');
@@ -228,25 +235,22 @@ class PeticionUsuario(BaseModel):
     mensaje: str
     canal: str
 
-# 📡 ENDPOINT ADAPTADO A TU database.py
+# 📡 ENDPOINT PRINCIPAL: USA BASE + MEMORIA
 @app.post("/transmitir")
 async def recibir_peticion(
     peticion: PeticionUsuario, 
     db: AsyncSession = Depends(get_db)
 ):
-    # 1. Generamos la respuesta inteligente
+    # 1. Generar respuesta inteligente
     respuesta_texto = procesar_informacion(peticion.mensaje)
 
-    # 2. Guardamos en base usando SQLAlchemy (tu sistema)
-    try:
-        # Definimos la categoría según la pestaña
-        cat = {
-            "ingenieria":"CODE_LAB", 
-            "peliculas":"CINE_MATRIX", 
-            "evolucion":"AUTO_EVOLUCION"
-        }.get(peticion.canal, "GENERAL")
+    # 2. Guardar en TU ARCHIVO memoria_nucleo.py
+    guardar_en_memoria(peticion.canal, peticion.mensaje, respuesta_texto)
 
-        # Creamos la tabla si no existe y guardamos (consulta SQL directa compatible)
+    # 3. Guardar en BASE DE DATOS (database.py)
+    try:
+        cat = {"ingenieria":"CODE_LAB", "peliculas":"CINE_MATRIX", "evolucion":"AUTO_EVOLUCION"}.get(peticion.canal, "GENERAL")
+        
         await db.execute(text("""
             CREATE TABLE IF NOT EXISTS matriz_conocimiento (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -262,14 +266,14 @@ async def recibir_peticion(
             {"cat": cat, "msg": peticion.mensaje, "resp": respuesta_texto}
         )
         await db.commit()
-        estado = "✅ Guardado en Memoria Relacional"
+        estado = "✅ Guardado en Base + Memoria"
 
     except Exception as e:
-        estado = f"⚠️ Guardado fallido: {str(e)}"
+        estado = f"⚠️ Guardado parcial: {str(e)}"
 
     return {"respuesta": respuesta_texto, "estado": estado}
 
-# 🚀 ARRANQUE INICIAL
+# 🚀 ARRANQUE
 @app.on_event("startup")
 async def startup_event():
     await init_db()
