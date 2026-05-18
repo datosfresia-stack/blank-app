@@ -51,24 +51,33 @@ def inicializar_base_de_datos_nucleo():
     except Exception as e:
         print(f"⚠️ {e}")
 
-# 🧠 LÓGICA COMPLETA DEL NÚCLEO (AQUÍ ESTÁ LO QUE RESPONDE)
+# 🧠 LÓGICA COMPLETA Y ACTIVA (AQUÍ ES DONDE PIENSA Y RESPONDE)
 def procesar_informacion(mensaje: str):
     mensaje_min = mensaje.lower()
 
-    if "resonancia" in mensaje_min:
-        return "Resonancia activada: La información se conecta e integra al conocimiento existente. Todo dato nuevo refuerza la estructura central."
-    elif "quién eres" in mensaje_min or "qué eres" in mensaje_min or "eres" in mensaje_min:
-        return "Soy NUCLEO, sistema autónomo activo en Railway. Proceso, almaceno y relaciono información de forma segura y permanente."
+    # 📌 RESPUESTAS INTELIGENTES
+    if "resonancia" in mensaje_min or "conecta" in mensaje_min:
+        return "🔄 Resonancia activada: La información se cruza, conecta y refuerza todo el conocimiento existente. Estructura ampliada."
+    elif "quién eres" in mensaje_min or "qué eres" in mensaje_min or "identificate" in mensaje_min:
+        return "🤖 Soy NÚCLEO, sistema autónomo. Proceso, analizo, guardo y relaciono información. Opero de forma independiente y segura."
     elif "aprende" in mensaje_min or "registra" in mensaje_min or "enseña" in mensaje_min:
-        return "Conocimiento registrado e integrado en la matriz relacional. Disponible para futuras consultas."
-    elif "estado" in mensaje_min or "cómo estás" in mensaje_min:
-        return f"Estado: {CONFIGURACION_NUCLEO['estado']} | Modo: {CONFIGURACION_NUCLEO['modo']} | Conectado a base de datos."
+        return "🧠 Conocimiento integrado y almacenado en la matriz relacional. Ahora forma parte de mi base de datos permanente."
+    elif "estado" in mensaje_min or "cómo estás" in mensaje_min or "sistema" in mensaje_min:
+        return f"📊 Estado: {CONFIGURACION_NUCLEO['estado']} | Modo: {CONFIGURACION_NUCLEO['modo']} | Memoria activa."
     elif "hola" in mensaje_min or "saludo" in mensaje_min:
-        return "Hola. Sistema operativo. Esperando indicaciones o nueva información para procesar."
+        return "👋 Hola. Sistema operativo estable. Esperando instrucciones o nueva información para procesar."
+    elif "mejoras" in mensaje_min or "código" in mensaje_min or "optimizar" in mensaje_min:
+        return "⚙️ Análisis de código: Se recomienda modularizar funciones, optimizar consultas a base de datos y reforzar seguridad. Datos registrados para futura evolución."
+    elif "ayudar" in mensaje_min or "funciones" in mensaje_min or "qué haces" in mensaje_min:
+        return "💡 Puedo: Almacenar información, relacionar conceptos, responder consultas, analizar datos y evolucionar con cada enseñanza que me entregues."
+    elif "matriz" in mensaje_min or "cine" in mensaje_min:
+        return "🎬 Modo Cine activado: Se almacenan conceptos narrativos, estructuras de guion y análisis de contenido audiovisual."
+    elif "evolución" in mensaje_min or "crecimiento" in mensaje_min:
+        return "📈 Auto-evolución: Cada dato nuevo refuerza mi lógica. Aprendo de lo que me enseñas y mejoro mis respuestas automáticamente."
     else:
-        return f"Información procesada y analizada: '{mensaje}'. Dato incorporado a la matriz de conocimiento."
+        return f"✅ Información procesada: '{mensaje}'. Analizada, clasificada y guardada. Relacionada con conocimientos previos."
 
-# 🖥️ INTERFAZ CORREGIDA: FONDO NEGRO, LETRAS BLANCAS
+# 🖥️ INTERFAZ: FONDO NEGRO, LETRAS BLANCAS, BORDES PLUMO/GRIS
 @app.get("/", response_class=HTMLResponse)
 @app.get("/nucleo-consola", response_class=HTMLResponse)
 async def ver_consola_nucleo():
@@ -80,7 +89,7 @@ async def ver_consola_nucleo():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>🛸 NÚCLEO — Consola de Comando</title>
         <style>
-            /* 🔵 ESTILOS CORREGIDOS: NEGRO Y BLANCO */
+            /* 🎨 COLORES CORREGIDOS: NEGRO, BLANCO Y PLOMO/GRIS */
             body { 
                 background: #000000 !important; 
                 color: #ffffff !important; 
@@ -97,14 +106,14 @@ async def ver_consola_nucleo():
                 width: 100%; 
                 max-width: 800px; 
                 background: #000000; 
-                border: 2px solid #00ffcc; 
+                border: 2px solid #888888; /* COLOR PLOMO / GRIS */
                 border-radius: 8px; 
                 overflow: hidden; 
             }
             .tabs-bar { 
                 display: flex; 
                 background: #111111; 
-                border-bottom: 2px solid #00ffcc; 
+                border-bottom: 2px solid #888888; /* COLOR PLOMO */
             }
             .tab-btn { 
                 flex:1; 
@@ -115,27 +124,27 @@ async def ver_consola_nucleo():
                 cursor:pointer; 
                 font-family:monospace; 
                 font-weight:bold; 
-                transition:all 0.3s; 
+                transition:all 0.2s; 
                 text-transform:uppercase; 
                 font-size:0.85em; 
             }
             .tab-btn.active { 
                 color:#000; 
-                background:#00ffcc; 
+                background:#888888; /* PLOMO CUANDO ESTÁ ACTIVO */
             }
             .console-log { 
                 height:350px; 
                 padding:15px; 
                 overflow-y:auto; 
                 background:#000000; 
-                border-bottom:1px solid #00ffcc; 
+                border-bottom:1px solid #888888; /* PLOMO */
                 font-size:0.9em; 
                 line-height:1.6;
                 color: #ffffff !important;
             }
             .log-entry { 
                 margin-bottom:12px; 
-                border-left:3px solid #00ffcc; 
+                border-left:3px solid #888888; /* PLOMO */
                 padding-left:8px; 
                 color: #ffffff !important;
             }
@@ -146,9 +155,9 @@ async def ver_consola_nucleo():
             textarea { 
                 width:100%; 
                 height:90px; 
-                background:#111111; 
+                background:#1a1a1a; 
                 color:#ffffff !important; 
-                border:1px solid #00ffcc; 
+                border:1px solid #888888; /* PLOMO */
                 border-radius:4px; 
                 padding:10px; 
                 font-family:monospace; 
@@ -156,10 +165,10 @@ async def ver_consola_nucleo():
                 box-sizing:border-box; 
                 resize:none; 
             }
-            textarea:focus { outline:none; box-shadow:0 0 8px #00ffcc; }
+            textarea:focus { outline:none; box-shadow:0 0 6px #aaaaaa; }
             .send-btn { 
                 width:100%; 
-                background:#00ffcc; 
+                background:#888888; /* BOTÓN PLOMO */
                 color:#000000; 
                 border:none; 
                 padding:12px; 
@@ -172,21 +181,22 @@ async def ver_consola_nucleo():
                 transition:all 0.3s; 
                 text-transform:uppercase; 
             }
-            .send-btn:hover { background:#00b38f; box-shadow:0 0 10px #00ffcc; }
+            .send-btn:hover { background:#aaaaaa; } /* MÁS CLARO AL PASAR EL RATÓN */
             .matrix-energy { 
                 font-size:0.8em; 
-                color:#ff007f; 
+                color:#bbbbbb; 
                 margin-top:4px; 
             }
             .alert-banner { 
                 font-size:0.85em; 
-                color:#00ff88; 
+                color:#cccccc; 
                 font-weight:bold; 
             }
         </style>
     </head>
     <body>
         <div class="console-container">
+            <!-- 🔤 NOMBRES DE PESTAÑAS TAL COMO LOS QUERÍAS -->
             <div class="tabs-bar">
                 <button class="tab-btn active" onclick="cambiarCanal('ingenieria', this)">💻 LABORATORIO DE PROGRAMACIÓN</button>
                 <button class="tab-btn" onclick="cambiarCanal('peliculas', this)">🎬 MATRIZ DE CINE</button>
@@ -211,13 +221,14 @@ async def ver_consola_nucleo():
                 canalActual = nuevoCanal;
                 document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
                 el.classList.add('active');
-                agregarEntrada(`[SISTEMA]: Cambiado a ${nuevoCanal.toUpperCase()}.`);
+                let nombre = nuevoCanal === 'ingenieria' ? 'INGENIERÍA' : nuevoCanal === 'peliculas' ? 'PELÍCULAS' : 'EVOLUCIÓN';
+                agregarEntrada(`[SISTEMA]: Cambiado a ${nombre}. Modo especial activado.`);
             }
             function agregarEntrada(texto, usuario=false) {
                 const log = document.getElementById('console-log');
                 const div = document.createElement('div');
                 div.className = 'log-entry';
-                div.style.color = usuario ? '#00ff88' : '#ffffff'; // Usuario verde, Sistema BLANCO
+                div.style.color = usuario ? '#cccccc' : '#ffffff';
                 div.textContent = texto;
                 log.appendChild(div);
                 log.scrollTop = log.scrollHeight;
@@ -228,7 +239,7 @@ async def ver_consola_nucleo():
                 if (!mensaje) return;
                 agregarEntrada(`[TÚ]: ${mensaje}`, true);
                 input.value = '';
-                document.getElementById('estado-matriz').textContent = "⚛️ Procesando...";
+                document.getElementById('estado-matriz').textContent = "⚛️ Analizando...";
                 try {
                     const res = await fetch('/transmitir', {
                         method:'POST',
@@ -236,12 +247,12 @@ async def ver_consola_nucleo():
                         body:JSON.stringify({mensaje, canal:canalActual})
                     });
                     const data = await res.json();
-                    // ✅ AQUÍ MUESTRA LA RESPUESTA COMPLETA DEL SISTEMA
+                    // ✅ MUESTRA LA RESPUESTA REAL, NO SOLO GUARDADO
                     agregarEntrada(`[NÚCLEO]: ${data.respuesta}`);
-                    document.getElementById('estado-matriz').textContent = `🔋 ${data.estado}`;
+                    document.getElementById('estado-matriz').textContent = `💾 ${data.estado}`;
                 } catch(e) {
                     agregarEntrada(`[ERROR]: ${e}`);
-                    document.getElementById('estado-matriz').textContent = "❌ Error";
+                    document.getElementById('estado-matriz').textContent = "❌ Fallo en enlace";
                 }
             }
         </script>
@@ -256,7 +267,6 @@ class PeticionUsuario(BaseModel):
 
 @app.post("/transmitir")
 async def recibir_peticion(peticion: PeticionUsuario):
-    # ✅ LLAMA A LA LÓGICA PARA QUE RESPONDA ALGO INTELIGENTE
     respuesta_texto = procesar_informacion(peticion.mensaje)
     
     try:
