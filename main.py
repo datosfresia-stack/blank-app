@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -62,3 +63,10 @@ async def inicio():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
+=======
+from nucleo_autonomo_v2 import app
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
+>>>>>>> 99d5f15fbde2402e83541437908ff6bca135880d
