@@ -111,17 +111,17 @@
             input.value = '';
             log.scrollTop = log.scrollHeight;
 
-            fetch('/transmitir', {
+            fetch('/procesar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mensaje: idea, canal: "general" })
+                body: JSON.stringify({ dato: idea })
             })
             .then(response => response.json())
             .then(data => {
                 log.innerHTML += `
                 <div class="log-entry success-msg">
                     🧠 [NÚCLEO]: ${data.respuesta}<br>
-                    <div class="matrix-energy">⚡ ${data.estado}</div>
+                    <div class="matrix-energy">⚡ Resonancia establecida | Dato guardado</div>
                 </div>`;
             })
             .catch(error => {
