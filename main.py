@@ -1,88 +1,69 @@
-# ==================================================
-# 🧠 NÚCLEO IA - SERVIDOR PRINCIPAL
-# ==================================================
-import os
-import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from pydantic import BaseModel
+import os
+import uvicorn
 
-# Importación correcta
-from memoria_database import get_db, iniciar_base_datos, EnciclopediaNodos, AREAS_CONOCIMIENTO
+# Importamos solo lo que necesitamos
+from memoria_database import get_db, iniciar_base_datos, EnciclopediaNodos
 
-# Iniciar App
-app = FastAPI(title="Núcleo IA")
+# Iniciar Servidor
+app = FastAPI()
 
-# Reglas de acceso
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Arranque
+# Arranque del sistema
 @app.on_event("startup")
 async def encender():
-    print("🚀 Iniciando Sistema...")
+    print("🚀 INICIANDO...")
     await iniciar_base_datos()
-    print("✅ Sistema Listo")
+    print("✅ SISTEMA LISTO")
 
-# Rutas
+# Rutas Web
 @app.get("/")
-def raiz():
+def ir():
     return RedirectResponse(url="/terminal")
 
 @app.get("/terminal", response_class=HTMLResponse)
-def ver_terminal():
-    ruta = os.path.join(os.path.dirname(__file__), "index.html")
-    return FileResponse(ruta)
+def ver_chat():
+    return FileResponse("index.html")
 
-# Estructura datos
+# Formato de lo que escribe el usuario
 class DatoEntrada(BaseModel):
     mensaje: str
 
-# Lógica Inteligencia
+# Lógica: Guardar y Responder
 @app.post("/nucleo-procesar")
 async def procesar(datos: DatoEntrada, db: AsyncSession = Depends(get_db)):
     texto = datos.mensaje.strip()
 
-    # ENSEÑAR
+    # ENSEÑAR: Si tiene ---
     if "---" in texto:
         try:
             partes = texto.split("---", 1)
             tema = partes[0].strip()
-            info = partes[1].strip()
+            contenido = partes[1].strip()
 
-            nuevo = EnciclopediaNodos(area="general", tema=tema, contenido=info)
+            nuevo = EnciclopediaNodos(tema=tema, contenido=contenido)
             db.add(nuevo)
             await db.commit()
-            await db.refresh(nuevo)
-
-            return {"respuesta": f"✅ GUARDADO\n📌 Tema: {tema}\n💾 ID: {nuevo.id}"}
+            return {"respuesta": f"✅ GUARDADO\n📌 Tema: {tema}"}
         except Exception as e:
-            return {"respuesta": f"❌ Error: {str(e)}"}
+            return {"respuesta": f"❌ ERROR: {str(e)}"}
 
-    # CONSULTAR
+    # PREGUNTAR: Buscar en la base
     else:
-        try:
-            resultado = await db.execute(
-                select(EnciclopediaNodos).where(EnciclopediaNodos.tema.ilike(f"%{texto}%")).limit(1)
-            )
-            dato = resultado.scalar_one_or_none()
+        resultado = await db.execute(
+            select(EnciclopediaNodos).where(EnciclopediaNodos.tema.ilike(f"%{texto}%")).limit(1)
+        )
+        dato = resultado.scalar_one_or_none()
 
-            if dato:
-                return {"respuesta": f"🧠 NÚCLEO:\n\n{dato.contenido}"}
-            else:
-                return {"respuesta": f"❌ No sé sobre: '{texto}'\n\nEnseñame así:\nTema --- Explicación..."}
-        except Exception as e:
-            return {"respuesta": f"⚠️ Error: {str(e)}"}
+        if dato:
+            return {"respuesta": f"🧠 NÚCLEO:\n\n{dato.contenido}"}
+        else:
+            return {"respuesta": f"❌ No sé sobre: '{texto}'\n\nEnseña así:\nTema --- Explicación"}
 
-# Puerto Railway
+# Puerto para Railway
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    uvicorn.run("main:app", host="0.0.0.0", port=port)
+    puerto = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=puerto)

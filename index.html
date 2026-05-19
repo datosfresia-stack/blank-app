@@ -5,64 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NÚCLEO IA</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #000000; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-        .chat-container { width: 100%; max-width: 900px; background-color: #1a1a1a; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; height: 85vh; border: 1px solid #333; }
-        .chat-header { background-color: #2d2d2d; padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #444; }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background-color: #1a1a1a; }
-        .message { margin-bottom: 15px; padding: 12px 16px; border-radius: 6px; line-height: 1.5; white-space: pre-wrap; max-width: 80%; }
-        .user { background-color: #3a3a3a; margin-left: auto; border: 1px solid #444; }
-        .ia { background-color: #262626; margin-right: auto; border: 1px solid #444; }
-        .input-area { display: flex; padding: 15px; background-color: #2d2d2d; border-top: 1px solid #444; gap: 10px; }
-        #input-text { flex: 1; background-color: #1a1a1a; color: #ffffff; border: 1px solid #555; border-radius: 6px; padding: 12px; font-size: 15px; }
-        #btn-send { background-color: #444; color: #fff; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        #btn-send:hover { background-color: #666; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #1a1a1a; }
-        ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+        * {margin:0; padding:0; box-sizing:border-box; font-family:sans-serif;}
+        body {background:#000; color:#fff; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px;}
+        .chat {width:100%; max-width:800px; background:#1a1a1a; border-radius:10px; display:flex; flex-direction:column; height:85vh; border:1px solid #333;}
+        .cabecera {background:#2d2d2d; padding:15px; text-align:center; font-weight:bold; border-bottom:1px solid #444;}
+        .mensajes {flex:1; padding:20px; overflow-y:auto; background:#1a1a1a;}
+        .msg {margin:10px 0; padding:12px 16px; border-radius:6px; max-width:80%; white-space:pre-wrap;}
+        .usuario {background:#3a3a3a; margin-left:auto; border:1px solid #555;}
+        .ia {background:#262626; margin-right:auto; border:1px solid #555;}
+        .entrada {display:flex; padding:15px; background:#2d2d2d; border-top:1px solid #444; gap:10px;}
+        #texto {flex:1; background:#1a1a1a; color:#fff; border:1px solid #555; border-radius:6px; padding:12px;}
+        #enviar {background:#444; color:#fff; border:none; padding:0 20px; border-radius:6px; cursor:pointer;}
+        #enviar:hover {background:#666;}
+        ::-webkit-scrollbar {width:6px;}
+        ::-webkit-scrollbar-thumb {background:#555; border-radius:3px;}
     </style>
 </head>
 <body>
-<div class="chat-container">
-    <div class="chat-header">🧠 NÚCLEO | Inteligencia Central</div>
-    <div id="chat-box" class="chat-messages">
-        <div class="message ia">✅ Sistema Activo y Conectado a Base de Datos.<br><br>📚 Áreas: Informática, Robótica, Medicina, Electrónica, Neurociencia, Redes, Biotecnología...<br><br>ℹ️ <b>Enseñar:</b> Tema --- Explicación<br>ℹ️ <b>Preguntar:</b> Solo escribe el tema</div>
+<div class="chat">
+    <div class="cabecera">🧠 NÚCLEO IA - CONECTADO</div>
+    <div id="cajaMensajes" class="mensajes">
+        <div class="msg ia">✅ Sistema listo.<br><br>ℹ️ Enseña: Tema --- Explicación<br>ℹ️ Pregunta: Solo escribe el tema</div>
     </div>
-    <div class="input-area">
-        <textarea id="input-text" placeholder="Escribe aquí... (Ctrl+Enter enviar)" rows="2"></textarea>
-        <button id="btn-send" onclick="enviar()">ENVIAR</button>
+    <div class="entrada">
+        <textarea id="texto" placeholder="Escribe algo..." rows="2"></textarea>
+        <button id="enviar" onclick="enviar()">ENVIAR</button>
     </div>
 </div>
 <script>
-    const caja = document.getElementById('chat-box');
-    const input = document.getElementById('input-text');
-
+    const caja = document.getElementById('cajaMensajes');
+    const input = document.getElementById('texto');
     input.addEventListener('keydown', e => { if(e.ctrlKey && e.key === 'Enter') { e.preventDefault(); enviar(); } });
 
     async function enviar() {
-        const texto = input.value.trim();
-        if(!texto) return;
-        agregarMensaje(texto, true);
+        const txt = input.value.trim();
+        if(!txt) return;
+        agregar(txt, true);
         input.value = '';
-
         try {
             const res = await fetch('/nucleo-procesar', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({mensaje: texto})
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({mensaje:txt})
             });
             const datos = await res.json();
-            agregarMensaje(datos.respuesta, false);
+            agregar(datos.respuesta, false);
         } catch (e) {
-            agregarMensaje("❌ Error de conexión con el servidor", false);
+            agregar("❌ Error de conexión", false);
         }
     }
-
-    function agregarMensaje(texto, esUsuario) {
-        const div = document.createElement('div');
-        div.className = `message ${esUsuario ? 'user' : 'ia'}`;
-        div.textContent = texto;
-        caja.appendChild(div);
+    function agregar(t, u) {
+        const d = document.createElement('div');
+        d.className = `msg ${u ? 'usuario' : 'ia'}`;
+        d.textContent = t;
+        caja.appendChild(d);
         caja.scrollTop = caja.scrollHeight;
     }
 </script>
