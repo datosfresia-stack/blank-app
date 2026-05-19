@@ -26,7 +26,7 @@
 <div class="chat-container">
     <div class="chat-header">🧠 NÚCLEO | Inteligencia Central</div>
     <div id="chat-box" class="chat-messages">
-        <div class="message ia">✅ Sistema Activo.<br><br>📚 Áreas: Informática, Robótica, Medicina, Electrónica, Neurociencia, Redes, Biotecnología...<br><br>ℹ️ <b>Enseñar:</b> Tema --- Explicación<br>ℹ️ <b>Preguntar:</b> Solo escribe el tema</div>
+        <div class="message ia">✅ Sistema Activo y Conectado a Base de Datos.<br><br>📚 Áreas: Informática, Robótica, Medicina, Electrónica, Neurociencia, Redes, Biotecnología...<br><br>ℹ️ <b>Enseñar:</b> Tema --- Explicación<br>ℹ️ <b>Preguntar:</b> Solo escribe el tema</div>
     </div>
     <div class="input-area">
         <textarea id="input-text" placeholder="Escribe aquí... (Ctrl+Enter enviar)" rows="2"></textarea>
@@ -54,7 +54,7 @@
             const datos = await res.json();
             agregarMensaje(datos.respuesta, false);
         } catch (e) {
-            agregarMensaje("❌ Error de conexión", false);
+            agregarMensaje("❌ Error de conexión con el servidor", false);
         }
     }
 

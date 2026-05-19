@@ -3,13 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, func
 
-# ==================================================
-# 🗄️ CONEXIÓN EXACTA RAILWAY
-# ==================================================
-DATABASE_URL = "mysql+aiomysql://root:E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil@mariadb.cba9.up.railway.app:3306/railway"
-
-if os.getenv("USAR_PUBLICO") == "si":
-    DATABASE_URL = "mysql+aiomysql://root:E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil@nozomi.proxy.rlwy.net:18384/railway"
+# ✅ CONEXIÓN CORRECTA (PUERTO ABIERTO 18384)
+DATABASE_URL = "mysql+aiomysql://root:E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil@nozomi.proxy.rlwy.net:18384/railway"
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -24,12 +19,20 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 Base = declarative_base()
 
 # ==================================================
-# 📚 ÁREAS
+# 📚 ÁREAS DE CONOCIMIENTO
 # ==================================================
 AREAS_CONOCIMIENTO = [
-    "informatica", "robotica", "neurociencia", "medicina", "electronica",
-    "redes_neuronales", "redes_cuanticas", "programacion", "medicina_ancestral",
-    "biotecnologia", "general"
+    "informatica",
+    "robotica",
+    "neurociencia",
+    "medicina",
+    "electronica",
+    "redes_neuronales",
+    "redes_cuanticas",
+    "programacion",
+    "medicina_ancestral",
+    "biotecnologia",
+    "general"
 ]
 
 # ==================================================
@@ -70,7 +73,6 @@ async def iniciar_base_datos():
     try:
         async with engine.begin() as conexion:
             await conexion.run_sync(Base.metadata.create_all)
-        print("✅ Base de Datos Conectada")
+        print("✅ [NÚCLEO]: Base de Datos Conectada e Inicializada")
     except Exception as e:
-        print(f"❌ Error DB: {e}")
-        os.environ["USAR_PUBLICO"] = "si"
+        print(f"❌ [NÚCLEO ERROR]: {e}")
