@@ -1,78 +1,144 @@
+# ==================================================
+# 🧠 NÚCLEO IA - ARCHIVO PRINCIPAL
+# Versión: 2.0 | Modo: Público / Multiusuario
+# Ruta: /terminal
+# ==================================================
+
 import os
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from sqlalchemy import Column, Integer, String, Text, Float, TIMESTAMP, func
+import uvicorn
+from fastapi import FastAPI, Depends
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
-# 🌍 CONFIGURACIÓN DE RUTAS DINÁMICAS (LOCAL VS RAILWAY)
-# Priorizamos MYSQL_URL de Railway con el driver asíncrono aiomysql
-DATABASE_URL = os.getenv("MYSQL_URL")
+# ✅ Importamos la configuración y tablas (AHORA SÍ COINCIDE EL NOMBRE)
+from memoria_database import get_db, iniciar_base_datos, EnciclopediaNodos, AREAS_CONOCIMIENTO
+from memoria_nucleo import guardar_en_memoria
 
-if DATABASE_URL:
-    # Corrección de protocolo para asegurar compatibilidad asíncrona en Railway
-    if DATABASE_URL.startswith("mysql://"):
-        DATABASE_URL = DATABASE_URL.replace("mysql://", "mysql+aiomysql://")
-    elif DATABASE_URL.startswith("mariadb://"):
-        DATABASE_URL = DATABASE_URL.replace("mariadb://", "mysql+aiomysql://")
-else:
-    # Entorno de desarrollo local aislado
-    DATABASE_URL = "sqlite+aiosqlite:///./base_prueba.db"
+# ==================================================
+# ⚙️ CONFIGURACIÓN DEL SERVIDOR
+# ==================================================
+app = FastAPI(title="Núcleo IA", version="2.0")
 
-# 🚀 MOTOR DE CONEXIÓN ASÍNCRONO DE ALTA DISPONIBILIDAD
-engine = create_async_engine(
-    DATABASE_URL, 
-    echo=False, 
-    pool_pre_ping=True,  # Verifica si la conexión sigue viva antes de usarla
-    pool_recycle=300,    # Evita el timeout desconectando sockets caídos cada 5 min
-    pool_size=10,        # Número máximo de conexiones simultáneas en horas pico
-    max_overflow=20      # Conexiones extra permitidas en ráfagas de tráfico
+# Permitimos acceso desde cualquier lugar
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-Base = declarative_base()
+# ==================================================
+# 🚀 ARRANQUE DEL SISTEMA
+# ==================================================
+@app.on_event("startup")
+async def encender_sistema():
+    """Se ejecuta al prender el servidor: conecta a la base de datos"""
+    print("🛸 Iniciando secuencia de arranque NÚCLEO...")
+    await iniciar_base_datos()
+    print("✅ Sistema operativo. Esperando consultas.")
+    print(f"📚 Áreas disponibles: {', '.join(AREAS_CONOCIMIENTO)}")
 
+# ==================================================
+# 🗺️ RUTAS DE ACCESO (URL)
+# ==================================================
 
-# 📋 SECTOR 1: MODELO PARA CONSULTAS MÉDICAS Y PARÁMETROS BIOMÉDRICOS
-class ConsultasMedicas(Base):
-    __tablename__ = "consultas_medicas"
-    
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    edad = Column(Integer, nullable=True)
-    presion = Column(Integer, nullable=True)
-    frecuencia = Column(Integer, nullable=True)
-    saturacion = Column(Integer, nullable=True)
-    hipertenso = Column(String(10), nullable=True)
-    sur_chile = Column(String(10), nullable=True)
-    nivel_riesgo = Column(String(50), nullable=True)
-    fecha = Column(TIMESTAMP, server_default=func.now())
+# Redirige la dirección raíz hacia tu terminal
+@app.get("/")
+def ir_a_terminal():
+    return RedirectResponse(url="/terminal")
 
+# Muestra la interfaz gráfica
+@app.get("/terminal", response_class=HTMLResponse)
+def mostrar_consola():
+    ruta_archivo = os.path.join(os.path.dirname(__file__), "index.html")
+    return FileResponse(ruta_archivo)
 
-# 📋 SECTOR 2: MODELO DE ENCICLOPEDIA RELACIONAL (RAG DE TUS 4 PESTAÑAS)
-class EnciclopediaNodos(Base):
-    __tablename__ = "enciclopedia_nodos"
-    
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    area = Column(String(100), index=True, nullable=False) # chat_directo, ingenieria, peliculas, evolucion
-    concepto = Column(String(255), index=True, nullable=False)
-    definicion_profunda = Column(Text, nullable=False) # Soporta textos largos y códigos fuentes masivos
-    requisitos_previos = Column(Text, nullable=True)
-    fecha_indexacion = Column(TIMESTAMP, server_default=func.now())
+# ==================================================
+# 📥 ESTRUCTURA DE DATOS RECIBIDOS
+# ==================================================
+class EntradaUsuario(BaseModel):
+    mensaje: str # Lo que escribe cualquier persona
 
+# ==================================================
+# 🧠 LÓGICA PRINCIPAL: GUARDAR - BUSCAR - RESPONDER
+# ==================================================
+@app.post("/nucleo-procesar")
+async def procesar_entrada(datos: EntradaUsuario, db: AsyncSession = Depends(get_db)):
+    texto_recibido = datos.mensaje.strip()
 
-# 🔌 GENERADOR DE SESIONES ASÍNCRONAS PARA LOS ENDPOINTS
-async def get_db():
-    async with AsyncSessionLocal() as sesion:
+    # --------------------------------------------------
+    # MODO 1: ENSEÑAR / GUARDAR INFORMACIÓN
+    # --------------------------------------------------
+    if "---" in texto_recibido:
         try:
-            yield sesion
-        finally:
-            await sesion.close()
+            # Separamos lo que se va a guardar
+            partes = texto_recibido.split("---", 1)
+            tema_a_guardar = partes[0].strip()
+            contenido_a_guardar = partes[1].strip()
 
+            # 📝 Guardamos en la tabla principal
+            nuevo_conocimiento = EnciclopediaNodos(
+                area="general",
+                tema=tema_a_guardar,
+                contenido=contenido_a_guardar,
+                requisitos=""
+            )
+            db.add(nuevo_conocimiento)
+            await db.commit()
+            await db.refresh(nuevo_conocimiento)
 
-# 🛠️ INICIALIZADOR AUTOMÁTICO DE LA ESTRUCTURA COGNITIVA
-async def init_db():
-    """Crea las tablas asíncronas en MariaDB al arrancar el contenedor"""
-    try:
-        async with engine.begin() as conexion:
-            await conexion.run_sync(Base.metadata.create_all)
-        print("🛸 [Memoria Database]: Modelos relacionales asíncronos inicializados con éxito.")
-    except Exception as e:
-        print(f"⚠️ [Alerta Database]: No se pudieron sincronizar las tablas asíncronas: {e}")
+            # Guardamos también en memoria temporal
+            guardar_en_memoria("publico", texto_recibido, f"Información guardada: {tema_a_guardar}")
+
+            return {
+                "respuesta": f"✅ **GUARDADO CORRECTAMENTE**\n\n"
+                             f"📌 Tema: {tema_a_guardar}\n"
+                             f"💾 ID Registro: {nuevo_conocimiento.id}\n"
+                             f"ℹ️ Esta información está disponible para todos los usuarios.",
+                "estado": "exitoso"
+            }
+
+        except Exception as error_guardado:
+            return {"respuesta": f"❌ Error al guardar: {str(error_guardado)}", "estado": "error"}
+
+    # --------------------------------------------------
+    # MODO 2: CONSULTAR / BUSCAR RESPUESTA
+    # --------------------------------------------------
+    else:
+        try:
+            # 🔎 Buscamos coincidencias
+            busqueda = select(EnciclopediaNodos).where(
+                EnciclopediaNodos.tema.ilike(f"%{texto_recibido}%")
+            ).order_by(EnciclopediaNodos.fecha_guardado.desc()).limit(1)
+
+            resultado = await db.execute(busqueda)
+            dato_encontrado = resultado.scalar_one_or_none()
+
+            if dato_encontrado:
+                guardar_en_memoria("publico", texto_recibido, dato_encontrado.contenido)
+                return {
+                    "respuesta": f"🧠 **NÚCLEO:**\n\n{dato_encontrado.contenido}",
+                    "estado": "encontrado"
+                }
+            else:
+                guardar_en_memoria("publico", texto_recibido, "Sin información")
+                return {
+                    "respuesta": f"❌ **No tengo información sobre:** '{texto_recibido}'\n\n"
+                                 f"💡 **Para enseñarme**, escribe así:\n"
+                                 f"`{texto_recibido} --- Escribe aquí toda la explicación...`",
+                    "estado": "sin_datos"
+                }
+
+        except Exception as error_consulta:
+            return {"respuesta": f"⚠️ Error en la consulta: {str(error_consulta)}", "estado": "error"}
+
+# ==================================================
+# 🚀 LEVANTAR SERVIDOR (COMPATIBLE RAILWAY)
+# ==================================================
+if __name__ == "__main__":
+    puerto = int(os.environ.get("PORT", 8080))
+    uvicorn.run("main:app", host="0.0.0.0", port=puerto, reload=False)
