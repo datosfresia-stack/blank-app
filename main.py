@@ -1,11 +1,12 @@
 import os
+import pymysql
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import pymysql
 from pymysql.cursors import DictCursor
 from datetime import datetime
+import uvicorn
 
-app = FastAPI(title="IA Núcleo", description="Estructura Original: Chat, Núcleo, Cine y Auto Evolución")
+app = FastAPI(title="IA Núcleo", description="Chat, Núcleo, Cine y Auto Evolución")
 
 # =====================================================================
 # CONEXIÓN DIRECTA A TU MARIADB DE RAILWAY
@@ -25,7 +26,7 @@ def conectar_db():
     except Exception:
         return None
 
-# Modelos para recibir los datos de tus vistas
+# Modelos para recibir los datos de tu interfaz
 class MensajeChat(BaseModel):
     mensaje: str
 
@@ -36,8 +37,9 @@ class RegistroNodo(BaseModel):
     respuesta: str
 
 # =====================================================================
-# RUTA 1: 💬 CHAT
+# RUTAS DE TU INTERFAZ (CHAT, NÚCLEO, CINE, AUTO EVOLUCIÓN)
 # =====================================================================
+
 @app.post("/chat")
 def seccion_chat(datos: MensajeChat):
     entrada = datos.mensaje.strip()
@@ -50,7 +52,6 @@ def seccion_chat(datos: MensajeChat):
         
     try:
         with conexion.cursor() as cursor:
-            # Busca si la frase calza con algún nodo existente
             query = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
             cursor.execute(query, (f"%{entrada}%",))
             resultado = cursor.fetchone()
@@ -64,9 +65,6 @@ def seccion_chat(datos: MensajeChat):
     finally:
         conexion.close()
 
-# =====================================================================
-# RUTA 2: 🗂️ NÚCLEO
-# =====================================================================
 @app.get("/nucleo")
 def seccion_nucleo(buscar: str = None):
     conexion = conectar_db()
@@ -77,9 +75,8 @@ def seccion_nucleo(buscar: str = None):
         with conexion.cursor(DictCursor) as cursor:
             if buscar:
                 cursor.execute("SELECT * FROM enciclopedia_nodos WHERE nodo_nombre = %s", (buscar,))
-                return cursor.fetchone() or {"mensaje": "Nodo no registrado."}
+                return cursor.fetchone() or {"mensaje": "Nodo no encontrado."}
             else:
-                # Retorna los datos limpios para armar el mapa visual de nodos en tu pantalla
                 cursor.execute("SELECT id, nodo_nombre, tipo, descripcion FROM enciclopedia_nodos ORDER BY id DESC")
                 return cursor.fetchall()
     except Exception as e:
@@ -87,9 +84,6 @@ def seccion_nucleo(buscar: str = None):
     finally:
         conexion.close()
 
-# =====================================================================
-# RUTA 3: 🎬 CINE
-# =====================================================================
 @app.get("/cine")
 def seccion_cine():
     return {
@@ -98,9 +92,6 @@ def seccion_cine():
         "descripcion": "Repositorio y análisis de narrativa cinematográfica y guiones."
     }
 
-# =====================================================================
-# RUTA 4: 🧠 AUTO EVOLUCIÓN
-# =====================================================================
 @app.post("/auto-evolucion")
 def seccion_auto_evolucion(datos: RegistroNodo):
     conexion = conectar_db()
@@ -122,7 +113,15 @@ def seccion_auto_evolucion(datos: RegistroNodo):
     finally:
         conexion.close()
 
-# Comprobación de estado para Railway
 @app.get("/")
 def estado():
     return {"sistema": "Núcleo", "modo": "Soberano", "status": "Online"}
+
+# =====================================================================
+# BLOQUE DE ARRANQUE MAESTRO (SOLUCIÓN DE RED PARA RAILWAY)
+# =====================================================================
+if __name__ == "__main__":
+    # Lee dinámicamente el puerto que le da Railway (por defecto usa 8080 si no lo encuentra)
+    puerto = int(os.environ.get("PORT", 8080))
+    # Escucha en 0.0.0.0 para abrir las puertas externas
+    uvicorn.run("main:app", host="0.0.0.0", port=puerto, reload=False)
