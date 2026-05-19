@@ -5,10 +5,10 @@ import pymysql
 from pymysql.cursors import DictCursor
 from datetime import datetime
 
-app = FastAPI(title="IA Núcleo", description="Backend Soberano para Chat, Núcleo, Cine y Autoevolución")
+app = FastAPI(title="IA Núcleo", description="Estructura Original: Chat, Núcleo, Cine y Auto Evolución")
 
 # =====================================================================
-# CONFIGURACIÓN DE TU BASE DE DATOS MARIADB (RAILWAY)
+# CONEXIÓN DIRECTA A TU MARIADB DE RAILWAY
 # =====================================================================
 DB_CONFIG = {
     'host': 'nozomi.proxy.rlwy.net',
@@ -21,89 +21,91 @@ DB_CONFIG = {
 
 def conectar_db():
     try:
-        # PyMySQL se conecta directo y sin mañas de C
-        conexion = pymysql.connect(**DB_CONFIG)
-        return conexion
+        return pymysql.connect(**DB_CONFIG)
     except Exception:
         return None
 
-# Modelos de datos
-class ChatRequest(BaseModel):
+# Modelos para recibir los datos de tus vistas
+class MensajeChat(BaseModel):
     mensaje: str
 
-class AprendizajeRequest(BaseModel):
+class RegistroNodo(BaseModel):
     nodo: str
     area: str
     descripcion: str
     respuesta: str
 
 # =====================================================================
-# MODULOS PRINCIPALES (RUTAS CORREGIDAS PARA TU INTERFAZ)
+# RUTA 1: 💬 CHAT
 # =====================================================================
-
-# 1. 💬 MÓDULO: CHAT
-@app.post("/nucleo-chat")
-def modulo_chat(datos: ChatRequest):
+@app.post("/chat")
+def seccion_chat(datos: MensajeChat):
     entrada = datos.mensaje.strip()
     if not entrada:
-        return {"respuesta": "🤖 Núcleo: En espera de tu mensaje..."}
-    
+        return {"respuesta": "🤖 Núcleo: En espera de transmisión..."}
+        
     conexion = conectar_db()
     if not conexion:
-        return {"respuesta": "🤖 (Modo Contingencia): Conexión con MariaDB temporalmente interrumpida."}
+        return {"respuesta": "🤖 Núcleo: Almacenamiento local desconectado."}
         
     try:
         with conexion.cursor() as cursor:
+            # Busca si la frase calza con algún nodo existente
             query = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
             cursor.execute(query, (f"%{entrada}%",))
             resultado = cursor.fetchone()
-        
+            
         if resultado:
             return {"respuesta": resultado[0]}
         else:
-            return {"respuesta": f"🤖 El concepto '{entrada}' no está indexado aún. ¿Quieres guardarlo en Autoevolución?"}
+            return {"respuesta": f"🤖 Concepto '{entrada}' no indexado. Registra este nodo en la pestaña de Auto Evolución para que pueda recordarlo."}
     except Exception:
-        return {"respuesta": "🤖 Error al procesar la consulta en el cerebro local."}
+        return {"respuesta": "🤖 Error en los canales de memoria interna."}
     finally:
         conexion.close()
 
-# 2. 🗂️ MÓDULO: NÚCLEO (Enciclopedia de Nodos)
-@app.get("/nucleo-consola")
-def modulo_nucleo(nodo: str = None):
+# =====================================================================
+# RUTA 2: 🗂️ NÚCLEO
+# =====================================================================
+@app.get("/nucleo")
+def seccion_nucleo(buscar: str = None):
     conexion = conectar_db()
     if not conexion:
-        raise HTTPException(status_code=500, detail="Base de datos inaccesible.")
+        raise HTTPException(status_code=500, detail="Cerebro MariaDB fuera de línea.")
         
     try:
-        # Usamos DictCursor para que devuelva formato JSON limpio como le gusta a tu web
         with conexion.cursor(DictCursor) as cursor:
-            if nodo:
-                cursor.execute("SELECT * FROM enciclopedia_nodos WHERE nodo_nombre = %s", (nodo,))
-                resultado = cursor.fetchone()
-                return resultado if resultado else {"mensaje": "Nodo no encontrado."}
+            if buscar:
+                cursor.execute("SELECT * FROM enciclopedia_nodos WHERE nodo_nombre = %s", (buscar,))
+                return cursor.fetchone() or {"mensaje": "Nodo no registrado."}
             else:
-                cursor.execute("SELECT id, nodo_nombre, tipo, descripcion FROM enciclopedia_nodos ORDER BY id DESC LIMIT 10")
+                # Retorna los datos limpios para armar el mapa visual de nodos en tu pantalla
+                cursor.execute("SELECT id, nodo_nombre, tipo, descripcion FROM enciclopedia_nodos ORDER BY id DESC")
                 return cursor.fetchall()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         conexion.close()
 
-# 3. 🎬 MÓDULO: CINE
-@app.get("/nucleo-cine")
-def modulo_cine():
+# =====================================================================
+# RUTA 3: 🎬 CINE
+# =====================================================================
+@app.get("/cine")
+def seccion_cine():
     return {
-        "modulo": "Cine & Multimedia",
-        "estado": "Operativo",
-        "descripcion": "Espacio de almacenamiento e indexación de narrativa visual y cinematográfica."
+        "seccion": "Cine",
+        "estado": "Activo",
+        "descripcion": "Repositorio y análisis de narrativa cinematográfica y guiones."
     }
 
-# 4. 🧠 MÓDULO: AUTO EVOLUCIÓN (Aprender)
-@app.post("/nucleo-autoevolucion")
-def modulo_autoevolucion(datos: AprendizajeRequest):
+# =====================================================================
+# RUTA 4: 🧠 AUTO EVOLUCIÓN
+# =====================================================================
+@app.post("/auto-evolucion")
+def seccion_auto_evolucion(datos: RegistroNodo):
     conexion = conectar_db()
     if not conexion:
-        raise HTTPException(status_code=500, detail="Error de enlace con el almacenamiento.")
+        raise HTTPException(status_code=500, detail="No se pudo enlazar el almacenamiento.")
         
     try:
         with conexion.cursor() as cursor:
@@ -114,12 +116,13 @@ def modulo_autoevolucion(datos: AprendizajeRequest):
             """
             valores = (datos.nodo.strip(), datos.area.strip(), datos.descripcion.strip(), datos.respuesta.strip(), datetime.now())
             cursor.execute(query, valores)
-        return {"status": "success", "mensaje": f"🤖 Autoevolución: Nuevo conocimiento indexado con éxito bajo el área {datos.area}."}
+        return {"status": "success", "mensaje": "🤖 Núcleo ha evolucionado. Conocimiento grabado con éxito."}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en la autoevolución: {e}")
+        raise HTTPException(status_code=500, detail=f"Fallo en la indexación: {e}")
     finally:
         conexion.close()
 
+# Comprobación de estado para Railway
 @app.get("/")
-def home():
-    return {"sistema": "Núcleo v2", "modulos": ["Chat", "Núcleo", "Cine", "Autoevolución"], "status": "Ready"}
+def estado():
+    return {"sistema": "Núcleo", "modo": "Soberano", "status": "Online"}
