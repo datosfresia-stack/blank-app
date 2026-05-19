@@ -5,198 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NÚCLEO IA</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background-color: #000000; /* Fondo de la página NEGRO */
-            color: #ffffff; /* Letras BLANCAS por defecto */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 15px;
-        }
-
-        .ventana-principal {
-            width: 100%;
-            max-width: 950px;
-            height: 88vh;
-            background-color: #1a1a1a; /* Fondo de la aplicación GRIS OSCURO */
-            border-radius: 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #333;
-        }
-
-        .barra-superior {
-            background-color: #2d2d2d; /* Gris más claro para barras */
-            padding: 12px;
-            text-align: center;
-            font-size: 17px;
-            font-weight: bold;
-            border-bottom: 1px solid #444;
-        }
-
-        .zona-mensajes {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background-color: #1a1a1a; /* Gris del fondo del chat */
-        }
-
-        .mensaje {
-            margin-bottom: 16px;
-            padding: 12px 16px;
-            border-radius: 6px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-width: 85%;
-        }
-
-        .mensaje-usuario {
-            background-color: #3a3a3a; /* Gris medio para lo que escribe la gente */
-            color: #ffffff; /* Texto Blanco */
-            margin-left: auto;
-            border: 1px solid #444;
-        }
-
-        .mensaje-ia {
-            background-color: #2d2d2d; /* Gris oscuro para las respuestas */
-            color: #ffffff; /* Texto Blanco */
-            margin-right: auto;
-            border: 1px solid #444;
-        }
-
-        .zona-entrada {
-            display: flex;
-            padding: 15px;
-            background-color: #2d2d2d; /* Barra inferior gris */
-            border-top: 1px solid #444;
-            gap: 10px;
-        }
-
-        #texto-entrada {
-            flex: 1;
-            background-color: #1a1a1a;
-            color: #ffffff; /* Texto Blanco al escribir */
-            border: 1px solid #555;
-            border-radius: 6px;
-            padding: 12px 15px;
-            font-size: 15px;
-            min-height: 42px;
-            max-height: 180px;
-            resize: vertical;
-        }
-
-        #texto-entrada::placeholder {
-            color: #aaaaaa; /* Color de ayuda */
-        }
-
-        #texto-entrada:focus {
-            outline: none;
-            border-color: #777;
-        }
-
-        #boton-enviar {
-            background-color: #444444;
-            color: #ffffff;
-            border: none;
-            padding: 0 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        #boton-enviar:hover {
-            background-color: #666666;
-        }
-
-        /* Barra de desplazamiento personalizada */
-        .zona-mensajes::-webkit-scrollbar { width: 7px; }
-        .zona-mensajes::-webkit-scrollbar-track { background: #1a1a1a; }
-        .zona-mensajes::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #000000; color: #ffffff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .chat-container { width: 100%; max-width: 900px; background-color: #1a1a1a; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; height: 85vh; border: 1px solid #333; }
+        .chat-header { background-color: #2d2d2d; padding: 15px; text-align: center; font-weight: bold; border-bottom: 1px solid #444; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; background-color: #1a1a1a; }
+        .message { margin-bottom: 15px; padding: 12px 16px; border-radius: 6px; line-height: 1.5; white-space: pre-wrap; max-width: 80%; }
+        .user { background-color: #3a3a3a; margin-left: auto; border: 1px solid #444; }
+        .ia { background-color: #262626; margin-right: auto; border: 1px solid #444; }
+        .input-area { display: flex; padding: 15px; background-color: #2d2d2d; border-top: 1px solid #444; gap: 10px; }
+        #input-text { flex: 1; background-color: #1a1a1a; color: #ffffff; border: 1px solid #555; border-radius: 6px; padding: 12px; font-size: 15px; }
+        #btn-send { background-color: #444; color: #fff; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        #btn-send:hover { background-color: #666; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1a1a1a; }
+        ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
     </style>
 </head>
 <body>
-
-<div class="ventana-principal">
-    <div class="barra-superior">
-        🧠 NÚCLEO | Inteligencia Central
+<div class="chat-container">
+    <div class="chat-header">🧠 NÚCLEO | Inteligencia Central</div>
+    <div id="chat-box" class="chat-messages">
+        <div class="message ia">✅ Sistema Activo.<br><br>📚 Áreas: Informática, Robótica, Medicina, Electrónica, Neurociencia, Redes, Biotecnología...<br><br>ℹ️ <b>Enseñar:</b> Tema --- Explicación<br>ℹ️ <b>Preguntar:</b> Solo escribe el tema</div>
     </div>
-
-    <div id="caja-chat" class="zona-mensajes">
-        <div class="mensaje mensaje-ia">
-            ✅ Sistema activo y conectado a Base de Datos.<br><br>
-            📚 Áreas de conocimiento: Informática, Robótica, Medicina, Electrónica, Neurociencia, Redes Neuronales, Redes Cuánticas, Programación, Medicina Ancestral, Biotecnología.<br><br>
-            ℹ️ <b>Cómo usar:</b><br>
-            • Para ENSEÑAR: Escribe el tema, luego <b>---</b> y después la información.<br>
-            &nbsp;&nbsp;Ej: Inteligencia Artificial --- Es la capacidad de las máquinas para aprender y razonar...<br><br>
-            • Para CONSULTAR: Solo escribe lo que deseas saber.
-        </div>
-    </div>
-
-    <div class="zona-entrada">
-        <textarea id="texto-entrada" placeholder="Escribe tu mensaje aquí... (Ctrl + Enter para enviar)"></textarea>
-        <button id="boton-enviar" onclick="enviarDato()">ENVIAR</button>
+    <div class="input-area">
+        <textarea id="input-text" placeholder="Escribe aquí... (Ctrl+Enter enviar)" rows="2"></textarea>
+        <button id="btn-send" onclick="enviar()">ENVIAR</button>
     </div>
 </div>
-
 <script>
-    const cajaChat = document.getElementById('caja-chat');
-    const inputTexto = document.getElementById('texto-entrada');
+    const caja = document.getElementById('chat-box');
+    const input = document.getElementById('input-text');
 
-    // Atajo de teclado: Ctrl + Enter para enviar rápido
-    inputTexto.addEventListener('keydown', function(e) {
-        if (e.ctrlKey && e.key === 'Enter') {
-            e.preventDefault();
-            enviarDato();
-        }
-    });
+    input.addEventListener('keydown', e => { if(e.ctrlKey && e.key === 'Enter') { e.preventDefault(); enviar(); } });
 
-    // Función principal para enviar al servidor
-    async function enviarDato() {
-        const texto = inputTexto.value.trim();
-        if (!texto) return;
-
-        // 1. Mostramos lo que el usuario escribió en pantalla
+    async function enviar() {
+        const texto = input.value.trim();
+        if(!texto) return;
         agregarMensaje(texto, true);
-        inputTexto.value = '';
+        input.value = '';
 
         try {
-            // 2. Enviamos al servidor /nucleo-procesar
-            const respuesta = await fetch('/nucleo-procesar', {
+            const res = await fetch('/nucleo-procesar', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mensaje: texto })
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({mensaje: texto})
             });
-
-            const datos = await respuesta.json();
-
-            // 3. Mostramos la respuesta del Núcleo
+            const datos = await res.json();
             agregarMensaje(datos.respuesta, false);
-
-        } catch (error) {
-            agregarMensaje("❌ Error de conexión: No se pudo contactar con el núcleo.", false);
+        } catch (e) {
+            agregarMensaje("❌ Error de conexión", false);
         }
     }
 
-    // Función auxiliar para pintar mensajes en la pantalla
-    function agregarMensaje(contenido, esUsuario) {
+    function agregarMensaje(texto, esUsuario) {
         const div = document.createElement('div');
-        div.className = `mensaje ${esUsuario ? 'mensaje-usuario' : 'mensaje-ia'}`;
-        div.textContent = contenido; // Usamos textContent para seguridad
-        cajaChat.appendChild(div);
-        cajaChat.scrollTop = cajaChat.scrollHeight; // Bajamos automático al último mensaje
+        div.className = `message ${esUsuario ? 'user' : 'ia'}`;
+        div.textContent = texto;
+        caja.appendChild(div);
+        caja.scrollTop = caja.scrollHeight;
     }
 </script>
-
 </body>
 </html>

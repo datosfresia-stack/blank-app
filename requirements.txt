@@ -6,3 +6,8 @@ aiosqlite
 python-multipart
 mysql-connector-python
 google-generativeai
+fastapi>=0.100.0
+uvicorn>=0.23.2
+sqlalchemy>=2.0.20
+aiomysql>=0.2.0
+python-multipart>=0.0.6

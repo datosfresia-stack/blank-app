@@ -4,14 +4,13 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, func
 
 # ==================================================
-# 🗄️ CONFIGURACIÓN DE CONEXIÓN MARIADB (RAILWAY)
+# 🗄️ CONEXIÓN EXACTA RAILWAY
 # ==================================================
 DATABASE_URL = "mysql+aiomysql://root:E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil@mariadb.cba9.up.railway.app:3306/railway"
 
 if os.getenv("USAR_PUBLICO") == "si":
     DATABASE_URL = "mysql+aiomysql://root:E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil@nozomi.proxy.rlwy.net:18384/railway"
 
-# 🚀 MOTOR DE CONEXIÓN
 engine = create_async_engine(
     DATABASE_URL,
     echo=False,
@@ -25,20 +24,12 @@ AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=F
 Base = declarative_base()
 
 # ==================================================
-# 📚 ÁREAS DE INTERÉS
+# 📚 ÁREAS
 # ==================================================
 AREAS_CONOCIMIENTO = [
-    "informatica",
-    "robotica",
-    "neurociencia",
-    "medicina",
-    "electronica",
-    "redes_neuronales",
-    "redes_cuanticas",
-    "programacion",
-    "medicina_ancestral",
-    "biotecnologia",
-    "general"
+    "informatica", "robotica", "neurociencia", "medicina", "electronica",
+    "redes_neuronales", "redes_cuanticas", "programacion", "medicina_ancestral",
+    "biotecnologia", "general"
 ]
 
 # ==================================================
@@ -66,7 +57,7 @@ class EnciclopediaNodos(Base):
     fecha_guardado = Column(TIMESTAMP, server_default=func.now())
 
 # ==================================================
-# 🔌 FUNCIONES DE CONEXIÓN
+# 🔌 CONEXIONES
 # ==================================================
 async def get_db():
     async with AsyncSessionLocal() as sesion:
@@ -79,7 +70,7 @@ async def iniciar_base_datos():
     try:
         async with engine.begin() as conexion:
             await conexion.run_sync(Base.metadata.create_all)
-        print("✅ [NÚCLEO]: Base de Datos conectada e inicializada.")
-    except Exception as error_conexion:
-        print(f"❌ [NÚCLEO ERROR]: {error_conexion}")
+        print("✅ Base de Datos Conectada")
+    except Exception as e:
+        print(f"❌ Error DB: {e}")
         os.environ["USAR_PUBLICO"] = "si"
