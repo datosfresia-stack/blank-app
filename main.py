@@ -1,6 +1,6 @@
 import os
 import pymysql
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -18,29 +18,33 @@ app.add_middleware(
 )
 
 # =====================================================================
-# CONEXIÓN DIRECTA CON LAS VARIABLES ENLAZADAS DE TU CAPTURA
+# CONEXIÓN TOTALMENTE FIJA (Sin depender de variables del panel)
 # =====================================================================
 def obtener_conexion():
     try:
-        # Leemos los nombres exactos que inyectamos en las variables de blank-app
-        host_interno = os.environ.get("MARIADB_HOST") or os.environ.get("DB_HOST", "nozomi.proxy.rlwy.net")
-        puerto_interno = os.environ.get("MARIADB_PORT") or os.environ.get("DB_PORT", 18384)
-        usuario_interno = os.environ.get("MARIADB_USER") or os.environ.get("DB_USER", "root")
-        password_interno = os.environ.get("MARIADB_PASSWORD") or os.environ.get("DB_PASSWORD", "E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil")
-        database_interna = os.environ.get("MARIADB_DATABASE") or os.environ.get("DB_NAME", "railway")
-
         return pymysql.connect(
-            host=host_interno,
-            port=int(puerto_interno),
-            user=usuario_interno,
-            password=password_interno,
-            database=database_interna,
+            host='mariadb.cba9.up.railway.app', # El host directo de tu mariadb
+            port=3306,                          # El puerto interno estándar de MariaDB
+            user='root',
+            password='E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil',
+            database='railway',
             autocommit=True,
             connect_timeout=6
         )
     except Exception as err:
-        print(f"Fallo en el intento de conexión: {err}")
-        return None
+        # Si el puerto interno 3306 falla, intentamos por el puerto público como respaldo
+        try:
+            return pymysql.connect(
+                host='nozomi.proxy.rlwy.net',
+                port=18384,
+                user='root',
+                password='E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil',
+                database='railway',
+                autocommit=True,
+                connect_timeout=6
+            )
+        except Exception:
+            return None
 
 class EntradaFrase(BaseModel):
     frase: str = Field(..., min_length=1, max_length=255)
@@ -107,7 +111,7 @@ def interfaz_grafica():
                     const data = await res.json();
                     p.innerHTML = data.respuesta || data.mensaje || JSON.stringify(data);
                 } catch(e) { 
-                    p.innerHTML = "❌ Error de comunicación con la API."; 
+                    p.innerHTML = "❌ Error de comunicación con el servidor."; 
                 }
             }
         </script>
@@ -122,7 +126,7 @@ def procesar_nucleo(datos: EntradaFrase):
     conexion = obtener_conexion()
     
     if not conexion:
-        return {"respuesta": "⚠️ El motor intermedio no logró conectar con MariaDB. Revisa si inyectaste las variables en el bloque de Python o si el servicio de MariaDB está activo."}
+        return {"respuesta": "⚠️ El motor intermedio no logró conectar con la base de datos MariaDB de forma directa."}
         
     try:
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -136,9 +140,9 @@ def procesar_nucleo(datos: EntradaFrase):
                 nodo = cursor.fetchone()
                 if nodo: 
                     return {"respuesta": f"🤖 {nodo['respuesta_asociada']}"}
-                return {"respuesta": f"❌ Conexión exitosa, pero no encontré respuestas para '{frase_limpia}' en la base de datos."}
+                return {"respuesta": f"❌ Conexión exitosa, pero no encontré respuestas para '{frase_limpia}'."}
     except Exception as e:
-        return {"respuesta": f"⚠️ Error en la consulta: {str(e)}"}
+        return {"respuesta": f"⚠️ Error en la consulta a la tabla: {str(e)}"}
     finally:
         conexion.close()
 
