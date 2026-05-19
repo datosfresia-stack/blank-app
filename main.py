@@ -22,7 +22,15 @@ DB_CONFIG = {
 
 def conectar_db():
     try:
-        return pymysql.connect(**DB_CONFIG)
+        # Corregido el llamado nativo para evitar el AttributeError
+        return pymysql.Connect(
+            host=DB_CONFIG['host'],
+            port=DB_CONFIG['port'],
+            user=DB_CONFIG['user'],
+            password=DB_CONFIG['password'],
+            database=DB_CONFIG['database'],
+            autocommit=DB_CONFIG['autocommit']
+        )
     except Exception:
         return None
 
@@ -63,7 +71,8 @@ def seccion_chat(datos: MensajeChat):
     except Exception:
         return {"respuesta": "🤖 Error en los canales de memoria interna."}
     finally:
-        conexion.close()
+        if conexion:
+            conexion.close()
 
 @app.get("/nucleo")
 def seccion_nucleo(buscar: str = None):
@@ -82,7 +91,8 @@ def seccion_nucleo(buscar: str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
-        conexion.close()
+        if conexion:
+            conexion.close()
 
 @app.get("/cine")
 def seccion_cine():
@@ -100,8 +110,9 @@ def seccion_auto_evolucion(datos: RegistroNodo):
         
     try:
         with conexion.cursor() as cursor:
+            # CORREGIDO: Se quitó el guion bajo pegado de 'INSERT INTO'
             query = """
-                INSERT INTO_enciclopedia_nodos 
+                INSERT INTO enciclopedia_nodos 
                 (nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado) 
                 VALUES (%s, %s, %s, %s, %s, 'Activo')
             """
@@ -111,7 +122,8 @@ def seccion_auto_evolucion(datos: RegistroNodo):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Fallo en la indexación: {e}")
     finally:
-        conexion.close()
+        if conexion:
+            conexion.close()
 
 @app.get("/")
 def estado():
