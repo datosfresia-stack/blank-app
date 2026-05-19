@@ -18,16 +18,16 @@ app.add_middleware(
 )
 
 # =====================================================================
-# CONEXIÓN ADAPTADA A TUS VARIABLES DE RAILWAY
+# CONEXIÓN DIRECTA CON LAS VARIABLES ENLAZADAS DE TU CAPTURA
 # =====================================================================
 def obtener_conexion():
     try:
-        # Aquí leemos exactamente los nombres que aparecen en tu captura de pantalla
-        host_interno = os.environ.get("MARIADB_HOST", "nozomi.proxy.rlwy.net")
-        puerto_interno = os.environ.get("MARIADB_PORT", 18384)
-        usuario_interno = os.environ.get("MARIADB_USER", "root")
-        password_interno = os.environ.get("MARIADB_PASSWORD", "E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil")
-        database_interna = os.environ.get("MARIADB_DATABASE", "railway")
+        # Leemos los nombres exactos que inyectamos en las variables de blank-app
+        host_interno = os.environ.get("MARIADB_HOST") or os.environ.get("DB_HOST", "nozomi.proxy.rlwy.net")
+        puerto_interno = os.environ.get("MARIADB_PORT") or os.environ.get("DB_PORT", 18384)
+        usuario_interno = os.environ.get("MARIADB_USER") or os.environ.get("DB_USER", "root")
+        password_interno = os.environ.get("MARIADB_PASSWORD") or os.environ.get("DB_PASSWORD", "E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil")
+        database_interna = os.environ.get("MARIADB_DATABASE") or os.environ.get("DB_NAME", "railway")
 
         return pymysql.connect(
             host=host_interno,
@@ -38,8 +38,8 @@ def obtener_conexion():
             autocommit=True,
             connect_timeout=6
         )
-    except pymysql.MySQLError as err:
-        print(f"Error de conexión a MariaDB: {err}")
+    except Exception as err:
+        print(f"Fallo en el intento de conexión: {err}")
         return None
 
 class EntradaFrase(BaseModel):
@@ -122,7 +122,7 @@ def procesar_nucleo(datos: EntradaFrase):
     conexion = obtener_conexion()
     
     if not conexion:
-        return {"respuesta": "⚠️ El motor intermedio no logró conectar con MariaDB. Revisa si inyectaste las variables en el bloque de Python."}
+        return {"respuesta": "⚠️ El motor intermedio no logró conectar con MariaDB. Revisa si inyectaste las variables en el bloque de Python o si el servicio de MariaDB está activo."}
         
     try:
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
@@ -136,7 +136,7 @@ def procesar_nucleo(datos: EntradaFrase):
                 nodo = cursor.fetchone()
                 if nodo: 
                     return {"respuesta": f"🤖 {nodo['respuesta_asociada']}"}
-                return {"respuesta": f"❌ Conexión exitosa, pero no encontré respuestas para '{frase_limpia}'."}
+                return {"respuesta": f"❌ Conexión exitosa, pero no encontré respuestas para '{frase_limpia}' en la base de datos."}
     except Exception as e:
         return {"respuesta": f"⚠️ Error en la consulta: {str(e)}"}
     finally:
