@@ -1,16 +1,13 @@
 import os
 import pymysql
 from fastapi import FastAPI, HTTPException, status
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uvicorn
 
-app = FastAPI(
-    title="IA Núcleo - Core Sólido", 
-    description="Backend optimizado, seguro y protegido contra fallas de conexión."
-)
+app = FastAPI(title="IA Núcleo - Interfaz Central")
 
-# Configuración central de acceso
 DB_CONFIG = {
     'host': 'nozomi.proxy.rlwy.net',
     'port': 18384,
@@ -19,102 +16,210 @@ DB_CONFIG = {
     'database': 'railway'
 }
 
-# =====================================================================
-# VALIDACIÓN DE ENTRADAS (Escudo contra textos corruptos o vacíos)
-# =====================================================================
 class EntradaFrase(BaseModel):
-    # Validamos que la frase tenga entre 1 y 255 caracteres
-    frase: str = Field(..., min_length=1, max_length=255, description="La frase o concepto a consultar/aprender")
-    respuesta: str = Field(None, max_length=1000, description="La respuesta asociada (solo para modo aprendizaje)")
+    frase: str = Field(..., min_length=1, max_length=255)
+    respuesta: str = Field(None, max_length=1000)
 
-# Función centralizada para conectar. Si falla, el error se captura limpiamente.
 def obtener_conexion():
     try:
         return pymysql.connect(
-            host=DB_CONFIG['host'],
-            port=DB_CONFIG['port'],
-            user=DB_CONFIG['user'],
-            password=DB_CONFIG['password'],
-            database=DB_CONFIG['database'],
-            autocommit=True,
-            connect_timeout=5  # Si en 5 segundos no conecta, aborta para no congelar la app
+            host=DB_CONFIG['host'], port=DB_CONFIG['port'],
+            user=DB_CONFIG['user'], password=DB_CONFIG['password'],
+            database=DB_CONFIG['database'], autocommit=True, connect_timeout=5
         )
-    except pymysql.MySQLError as e:
-        print(f"⚠️ Error crítico de infraestructura MariaDB: {e}")
+    except pymysql.MySQLError:
         return None
 
 # =====================================================================
-# RUTAS DEL SISTEMA
+# INTERFAZ GRÁFICA (HTML + CSS + JAVASCRIPT)
 # =====================================================================
+@app.get("/", response_class=HTMLResponse)
+def interfaz_grafica():
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IA Núcleo - Terminal</title>
+        <style>
+            body {
+                background-color: #0d1117;
+                color: #c9d1d9;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                margin: 0;
+            }
+            .contenedor {
+                background-color: #161b22;
+                border: 1px solid #30363d;
+                border-radius: 10px;
+                padding: 30px;
+                width: 450px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            }
+            h1 {
+                color: #58a6ff;
+                font-size: 24px;
+                margin-top: 0;
+                text-align: center;
+                border-bottom: 1px solid #30363d;
+                padding-bottom: 15px;
+            }
+            .grupo {
+                margin-bottom: 15px;
+            }
+            label {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 14px;
+                color: #8b949e;
+            }
+            input[type="text"], textarea {
+                width: 100%;
+                padding: 10px;
+                background-color: #0d1117;
+                border: 1px solid #30363d;
+                border-radius: 6px;
+                color: #c9d1d9;
+                box-sizing: border-box;
+                font-size: 14px;
+            }
+            input[type="text"]:focus, textarea:focus {
+                border-color: #58a6ff;
+                outline: none;
+            }
+            button {
+                width: 100%;
+                padding: 12px;
+                background-color: #238636;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 15px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            button:hover {
+                background-color: #2ea043;
+            }
+            .consola-respuesta {
+                margin-top: 20px;
+                background-color: #0d1117;
+                border-left: 4px solid #58a6ff;
+                padding: 15px;
+                border-radius: 4px;
+                min-height: 40px;
+                font-family: monospace;
+                font-size: 13px;
+                white-space: pre-wrap;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="contenedor">
+            <h1>🤖 Terminal NÚCLEO</h1>
+            
+            <div class="grupo">
+                <label for="frase">Concepto o Frase:</label>
+                <input type="text" id="frase" placeholder="Ej: Hola, Estado del sistema...">
+            </div>
+            
+            <div class="grupo">
+                <label for="respuesta">Respuesta (Opcional - Para que aprenda):</label>
+                <textarea id="respuesta" rows="3" placeholder="Si escribes aquí, Núcleo guardará esta respuesta en MariaDB para la frase de arriba..."></textarea>
+            </div>
+            
+            <button onclick="enviarANucleo()">Transmitir a Núcleo</button>
+            
+            <div class="consola-respuesta" id="pantalla-salida">Esperando transmisión...</div>
+        </div>
 
-@app.get("/")
-def estado_sistema():
-    return {
-        "status": "Online",
-        "sistema": "IA Núcleo V2",
-        "seguridad": "Alta (Validación activa)",
-        "timestamp": datetime.now().isoformat()
-    }
+        <script>
+            async function enviarANucleo() {
+                const fraseInput = document.getElementById('frase').value.trim();
+                const respuestaInput = document.getElementById('respuesta').value.trim();
+                const pantalla = document.getElementById('pantalla-salida');
+                
+                if (!fraseInput) {
+                    pantalla.innerHTML = "⚠️ Por favor, escribe al menos una frase.";
+                    return;
+                }
+                
+                pantalla.innerHTML = "⚡ Procesando en MariaDB...";
+                
+                payload = { frase: fraseInput };
+                if (respuestaInput) {
+                    payload.respuesta = respuestaInput;
+                }
+                
+                try {
+                    const response = await fetch('/nucleo', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        pantalla.innerHTML = data.respuesta || data.mensaje;
+                        // Limpiamos los campos si acaba de aprender con éxito
+                        if (respuestaInput) {
+                            document.getElementById('frase').value = '';
+                            document.getElementById('respuesta').value = '';
+                        }
+                    } else {
+                        pantalla.innerHTML = "❌ Error: " + data.detail;
+                    }
+                } catch (err) {
+                    pantalla.innerHTML = "❌ Fallo de red al conectar con el backend.";
+                }
+            }
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
-@app.post("/nucleo", status_code=status.HTTP_200_OK)
+# =====================================================================
+# BACKEND CENTRAL DE PROCESAMIENTO (Sigue intacto y robusto)
+# =====================================================================
+@app.post("/nucleo")
 def procesar_nucleo(datos: EntradaFrase):
     frase_limpia = datos.frase.strip()
-    
     conexion = obtener_conexion()
+    
     if not conexion:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE, 
-            detail="🤖 Núcleo: Los canales de memoria (MariaDB) están temporalmente saturados. Reintenta en unos instantes."
-        )
+        raise HTTPException(status_code=503, detail="Cerebro MariaDB desconectado.")
 
     try:
-        # Usamos DictCursor para que los resultados se organicen solitos como diccionarios limpios
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
-            
-            # 🧠 MODO APRENDIZAJE: Si viene con respuesta, guardamos el conocimiento
+            # APRENDER
             if datos.respuesta:
-                respuesta_limpia = datos.respuesta.strip()
-                
                 query_insert = """
                     INSERT INTO enciclopedia_nodos 
                     (nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado) 
-                    VALUES (%s, 'General', 'Aprendizaje Robustecido', %s, %s, 'Activo')
+                    VALUES (%s, 'General', 'Grafica', %s, %s, 'Activo')
                 """
-                cursor.execute(query_insert, (frase_limpia, respuesta_limpia, datetime.now()))
-                return {
-                    "estatus": "success",
-                    "mensaje": f"🤖 Núcleo: El concepto '{frase_limpia}' ha sido indexado correctamente en la matriz de conocimiento."
-                }
+                cursor.execute(query_insert, (frase_limpia, datos.respuesta.strip(), datetime.now()))
+                return {"respuesta": f"✨ Registro grabado. Aprendí el concepto: '{frase_limpia}'."}
             
-            # 🔍 MODO CONSULTA: Si no trae respuesta, buscamos en la base de datos
+            # CONSULTAR
             else:
-                query_select = """
-                    SELECT id, nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado 
-                    FROM enciclopedia_nodos 
-                    WHERE nodo_nombre LIKE %s AND estado = 'Activo' 
-                    LIMIT 1
-                """
+                query_select = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
                 cursor.execute(query_select, (f"%{frase_limpia}%",))
-                nodo_encontrado = cursor.fetchone()
+                nodo = cursor.fetchone()
                 
-                if nodo_encontrado:
-                    return {
-                        "estatus": "found",
-                        "datos_nodo": nodo_encontrado,
-                        "respuesta": f"🤖 Núcleo: {nodo_encontrado['respuesta_asociada']}"
-                    }
-                
-                return {
-                    "estatus": "not_found",
-                    "respuesta": f"🤖 Núcleo: El concepto '{frase_limpia}' no se encuentra en mis registros actuales."
-                }
-
-    except pymysql.MySQLError as error_db:
-        # Si la consulta falla por sintaxis o problemas de tabla, lo atrapamos aquí sin tumbar la app
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"🤖 Núcleo: Error interno al leer la matriz de datos: {error_db}"
-        )
+                if nodo:
+                    return {"respuesta": nodo['respuesta_asociada']}
+                return {"respuesta": f"❌ No encontré respuestas para '{frase_limpia}' en MariaDB."}
+    except pymysql.MySQLError as e:
+        raise HTTPException(status_code=500, detail=f"Fallo en base de datos: {e}")
     finally:
         conexion.close()
 
