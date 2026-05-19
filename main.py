@@ -6,7 +6,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import uvicorn
 
-app = FastAPI(title="IA Núcleo - Interfaz Central")
+app = FastAPI(title="IA Núcleo - Interfaz Central", redirect_slashes=False)
+
+@app.get("")  # Añadimos esta ruta extra sin barra para capturar todo
+def interfaz_grafica_alternativa():
+    return interfaz_grafica()
 
 DB_CONFIG = {
     'host': 'nozomi.proxy.rlwy.net',
