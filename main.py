@@ -1,16 +1,12 @@
 import os
 import pymysql
 from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uvicorn
 
-app = FastAPI(title="IA Núcleo - Interfaz Central", redirect_slashes=False)
-
-@app.get("")  # Añadimos esta ruta extra sin barra para capturar todo
-def interfaz_grafica_alternativa():
-    return interfaz_grafica()
+app = FastAPI(title="IA Núcleo - Interfaz Central")
 
 DB_CONFIG = {
     'host': 'nozomi.proxy.rlwy.net',
@@ -35,9 +31,17 @@ def obtener_conexion():
         return None
 
 # =====================================================================
-# INTERFAZ GRÁFICA (HTML + CSS + JAVASCRIPT)
+# REDIRECCIÓN FORZADA DE LA RAÍZ
 # =====================================================================
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
+def raiz():
+    # Fuerza al navegador a ir directamente a la interfaz gráfica en /index
+    return RedirectResponse(url='/index')
+
+# =====================================================================
+# INTERFAZ GRÁFICA EN RUTA MODERNA (/index)
+# =====================================================================
+@app.get("/index", response_class=HTMLResponse)
 def interfaz_grafica():
     html_content = """
     <!DOCTYPE html>
@@ -135,7 +139,7 @@ def interfaz_grafica():
             
             <div class="grupo">
                 <label for="respuesta">Respuesta (Opcional - Para que aprenda):</label>
-                <textarea id="respuesta" rows="3" placeholder="Si escribes aquí, Núcleo guardará esta respuesta en MariaDB para la frase de arriba..."></textarea>
+                <textarea id="respuesta" rows="3" placeholder="Si escribes aquí, Núcleo guardará esta respuesta..."></textarea>
             </div>
             
             <button onclick="enviarANucleo()">Transmitir a Núcleo</button>
@@ -156,7 +160,7 @@ def interfaz_grafica():
                 
                 pantalla.innerHTML = "⚡ Procesando en MariaDB...";
                 
-                payload = { frase: fraseInput };
+                let payload = { frase: fraseInput };
                 if (respuestaInput) {
                     payload.respuesta = respuestaInput;
                 }
@@ -172,7 +176,6 @@ def interfaz_grafica():
                     
                     if (response.ok) {
                         pantalla.innerHTML = data.respuesta || data.mensaje;
-                        // Limpiamos los campos si acaba de aprender con éxito
                         if (respuestaInput) {
                             document.getElementById('frase').value = '';
                             document.getElementById('respuesta').value = '';
@@ -191,7 +194,7 @@ def interfaz_grafica():
     return HTMLResponse(content=html_content, status_code=200)
 
 # =====================================================================
-# BACKEND CENTRAL DE PROCESAMIENTO (Sigue intacto y robusto)
+# BACKEND CENTRAL DE PROCESAMIENTO
 # =====================================================================
 @app.post("/nucleo")
 def procesar_nucleo(datos: EntradaFrase):
@@ -203,7 +206,6 @@ def procesar_nucleo(datos: EntradaFrase):
 
     try:
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
-            # APRENDER
             if datos.respuesta:
                 query_insert = """
                     INSERT INTO enciclopedia_nodos 
@@ -212,8 +214,6 @@ def procesar_nucleo(datos: EntradaFrase):
                 """
                 cursor.execute(query_insert, (frase_limpia, datos.respuesta.strip(), datetime.now()))
                 return {"respuesta": f"✨ Registro grabado. Aprendí el concepto: '{frase_limpia}'."}
-            
-            # CONSULTAR
             else:
                 query_select = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
                 cursor.execute(query_select, (f"%{frase_limpia}%",))
