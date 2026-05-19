@@ -2,11 +2,23 @@ import os
 import pymysql
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uvicorn
 
 app = FastAPI(title="IA Nucleo Terminal")
+
+# =====================================================================
+# CONFIGURACIÓN DE SEGURIDAD CORS (Permite que la gráfica hable con el backend)
+# =====================================================================
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permite accesos desde cualquier origen
+    allow_credentials=True,
+    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],
+)
 
 DB_CONFIG = {
     'host': 'nozomi.proxy.rlwy.net',
@@ -34,7 +46,7 @@ def obtener_conexion():
 def raiz():
     return RedirectResponse(url='/terminal')
 
-# RUTA NUEVA TOTALMENTE FORZADA
+# RUTA DE LA INTERFAZ GRÁFICA CORREGIDA
 @app.get("/terminal", response_class=HTMLResponse)
 def interfaz_grafica():
     html_content = """
@@ -53,7 +65,7 @@ def interfaz_grafica():
             input[type="text"], textarea { width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9; box-sizing: border-box; }
             button { width: 100%; padding: 12px; background-color: #238636; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
             button:hover { background-color: #2ea043; }
-            .consola-respuesta { margin-top: 20px; background-color: #0d1117; border-left: 4px solid #58a6ff; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+            .consola-respuesta { margin-top: 20px; background-color: #0d1117; border-left: 4px solid #58a6ff; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 13px; min-height: 20px; }
         </style>
     </head>
     <body>
@@ -65,7 +77,7 @@ def interfaz_grafica():
             </div>
             <div class="grupo">
                 <label>Respuesta (Opcional para Aprender):</label>
-                <textarea id="respuesta" rows="3" placeholder="Si escribes aquí, se guardará en MariaDB..."></textarea>
+                <textarea id="textarea_resp" rows="3" placeholder="Si escribes aquí, se guardará en MariaDB..."></textarea>
             </div>
             <button onclick="enviar()">Transmitir a Núcleo</button>
             <div class="consola-respuesta" id="pantalla">Esperando transmisión...</div>
@@ -73,22 +85,37 @@ def interfaz_grafica():
         <script>
             async function enviar() {
                 const f = document.getElementById('frase').value.trim();
-                const r = document.getElementById('respuesta').value.trim();
+                const r = document.getElementById('textarea_resp').value.trim();
                 const p = document.getElementById('pantalla');
+                
                 if(!f) { p.innerHTML = "⚠️ Escribe una frase."; return; }
                 p.innerHTML = "⚡ Conectando a MariaDB...";
+                
                 let payload = { frase: f };
                 if(r) payload.respuesta = r;
+                
                 try {
-                    const res = await fetch('/nucleo', {
+                    // Usamos la URL absoluta de tu app para evitar que el navegador se pierda en las rutas
+                    const res = await fetch('https://blank-app-production-8691.up.railway.app/nucleo', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
+                    
                     const data = await res.json();
-                    p.innerHTML = data.respuesta || data.mensaje;
-                    if(r && res.ok) { document.getElementById('frase').value=''; document.getElementById('respuesta').value=''; }
-                } catch(e) { p.innerHTML = "❌ Error de red."; }
+                    
+                    if (res.ok) {
+                        p.innerHTML = data.respuesta || data.mensaje;
+                        if(r) { 
+                            document.getElementById('frase').value = ''; 
+                            document.getElementById('textarea_resp').value = ''; 
+                        }
+                    } else {
+                        p.innerHTML = "❌ Error del Servidor: " + (data.detail || "Fallo inesperado");
+                    }
+                } catch(e) { 
+                    p.innerHTML = "❌ Error de red al comunicar con la API del Núcleo."; 
+                }
             }
         </script>
     </body>
@@ -101,21 +128,22 @@ def procesar_nucleo(datos: EntradaFrase):
     frase_limpia = datos.frase.strip()
     conexion = obtener_conexion()
     if not conexion:
-        raise HTTPException(status_code=503, detail="MariaDB desconectado.")
+        return {"respuesta": "⚠️ No se pudo establecer conexión con la infraestructura de MariaDB."}
     try:
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
             if datos.respuesta:
                 query = "INSERT INTO enciclopedia_nodos (nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado) VALUES (%s, 'General', 'Grafica', %s, %s, 'Activo')"
                 cursor.execute(query, (frase_limpia, datos.respuesta.strip(), datetime.now()))
-                return {"respuesta": f"✨ Registro grabado en MariaDB. Aprendido: '{frase_limpia}'."}
+                return {"respuesta": f"✨ Registro grabado en MariaDB con éxito. Aprendido: '{frase_limpia}'."}
             else:
                 query = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
                 cursor.execute(query, (f"%{frase_limpia}%",))
                 nodo = cursor.fetchone()
-                if nodo: return {"respuesta": nodo['respuesta_asociada']}
-                return {"respuesta": f"❌ No encontré respuestas para '{frase_limpia}'."}
+                if nodo: 
+                    return {"respuesta": f"🤖 {nodo['respuesta_asociada']}"}
+                return {"respuesta": f"❌ No encontré respuestas para '{frase_limpia}' en los registros."}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"respuesta": f"⚠️ Fallo interno durante la operación: {str(e)}"}
     finally:
         conexion.close()
 
