@@ -101,7 +101,7 @@ def seccion_auto_evolucion(datos: RegistroNodo):
     try:
         with conexion.cursor() as cursor:
             query = """
-                INSERT INTO enciclopedia_nodos 
+                INSERT INTO_enciclopedia_nodos 
                 (nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado) 
                 VALUES (%s, %s, %s, %s, %s, 'Activo')
             """
@@ -117,11 +117,6 @@ def seccion_auto_evolucion(datos: RegistroNodo):
 def estado():
     return {"sistema": "Núcleo", "modo": "Soberano", "status": "Online"}
 
-# =====================================================================
-# BLOQUE DE ARRANQUE MAESTRO (SOLUCIÓN DE RED PARA RAILWAY)
-# =====================================================================
 if __name__ == "__main__":
-    # Lee dinámicamente el puerto que le da Railway (por defecto usa 8080 si no lo encuentra)
     puerto = int(os.environ.get("PORT", 8080))
-    # Escucha en 0.0.0.0 para abrir las puertas externas
     uvicorn.run("main:app", host="0.0.0.0", port=puerto, reload=False)
