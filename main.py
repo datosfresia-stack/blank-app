@@ -9,44 +9,47 @@ import uvicorn
 
 app = FastAPI(title="IA Nucleo Terminal")
 
-# =====================================================================
-# CONFIGURACIÓN DE SEGURIDAD CORS (Permite que la gráfica hable con el backend)
-# =====================================================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Permite accesos desde cualquier origen
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
-DB_CONFIG = {
-    'host': 'nozomi.proxy.rlwy.net',
-    'port': 18384,
-    'user': 'root',
-    'password': 'E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil',
-    'database': 'railway'
-}
+# =====================================================================
+# CONEXIÓN ADAPTADA A TUS VARIABLES DE RAILWAY
+# =====================================================================
+def obtener_conexion():
+    try:
+        # Aquí leemos exactamente los nombres que aparecen en tu captura de pantalla
+        host_interno = os.environ.get("MARIADB_HOST", "nozomi.proxy.rlwy.net")
+        puerto_interno = os.environ.get("MARIADB_PORT", 18384)
+        usuario_interno = os.environ.get("MARIADB_USER", "root")
+        password_interno = os.environ.get("MARIADB_PASSWORD", "E7hZ5nq8FrmUL4iSeRP1bvel5cDkQVil")
+        database_interna = os.environ.get("MARIADB_DATABASE", "railway")
+
+        return pymysql.connect(
+            host=host_interno,
+            port=int(puerto_interno),
+            user=usuario_interno,
+            password=password_interno,
+            database=database_interna,
+            autocommit=True,
+            connect_timeout=6
+        )
+    except pymysql.MySQLError as err:
+        print(f"Error de conexión a MariaDB: {err}")
+        return None
 
 class EntradaFrase(BaseModel):
     frase: str = Field(..., min_length=1, max_length=255)
     respuesta: str = Field(None, max_length=1000)
 
-def obtener_conexion():
-    try:
-        return pymysql.connect(
-            host=DB_CONFIG['host'], port=DB_CONFIG['port'],
-            user=DB_CONFIG['user'], password=DB_CONFIG['password'],
-            database=DB_CONFIG['database'], autocommit=True, connect_timeout=5
-        )
-    except pymysql.MySQLError:
-        return None
-
 @app.get("/")
 def raiz():
     return RedirectResponse(url='/terminal')
 
-# RUTA DE LA INTERFAZ GRÁFICA CORREGIDA
 @app.get("/terminal", response_class=HTMLResponse)
 def interfaz_grafica():
     html_content = """
@@ -95,26 +98,16 @@ def interfaz_grafica():
                 if(r) payload.respuesta = r;
                 
                 try {
-                    // Usamos la URL absoluta de tu app para evitar que el navegador se pierda en las rutas
-                    const res = await fetch('https://blank-app-production-8691.up.railway.app/nucleo', {
+                    const res = await fetch('/nucleo', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     
                     const data = await res.json();
-                    
-                    if (res.ok) {
-                        p.innerHTML = data.respuesta || data.mensaje;
-                        if(r) { 
-                            document.getElementById('frase').value = ''; 
-                            document.getElementById('textarea_resp').value = ''; 
-                        }
-                    } else {
-                        p.innerHTML = "❌ Error del Servidor: " + (data.detail || "Fallo inesperado");
-                    }
+                    p.innerHTML = data.respuesta || data.mensaje || JSON.stringify(data);
                 } catch(e) { 
-                    p.innerHTML = "❌ Error de red al comunicar con la API del Núcleo."; 
+                    p.innerHTML = "❌ Error de comunicación con la API."; 
                 }
             }
         </script>
@@ -127,23 +120,25 @@ def interfaz_grafica():
 def procesar_nucleo(datos: EntradaFrase):
     frase_limpia = datos.frase.strip()
     conexion = obtener_conexion()
+    
     if not conexion:
-        return {"respuesta": "⚠️ No se pudo establecer conexión con la infraestructura de MariaDB."}
+        return {"respuesta": "⚠️ El motor intermedio no logró conectar con MariaDB. Revisa si inyectaste las variables en el bloque de Python."}
+        
     try:
         with conexion.cursor(pymysql.cursors.DictCursor) as cursor:
             if datos.respuesta:
                 query = "INSERT INTO enciclopedia_nodos (nodo_nombre, tipo, descripcion, respuesta_asociada, fecha_creacion, estado) VALUES (%s, 'General', 'Grafica', %s, %s, 'Activo')"
                 cursor.execute(query, (frase_limpia, datos.respuesta.strip(), datetime.now()))
-                return {"respuesta": f"✨ Registro grabado en MariaDB con éxito. Aprendido: '{frase_limpia}'."}
+                return {"respuesta": f"✨ ¡Éxito! Aprendido e insertado en MariaDB: '{frase_limpia}'."}
             else:
                 query = "SELECT respuesta_asociada FROM enciclopedia_nodos WHERE nodo_nombre LIKE %s AND estado = 'Activo' LIMIT 1"
                 cursor.execute(query, (f"%{frase_limpia}%",))
                 nodo = cursor.fetchone()
                 if nodo: 
                     return {"respuesta": f"🤖 {nodo['respuesta_asociada']}"}
-                return {"respuesta": f"❌ No encontré respuestas para '{frase_limpia}' en los registros."}
+                return {"respuesta": f"❌ Conexión exitosa, pero no encontré respuestas para '{frase_limpia}'."}
     except Exception as e:
-        return {"respuesta": f"⚠️ Fallo interno durante la operación: {str(e)}"}
+        return {"respuesta": f"⚠️ Error en la consulta: {str(e)}"}
     finally:
         conexion.close()
 
