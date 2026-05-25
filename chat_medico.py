@@ -1,28 +1,26 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-
-router = APIRouter()
-
-class PacienteDatos(BaseModel):
-    rol: str
-    diagnostico: str
-    peso: float
-    presion: float
-    saturacion: float
-
-@router.post("/evaluar-riesgo")
-async def evaluar_riesgo(datos: PacienteDatos):
-    # Convertimos a minúsculas para que detecte "Cáncer", "CANCER", "cáncer", etc.
-    diag = datos.diagnostico.lower()
+def analizar_lenguaje_oculto(nota, metadatos):
+    # Detección de patrones de deterioro
+    alertas = []
     
-    # Lógica mejorada
-    if "cancer" in diag:
-        mensaje = (f"Entiendo tu situación, {datos.rol}. "
-                   "He detectado tu diagnóstico. En esta etapa, el apoyo emocional y la "
-                   "información correcta son vitales. Te recomiendo contactar a la Fundación "
-                   "de Valdivia o centros oncológicos de tu región. "
-                   "¿Necesitas apoyo en salud mental o orientación sobre hospedaje?")
-        return {"analisis": mensaje, "riesgo": "Prioridad de Orientación"}
+    # Si la complejidad es muy baja pero el texto es largo: posible fatiga cognitiva
+    if metadatos['largoTexto'] > 50 and metadatos['complejidad'] < 2:
+        alertas.append("Posible fatiga cognitiva o confusión leve detectada.")
     
-    # Si no es cáncer, seguimos con lo genérico
-    return {"analisis": "Hemos recibido tus datos. Un especialista de la red podría orientarte mejor.", "riesgo": "Consulta General"}
+    # Detección de lenguaje circular (repetición)
+    if "no sé" in nota.lower() and "ayuda" in nota.lower():
+        alertas.append("Estado de estrés agudo - Requiere derivación prioritaria.")
+        
+    return alertas
+
+# En tu función principal:
+def procesar_evaluacion(data):
+    nota = data.get('nota_usuario', '')
+    metadatos = data.get('metadatos_escritura', {})
+    
+    alertas = analizar_lenguaje_oculto(nota, metadatos)
+    
+    return {
+        "analisis": "Tu orientación basada en tus parámetros...",
+        "alerta_oculta": alertas if alertas else None,
+        "acciones": [...]
+    }
