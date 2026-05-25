@@ -3,25 +3,30 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-# Definimos qué datos esperamos recibir
 class PacienteDatos(BaseModel):
-    edad: float
+    rol: str
+    diagnostico: str
+    peso: float
     presion: float
-    frecuencia: float
     saturacion: float
 
 @router.post("/evaluar-riesgo")
 async def evaluar_riesgo(datos: PacienteDatos):
-    # Aquí va la lógica de negocio
-    riesgo = "Bajo"
-    analisis = "Tus niveles parecen estables según los parámetros generales."
+    diagnostico_lower = datos.diagnostico.lower()
     
-    # Ejemplo de lógica simple
-    if datos.presion > 140:
-        riesgo = "Alto"
-        analisis = "Presión elevada detectada. Se recomienda reposo y consulta médica."
-    
-    return {
-        "analisis": analisis,
-        "riesgo": riesgo
-    }
+    # Lógica de Orientación Oncológica (Universal)
+    if "cancer" in diagnostico_lower:
+        mensaje_base = f"Entiendo profundamente la situación, {datos.rol}. "
+        if datos.rol == "Paciente":
+            mensaje_base += "Tu bienestar emocional y físico es la prioridad. "
+        else:
+            mensaje_base += "Tu rol de acompañamiento es fundamental y muy valioso. "
+        
+        return {
+            "analisis": mensaje_base + "Te sugiero revisar el feed de apoyo a un costado y contactar con centros especializados. ¿Necesitas información sobre redes de apoyo o salud mental?",
+            "riesgo": "Prioridad de Orientación",
+            "enlace": "https://fundacionvaldivia.cl" # Ejemplo
+        }
+
+    # Lógica estándar de signos vitales
+    return {"analisis": "Hemos recibido tus datos. Un especialista de la red podría orientarte mejor.", "riesgo": "Consulta General"}
