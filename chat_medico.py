@@ -12,21 +12,17 @@ class PacienteDatos(BaseModel):
 
 @router.post("/evaluar-riesgo")
 async def evaluar_riesgo(datos: PacienteDatos):
-    diagnostico_lower = datos.diagnostico.lower()
+    # Convertimos a minúsculas para que detecte "Cáncer", "CANCER", "cáncer", etc.
+    diag = datos.diagnostico.lower()
     
-    # Lógica de Orientación Oncológica (Universal)
-    if "cancer" in diagnostico_lower:
-        mensaje_base = f"Entiendo profundamente la situación, {datos.rol}. "
-        if datos.rol == "Paciente":
-            mensaje_base += "Tu bienestar emocional y físico es la prioridad. "
-        else:
-            mensaje_base += "Tu rol de acompañamiento es fundamental y muy valioso. "
-        
-        return {
-            "analisis": mensaje_base + "Te sugiero revisar el feed de apoyo a un costado y contactar con centros especializados. ¿Necesitas información sobre redes de apoyo o salud mental?",
-            "riesgo": "Prioridad de Orientación",
-            "enlace": "https://fundacionvaldivia.cl" # Ejemplo
-        }
-
-    # Lógica estándar de signos vitales
+    # Lógica mejorada
+    if "cancer" in diag:
+        mensaje = (f"Entiendo tu situación, {datos.rol}. "
+                   "He detectado tu diagnóstico. En esta etapa, el apoyo emocional y la "
+                   "información correcta son vitales. Te recomiendo contactar a la Fundación "
+                   "de Valdivia o centros oncológicos de tu región. "
+                   "¿Necesitas apoyo en salud mental o orientación sobre hospedaje?")
+        return {"analisis": mensaje, "riesgo": "Prioridad de Orientación"}
+    
+    # Si no es cáncer, seguimos con lo genérico
     return {"analisis": "Hemos recibido tus datos. Un especialista de la red podría orientarte mejor.", "riesgo": "Consulta General"}
