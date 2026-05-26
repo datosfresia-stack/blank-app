@@ -2,12 +2,13 @@ import os
 import csv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
+from fastapi.responses import FileResponse # Importante para la descarga
 from datetime import datetime
+import uvicorn
 
 app = FastAPI()
 
-# Configuración CORS para permitir tu WordPress
+# Configuración CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,46 +16,46 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Nombre del archivo donde se guardarán los pacientes
-ARCHIVO_PACIENTES = "base_datos_pacientes.csv"
+ARCHIVO_PACIENTES = "pacientes_ialibre.csv"
 
-# Inicializar el archivo con cabeceras si no existe
+# Asegurar que el archivo tenga cabeceras al iniciar
 if not os.path.exists(ARCHIVO_PACIENTES):
-    with open(ARCHIVO_PACIENTES, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Fecha", "Nombre", "Edad", "Diagnóstico", "Necesidad", "Prioridad"])
+    with open(ARCHIVO_PACIENTES, mode='w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Fecha", "Nombre", "Domicilio", "Telefono", "Edad", "Peso", "Presion", "Diagnostico", "Necesidad", "Detalle", "Prioridad"])
 
 @app.get("/")
 def root():
-    return {"status": "Núcleo operativo - Base de datos activa"}
+    return {"status": "Núcleo operativo"}
+
+# --- AQUÍ VA LO QUE ME PEDISTE ---
 
 @app.post("/guardar-paciente")
 async def guardar_paciente(request: Request):
-    try:
-        data = await request.json()
+    data = await request.json()
+    
+    # Lógica simple de prioridad
+    diag = data.get('diagnostico', '').lower()
+    prioridad = "ALTA" if any(x in diag for x in ['cancer', 'urgente', 'dolor']) else "NORMAL"
+    
+    fila = [
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        data.get('nombre'), data.get('domicilio'), data.get('telefono'),
+        data.get('edad'), data.get('peso'), data.get('presion'),
+        data.get('diagnostico'), data.get('necesidad'), data.get('detalle_peticion'),
+        prioridad
+    ]
+    
+    with open(ARCHIVO_PACIENTES, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(fila)
         
-        # Lógica de prioridad
-        diag = data.get('diagnostico', '').lower()
-        prioridad = "ALTA" if any(x in diag for x in ['cancer', 'urgente', 'dolor']) else "NORMAL"
-        
-        # Registrar en el archivo CSV local
-        nueva_fila = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            data.get('nombre'),
-            data.get('edad'),
-            data.get('diagnostico'),
-            data.get('peticion_contacto'),
-            prioridad
-        ]
-        
-        with open(ARCHIVO_PACIENTES, mode='a', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
-            writer.writerow(nueva_fila)
-            
-        return {"status": "success", "mensaje": "Paciente guardado en base de datos local"}
-        
-    except Exception as e:
-        return {"status": "error", "detalle": str(e)}
+    return {"status": "success"}
+
+@app.get("/descargar-datos")
+def descargar_datos():
+    # Esto te permite bajar el archivo desde el navegador
+    return FileResponse(ARCHIVO_PACIENTES, media_type='text/csv', filename="pacientes_ialibre.csv")
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
