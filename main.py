@@ -31,7 +31,7 @@ async def guardar_paciente(request: Request):
     msg = EmailMessage()
     msg['Subject'] = f"[{prioridad}] Nueva Solicitud IALIBRE - {data.get('nombre')}"
     msg['From'] = os.getenv('EMAIL_USER')
-    msg['To'] = 'ialibre@outlook.com'
+    msg['To'] = 'chatialibre@gmail.com'
     
     msg.set_content(f"""
     Nombre: {data.get('nombre')}
