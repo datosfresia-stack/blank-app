@@ -1,9 +1,9 @@
 import os
-import smtplib
-from email.message import EmailMessage
+import csv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from datetime import datetime
 
 app = FastAPI()
 
@@ -15,37 +15,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Nombre del archivo donde se guardarán los pacientes
+ARCHIVO_PACIENTES = "base_datos_pacientes.csv"
+
+# Inicializar el archivo con cabeceras si no existe
+if not os.path.exists(ARCHIVO_PACIENTES):
+    with open(ARCHIVO_PACIENTES, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Fecha", "Nombre", "Edad", "Diagnóstico", "Necesidad", "Prioridad"])
+
 @app.get("/")
 def root():
-    return {"status": "Núcleo operativo"}
+    return {"status": "Núcleo operativo - Base de datos activa"}
 
-# Ponemos la lógica directamente aquí para evitar errores de importación
 @app.post("/guardar-paciente")
 async def guardar_paciente(request: Request):
-    data = await request.json()
-    
-    # Lógica de prioridad
-    diag = data.get('diagnostico', '').lower()
-    prioridad = "ALTA" if any(x in diag for x in ['cancer', 'urgente', 'dolor']) else "NORMAL"
-    
-    msg = EmailMessage()
-    msg['Subject'] = f"[{prioridad}] Nueva Solicitud IALIBRE - {data.get('nombre')}"
-    msg['From'] = os.getenv('EMAIL_USER')
-    msg['To'] = 'chatialibre@gmail.com'
-    
-    msg.set_content(f"""
-    Nombre: {data.get('nombre')}
-    Edad: {data.get('edad')}
-    Diagnóstico: {data.get('diagnostico')}
-    Necesidad: {data.get('peticion_contacto')}
-    Prioridad: {prioridad}
-    """)
-    
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
-            smtp.send_message(msg)
-        return {"status": "success"}
+        data = await request.json()
+        
+        # Lógica de prioridad
+        diag = data.get('diagnostico', '').lower()
+        prioridad = "ALTA" if any(x in diag for x in ['cancer', 'urgente', 'dolor']) else "NORMAL"
+        
+        # Registrar en el archivo CSV local
+        nueva_fila = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            data.get('nombre'),
+            data.get('edad'),
+            data.get('diagnostico'),
+            data.get('peticion_contacto'),
+            prioridad
+        ]
+        
+        with open(ARCHIVO_PACIENTES, mode='a', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(nueva_fila)
+            
+        return {"status": "success", "mensaje": "Paciente guardado en base de datos local"}
+        
     except Exception as e:
         return {"status": "error", "detalle": str(e)}
 
