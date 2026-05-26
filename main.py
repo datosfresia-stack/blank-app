@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 import chat_medico 
 
 app = FastAPI()
-
+app.include_router(chat_medico.router)
 # Configuración CORS
 app.add_middleware(
     CORSMiddleware,
