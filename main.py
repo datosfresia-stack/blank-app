@@ -3,12 +3,11 @@ import smtplib
 from email.message import EmailMessage
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-import chat_medico 
+import uvicorn
 
 app = FastAPI()
-app.include_router(chat_medico.router)
-# Configuración CORS
+
+# Configuración CORS para permitir tu WordPress
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,51 +15,39 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Incluir tus rutas existentes
-app.include_router(chat_medico.router)
-
 @app.get("/")
 def root():
-    return {"status": "Núcleo y ChatMédico operativos"}
+    return {"status": "Núcleo operativo"}
 
-# --- NUEVA RUTA CORREGIDA PARA FASTAPI ---
+# Ponemos la lógica directamente aquí para evitar errores de importación
 @app.post("/guardar-paciente")
 async def guardar_paciente(request: Request):
     data = await request.json()
     
     # Lógica de prioridad
-    diagnostico = data.get('diagnostico', '').lower()
-    peticion = data.get('peticion_contacto', '').lower()
-    prioridad = "ALTA" if any(p in diagnostico or p in peticion for p in ['cancer', 'urgente', 'dolor']) else "NORMAL"
+    diag = data.get('diagnostico', '').lower()
+    prioridad = "ALTA" if any(x in diag for x in ['cancer', 'urgente', 'dolor']) else "NORMAL"
     
     msg = EmailMessage()
     msg['Subject'] = f"[{prioridad}] Nueva Solicitud IALIBRE - {data.get('nombre')}"
     msg['From'] = os.getenv('EMAIL_USER')
     msg['To'] = 'ialibre@outlook.com'
     
-    cuerpo = f"""
-    Nueva solicitud recibida desde IALIBRE:
-    
-    - Nombre: {data.get('nombre')}
-    - Edad: {data.get('edad')}
-    - Domicilio: {data.get('domicilio')}
-    - Teléfono: {data.get('telefono')}
-    - Diagnóstico: {data.get('diagnostico')}
-    - Necesidad: {data.get('necesidad')}
-    - Detalles: {data.get('peticion_contacto')}
-    
-    Prioridad detectada: {prioridad}
-    """
-    msg.set_content(cuerpo)
+    msg.set_content(f"""
+    Nombre: {data.get('nombre')}
+    Edad: {data.get('edad')}
+    Diagnóstico: {data.get('diagnostico')}
+    Necesidad: {data.get('peticion_contacto')}
+    Prioridad: {prioridad}
+    """)
     
     try:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(os.getenv('EMAIL_USER'), os.getenv('EMAIL_PASS'))
             smtp.send_message(msg)
-        return {"status": "success", "mensaje": "Tu mensaje ha sido enviado. Pronto te contactaremos."}
+        return {"status": "success"}
     except Exception as e:
-        return JSONResponse(status_code=500, content={"status": "error", "mensaje": str(e)})
+        return {"status": "error", "detalle": str(e)}
 
 if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    uvicorn.run(app, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
