@@ -2,6 +2,7 @@ import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse # Necesario para las descargas
 
 # Importamos las dos ramas
 import chat_medico
@@ -25,13 +26,18 @@ app.include_router(chat_laboral.router)
 def root():
     return {"status": "Núcleo IALibre en funcionamiento - Rama Salud y Laboral activas"}
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    uvicorn.run(app, host='0.0.0.0', port=port)
-    @app.get("/descargar-postulantes")
+# --- RUTAS DE DESCARGA (Fuera del if __name__) ---
+
+@app.get("/descargar-postulantes")
 def descargar_postulantes():
     return FileResponse("postulantes_laboral.csv", media_type='text/csv', filename="postulantes_laboral.csv")
 
 @app.get("/descargar-ofertas")
 def descargar_ofertas():
     return FileResponse("ofertas_laboral.csv", media_type='text/csv', filename="ofertas_laboral.csv")
+
+# --- BLOQUE DE INICIO ---
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    uvicorn.run(app, host='0.0.0.0', port=port)
