@@ -28,3 +28,10 @@ def root():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     uvicorn.run(app, host='0.0.0.0', port=port)
+    @app.get("/descargar-postulantes")
+def descargar_postulantes():
+    return FileResponse("postulantes_laboral.csv", media_type='text/csv', filename="postulantes_laboral.csv")
+
+@app.get("/descargar-ofertas")
+def descargar_ofertas():
+    return FileResponse("ofertas_laboral.csv", media_type='text/csv', filename="ofertas_laboral.csv")
