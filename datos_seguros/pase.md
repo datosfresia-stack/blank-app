@@ -1,1 +1,0 @@
-# bd originales nucleo
