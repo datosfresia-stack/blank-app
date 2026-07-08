@@ -1,0 +1,18 @@
+[
+  {
+    "sujeto": "Miguel Ángel Alarcón Cheuqueman",
+    "relacion": "esposa",
+    "objeto": "Magdalena Sanhueza",
+    "confianza": 1.0,
+    "estado": "confirmado_por_miguel",
+    "nota": "Magdalena Sanhueza es la esposa de Miguel. Esta relación tiene prioridad sobre aprendizajes contradictorios."
+  },
+  {
+    "sujeto": "Miguel Ángel Alarcón Cheuqueman",
+    "relacion": "amiga_dirigente",
+    "objeto": "María Amelia Millalonco",
+    "confianza": 1.0,
+    "estado": "confirmado_por_miguel",
+    "nota": "María Amelia Millalonco es dirigente y amiga de Miguel; no es su esposa."
+  }
+]

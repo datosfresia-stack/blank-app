@@ -1,0 +1,242 @@
+{
+  "familia": {
+    "evaluaciones": [
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:31:27.943909"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:36:39.980797"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:38:56.385499"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:39:08.155348"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:39:15.063987"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:39:35.465424"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:39:55.334645"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:49:35.219777"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:49:53.060011"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:50:31.675798"
+      }
+    ],
+    "confianza_promedio": 0.0,
+    "riesgo_predominante": "CRITICO",
+    "tendencia_confianza": "ESTABLE",
+    "ultima_actualizacion": "2026-06-18T05:50:31.675821"
+  },
+  "local": {
+    "evaluaciones": [
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:31:52.993597"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:38:40.850387"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:38:50.376119"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:40:27.475198"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:46:31.260525"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:47:20.478385"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:48:56.106040"
+      }
+    ],
+    "confianza_promedio": 0.0,
+    "riesgo_predominante": "CRITICO",
+    "tendencia_confianza": "ESTABLE",
+    "ultima_actualizacion": "2026-06-18T05:48:56.106057"
+  },
+  "salud": {
+    "evaluaciones": [
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:37:06.678178"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:37:20.465489"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:37:44.111488"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:38:09.018742"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:40:47.819507"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:40:55.027301"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:41:00.210072"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:41:08.196161"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:41:14.590467"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:41:33.966522"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:42:30.164115"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:43:31.873448"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:45:48.300381"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:46:09.351497"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:46:46.613401"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:47:59.068315"
+      },
+      {
+        "confianza": 0.008799593495934954,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T05:48:37.203759"
+      },
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:11:28.737702"
+      },
+      {
+        "confianza": 0.1708333333333333,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:11:45.121314"
+      },
+      {
+        "confianza": 0.09333333333333332,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:13:11.965608"
+      }
+    ],
+    "confianza_promedio": 0.01364831300813008,
+    "riesgo_predominante": "CRITICO",
+    "tendencia_confianza": "ESTABLE",
+    "ultima_actualizacion": "2026-06-18T07:13:11.965631"
+  },
+  "identidad": {
+    "evaluaciones": [
+      {
+        "confianza": 0.0,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:09:56.040321"
+      }
+    ],
+    "confianza_promedio": 0.0,
+    "riesgo_predominante": "CRITICO",
+    "tendencia_confianza": "ESTABLE",
+    "ultima_actualizacion": "2026-06-18T07:09:56.040338"
+  },
+  "conversacion": {
+    "evaluaciones": [
+      {
+        "confianza": 0.034999999999999976,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:10:39.938541"
+      },
+      {
+        "confianza": 0.034999999999999976,
+        "riesgo": "CRITICO",
+        "timestamp": "2026-06-18T07:12:01.633347"
+      }
+    ],
+    "confianza_promedio": 0.034999999999999976,
+    "riesgo_predominante": "CRITICO",
+    "tendencia_confianza": "ESTABLE",
+    "ultima_actualizacion": "2026-06-18T07:12:01.633362"
+  }
+}

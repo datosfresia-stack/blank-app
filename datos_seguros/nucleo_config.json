@@ -1,0 +1,8 @@
+{
+  "internet_activo": true,
+  "modo_operacion": "auto",
+  "llm_preferido": "ollama",
+  "ollama_url": "http://127.0.0.1:11434/api/generate",
+  "vision_activa": true,
+  "voz_activa": true
+}
